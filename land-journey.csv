@@ -1,0 +1,9 @@
+origin,destination,mode,cost_sgd,date
+Singapore,Tokyo,train,1325,
+Kuala Lumpur,Bangkok,bus,45,
+Bangkok,Chiang Mai,bus,20,
+Chiang Mai,Bangkok,bus,20,
+Bangkok,Kuala Lumpur,bus,45,
+Kuala Lumpur,Singapore,train,25,
+Singapore,Jakarta,ferry,85,
+Jakarta,Singapore,ferry,85,

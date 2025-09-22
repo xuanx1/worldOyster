@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Flight Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .title-section {
+            position: absolute;
+            right: calc(50% + 390px);
+            top: calc(50% - 350px);
+            transform: none;
+            text-align: right;
+            z-index: 1;
+        }
+
+        .main-title {
+            font-size: 3em;
+            font-weight: 100;
+            line-height: 1.1;
+            color: #ffffff;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .export-button {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            color: #ffffff;
+            font-size: 0.9em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+
+        .export-button:hover {
+            background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+        }
+
+        .export-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+        }
+
+        .card-container {
+            width: 700px;
+            height: 700px;
+            background: #2c2c2c;
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #82e585 0%, #45a049 100%);
+            padding: 15px 20px;
+            opacity: 0.95;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 1.5em;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .main-container {
+            height: 400px;
+            position: relative;
+            background: #1a1a1a;
+        }
+
+        .map-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            background: #0f0f0f;
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
+            width: 0%;
+            transition: width 0.1s;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+
+        .city-list-container {
+            flex: 1;
+            background: #333;
+            padding: 5px;
+            border-radius: 0 0 10px 10px;
+            border-top: 1px solid #444;
+            overflow: hidden; /* Prevent any overflow */
+        }
+
+        .city-list-title {
+            color: #4CAF50;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .city-list-wrapper {
+            position: relative;
+            max-height: 180px;
+            overflow: hidden; /* Prevent any scrolling on wrapper */
+        }
+
+        .city-list-wrapper::before,
+        .city-list-wrapper::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 16px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .city-list-wrapper::before {
+            top: 0;
+            background: linear-gradient(to bottom, #333 0%, transparent 100%);
+        }
+
+        .city-list-wrapper::after {
+            bottom: 0;
+            background: linear-gradient(to top, #333 0%, transparent 100%);
+        }
+
+        .city-list {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 21px;
+            max-height: 180px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            width: 100%;
+            padding: 16px 0;
+        }
+
+        .city-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            background: transparent;
+            border-radius: 0;
+            border: none;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-height: 60px;
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        .city-item.visited {
+            background: transparent;
+            border: none;
+            color: #4CAF50;
+        }
+
+        .city-item.current {
+            background: transparent;
+            border: none;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            transform: scale(1.1);
+        }
+
+        .city-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .city-status {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .city-status.visited {
+            background: #4CAF50;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+        }
+
+        .city-status.current {
+            background: #FFD700;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        .city-name {
+            font-weight: 500;
+            font-size: 0.8em;
+            line-height: 1.1;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .city-country {
+            color: #999;
+            font-size: 0.7em;
+        }
+
+
+
+        /* Custom scrollbar */
+        .city-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .city-list::-webkit-scrollbar-track {
+            background: #444;
+            border-radius: 3px;
+        }
+
+        .city-list::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 3px;
+        }
+
+        .city-list::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+
+
+
+        /* Leaflet customizations */
+        .leaflet-control-attribution {
+            display: none;
+        }
+
+        .leaflet-control-zoom {
+            background: #333;
+            border: 1px solid #666;
+        }
+
+        .leaflet-control-zoom a {
+            background: #333;
+            color: #fff;
+            border-bottom: 1px solid #666;
+        }
+
+        .leaflet-control-zoom a:hover {
+            background: #444;
+        }
+
+        .stats-section {
+            position: absolute;
+            left: calc(50% + 390px);
+            top: calc(50% - 350px);
+            width: 250px;
+            text-align: left;
+            z-index: 1;
+            color: #ffffff;
+        }
+
+        .stats-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #4CAF50;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Individual increment displays next to each stat */
+        .stat-item {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+        }
+
+        .stat-increment {
+            display: inline;
+            background: rgba(76, 175, 80, 0.15);
+            border: 1px solid #4CAF50;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin-left: 8px;
+            font-size: 0.6em;
+            color: #4CAF50;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .stat-increment.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: 300;
+            color: #ffffff;
+        }
+
+        .stat-value.highlight {
+            color: #4CAF50;
+        }
+
+        /* Animation effects for statistics */
+        .stat-value.scrambling {
+            letter-spacing: 0.1em;
+        }
+
+        .stat-value.counting {
+            transition: all 0.3s ease;
+        }
+
+        /* Smooth swiping transition for current flight */
+        .stat-value.highlight {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .stat-value.highlight.fade-out {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        .stat-value.highlight.fade-in {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        @keyframes numberPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .stat-value.updating {
+            animation: numberPulse 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-section">
+        <h1 class="main-title">
+            IS<br>
+            THE<br>
+            WORLD<br>
+            YOUR<br>
+            OYSTER<br>🦪?
+        </h1>
+        <button class="export-button" id="exportButton">
+            📊 Export Data
+        </button>
+    </div>
+
+    <div class="stats-section">
+        <div class="stats-title">Travel Statistics</div>
+        <div class="stat-item">
+            <div class="stat-label">Total Journeys</div>
+            <div class="stat-value" id="totalFlights">-</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Cities Visited</div>
+            <div class="stat-value" id="citiesVisited">-</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Total Distance<div class="stat-increment" id="incDistance">-</div></div>
+            <div class="stat-value" id="totalDistance">-</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Total Time<div class="stat-increment" id="incTime">-</div></div>
+            <div class="stat-value" id="totalTime">-</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">CO₂ Emission<div class="stat-increment" id="incCO2">-</div></div>
+            <div class="stat-value" id="co2Emission">-</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Cost (USD)<div class="stat-increment" id="incCostUSD">-</div></div>
+            <div class="stat-value" id="totalCostUSD">-</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Cost (SGD)<div class="stat-increment" id="incCostSGD">-</div></div>
+            <div class="stat-value" id="totalCostSGD">-</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Current Journey</div>
+            <div class="stat-value highlight" id="currentFlight">-</div>
+        </div>
+    </div>
+    
+    <div class="card-container">
+        <div class="header">
+            <h1>---</h1>
+        </div>
+
+        <div class="main-container">
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="city-list-container">
+            <div class="city-list-title"></div>
+            <div class="city-list-wrapper">
+                <div class="city-list" id="cityList">
+                    <!-- Cities will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="flight-data.js"></script>
+    <script src="animated-flight-map.js"></script>
+</body>
+</html>

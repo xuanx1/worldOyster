@@ -1,0 +1,171 @@
+Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registration,Seat number,Seat type,Flight class,Flight reason,Note,Dep_id,Arr_id,Airline_id,Aircraft_id,Cost_sgd
+8/30/2025,NK 2124,Newark / Liberty International (EWR/KEWR),Fort Lauderdale / Hollywood (FLL/KFLL),0:00:00,0:00:00,2:34:00, (/), (),,,0,0,0,,851,892,0,0,97.23
+8/30/2025,AV 37,Fort Lauderdale / Hollywood (FLL/KFLL),Bogota / Eldorado Intl. (BOG/SKBO),0:00:00,0:00:00,3:34:00, (/), (),,,0,0,0,,892,371,0,0,97.23
+8/30/2025,AV 239,Bogota / Eldorado Intl. (BOG/SKBO),El Alto / El Alto International Airport (LPB/SLLP),0:00:00,0:00:00,3:33:00, (/), (),,,0,0,0,,371,1667,0,0,97.23
+9/13/2025,JA 7046,Cuzco / Velazco Astete (CUZ/SPZO),Lima / Jorge Chavez International (LIM/SPIM),0:00:00,0:00:00,1:02:00, (/), (),,,0,0,0,,643,1626,0,0,55.45
+9/17/2025,LA 521,Lima / Jorge Chavez International (LIM/SPIM),Santiago / Comodoro Arturo Merino Benitez (SCL/SCEL),0:00:00,0:00:00,3:34:00, (/), (),,,0,0,0,,1626,2606,0,0,106.17
+9/19/2025,LA 522,Santiago / Comodoro Arturo Merino Benitez (SCL/SCEL),Lima / Jorge Chavez International (LIM/SPIM),0:00:00,0:00:00,3:34:00, (/), (),,,0,0,0,,2606,1626,0,0,106.17
+9/21/2025,LA2690,Lima / Jorge Chavez International (LIM/SPIM),New York / John F Kennedy (JFK/KJFK),12:00:00,21:05:00,8:05:00,LATAM Airlines (LA/LAN),Boeing 767-300 (B763),CC-CWV,,0,0,0,,1626,1328,2656,244,1036.44
+8/25/2025,UA2402,Newark / Liberty International (EWR/KEWR),New Orleans / Moisant Fld (MSY/KMSY),16:42:00,18:52:00,3:10:00,United Airlines (UA/UAL),Boeing 737-900 (B739),N37422,,0,0,0,,851,1942,808,232,94.55
+8/28/2025,NK 2551,New Orleans / Moisant Fld (MSY/KMSY),Newark / Liberty International (EWR/KEWR),0:00:00,0:00:00,2:47:00, (/), (),,,0,0,0,,1942,851,0,0,50.48
+7/30/2025,NK 1861,Las Vegas / McCarran (LAS/KLAS),Seattle / Seattle-Tacoma (SEA/KSEA),0:00:00,0:00:00,2:08:00, (/), (),,,0,0,0,,1557,2627,0,0,53.42
+7/30/2025,NK 1585,Newark / Liberty International (EWR/KEWR),Las Vegas / McCarran (LAS/KLAS),0:00:00,0:00:00,5:04:00, (/), (),,,0,0,0,,851,1557,0,0,53.42
+8/5/2025,NK 1861,Seattle / Seattle-Tacoma (SEA/KSEA),Las Vegas / McCarran (LAS/KLAS),0:00:00,0:00:00,2:08:00, (/), (),,,0,0,0,,2627,1557,0,0,53.42
+8/5/2025,NK 1585,Las Vegas / McCarran (LAS/KLAS),Newark / Liberty International (EWR/KEWR),0:00:00,0:00:00,5:04:00, (/), (),,,0,0,0,,1557,851,0,0,53.42
+6/24/2025,F91809,New York / John F Kennedy (JFK/KJFK),Miami / Miami International (MIA/KMIA),11:30:00,14:48:00,3:18:00,Frontier Airlines (F9/FFT),Airbus A321-200 (A321),,,0,0,0,,1328,1831,302,2076,68.42
+6/27/2025,F91810,Miami / Miami International (MIA/KMIA),New York / John F Kennedy (JFK/KJFK),7:10:00,10:29:00,3:19:00,Frontier Airlines (F9/FFT),Airbus A321-200 (A321),,,0,0,0,,1831,1328,302,2076,68.42
+6/29/2025,NK 2543,Newark / Liberty International (EWR/KEWR),Chicago / O'Hare (ORD/KORD),0:00:00,0:00:00,1:48:00, (/), (),,,0,0,0,,851,2205,0,0,65.64
+7/1/2025,NK 2542,Chicago / O'Hare (ORD/KORD),Newark / Liberty International (EWR/KEWR),0:00:00,0:00:00,1:48:00, (/), (),,,0,0,0,,2205,851,0,0,65.64
+2/28/2025,NK 209,Newark / Liberty International (EWR/KEWR),Chicago / O'Hare (ORD/KORD),0:00:00,0:00:00,1:48:00, (/), (),,,0,0,0,,851,2205,0,0,36.75
+3/1/2025,NK 210,Chicago / O'Hare (ORD/KORD),Newark / Liberty International (EWR/KEWR),0:00:00,0:00:00,1:48:00, (/), (),,,0,0,0,,2205,851,0,0,36.75
+3/7/2025,AM411,Newark / Liberty International (EWR/KEWR),Mexico City / Juarez (MEX/MMMX),8:01:00,12:45:00,6:44:00,Aeromexico (AM/AMX),Boeing 737 MAX 8 (B38M),,,0,0,0,,851,1800,63,2123,254.8
+3/11/2025,VB 9214,Reyes Acozac / Santa Lucia Air Force Base (NLU/MMSM),Oaxaca / Xoxocotlan (OAX/MMOX),0:00:00,0:00:00,0:46:00, (/), (),,,0,0,0,,6475,2142,0,0,57.07
+3/13/2025,VB 9215,Oaxaca / Xoxocotlan (OAX/MMOX),Reyes Acozac / Santa Lucia Air Force Base (NLU/MMSM),0:00:00,0:00:00,0:46:00, (/), (),,,0,0,0,,2142,6475,0,0,57.07
+3/15/2025,AM 410,Mexico City / Juarez (MEX/MMMX),Newark / Liberty International (EWR/KEWR),0:00:00,0:00:00,4:46:00, (/), (),,,0,0,0,,1800,851,0,0,254.8
+4/28/2024,W46339,Milan / Malpensa (MXP/LIMC),Beauvais / Beauvais Tille (BVA/LFOB),0:00:00,0:00:00,1:07:00, (/), (),,,0,0,0,,1983,440,0,0,53.69
+4/30/2024,W46340,Beauvais / Beauvais Tille (BVA/LFOB),Milan / Malpensa (MXP/LIMC),8:25:00,10:00:00,1:35:00,Aero Services Executive (W4/BES),Airbus A321LR (A21N),,,0,0,0,,440,1983,126,2181,53.69
+9/9/2023,SV837,Singapore / Changi (SIN/WSSS),Jeddah / King Abdulaziz (JED/OEJN),0:00:00,0:00:00,10:11:00, (/), (),,,0,0,0,,2672,1325,0,0,190.17
+9/10/2023,SV530,Jeddah / King Abdulaziz (JED/OEJN),Muscat / Seeb (MCT/OOMS),0:00:00,0:00:00,2:54:00, (/), (),,,0,0,0,,1325,1770,0,0,190.17
+9/12/2023,3L252,Muscat / Seeb (MCT/OOMS),Abu Dhabi / Abu Dhabi (AUH/OMAA),20:30:00,21:40:00,1:10:00,InterSky (3L/ISK),Airbus A320-200 (A320),,,0,0,0,,1770,188,1102,2059,63.3
+9/14/2023,TK7775,Sharjah / Sharjah (SHJ/OMSJ),Istanbul / Sabiha Gokcen (SAW/LTFJ),0:00:00,0:00:00,4:16:00, (/), (),,,0,0,0,,2657,3659,0,0,190.37
+9/14/2023,TK7878,Istanbul / Sabiha Gokcen (SAW/LTFJ),Zurich / Kloten (ZRH/LSZH),0:00:00,0:00:00,2:41:00, (/), (),,,0,0,0,,3659,3548,0,0,190.37
+5/20/2024,SQ377,Milan / Malpensa (MXP/LIMC),Singapore / Changi (SIN/WSSS),13:25:00,7:40:00,12:15:00,Singapore Airlines (SQ/SIA),Airbus A350-900 (A359),,,0,0,0,,1983,2672,703,2110,629.52
+8/17/2024,KL0836,Singapore / Changi (SIN/WSSS),Amsterdam / Schiphol (AMS/EHAM),0:00:00,0:00:00,14:27:00, (/), (),,,0,0,0,,2672,122,0,0,465.13
+8/17/2024,KL6020,Amsterdam / Schiphol (AMS/EHAM),New York / John F Kennedy (JFK/KJFK),10:00:00,12:20:00,8:20:00,KLM Royal Dutch Airlines (KL/KLM),Airbus A330-300 (A333),,,0,0,0,,122,1328,440,31,465.13
+11/8/2024,JL003,New York / John F Kennedy (JFK/KJFK),Tokyo / Haneda (HND/RJTT),0:00:00,0:00:00,14:56:00, (/), (),,,0,0,0,,1328,1152,0,0,465.13
+11/9/2024,JL037,Tokyo / Haneda (HND/RJTT),Singapore / Changi (SIN/WSSS),0:00:00,0:00:00,7:24:00, (/), (),,,0,0,0,,1152,2672,0,0,465.13
+5/17/2025,NK 2736,Newark / Liberty International (EWR/KEWR),Las Vegas / McCarran (LAS/KLAS),0:00:00,0:00:00,5:04:00, (/), (),,,0,0,0,,851,1557,0,0,141.09
+5/20/2025,NK 2374,Las Vegas / McCarran (LAS/KLAS),Burbank / Glendale-Pasadena (BUR/KBUR),0:00:00,0:00:00,0:44:00, (/), (),,,0,0,0,,1557,436,0,0,82.41
+5/25/2025,F9 4593,Los Angeles / Los Angeles International (LAX/KLAX),San Francisco / San Francisco International (SFO/KSFO),0:00:00,0:00:00,0:59:00, (/), (),,,0,0,0,,1559,2644,0,0,103.45
+5/29/2025,UA 1230,San Francisco / San Francisco International (SFO/KSFO),Denver / Denver (DEN/KDEN),0:00:00,0:00:00,2:20:00, (/), (),,,0,0,0,,2644,691,0,0,80.3
+5/29/2025,UA 2642,Denver / Denver (DEN/KDEN),Newark / Liberty International (EWR/KEWR),0:00:00,0:00:00,3:43:00, (/), (),,,0,0,0,,691,851,0,0,80.3
+7/7/2023,U2 3963,Milan / Malpensa (MXP/LIMC),Beauvais / Beauvais Tille (BVA/LFOB),0:00:00,0:00:00,1:07:00, (/), (),,,0,0,0,,1983,440,0,0,71.33
+7/10/2023,EJU4631,Paris / Charles de Gaulle (CDG/LFPG),Berlin / Brandenburg (BER/EDDB),0:00:00,0:00:00,1:24:00, (/), (),,,0,0,0,,509,4895,0,0,137
+7/16/2023,FR4143,Prague / Praha-Ruzyne (PRG/LKPR),Budapest / Franz Liszt International (BUD/LHBP),7:45:00,8:55:00,1:10:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,2398,429,668,231,85.33
+7/18/2023,RO 238,Budapest / Franz Liszt International (BUD/LHBP),Bucharest / Henri Coanda (OTP/LROP),0:00:00,0:00:00,1:04:00, (/), (),,,0,0,0,,429,2230,0,0,161.67
+7/21/2023,FR8735,Bucharest / Henri Coanda (OTP/LROP),Milan / Malpensa (MXP/LIMC),13:40:00,15:10:00,2:30:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,2230,1983,668,231,30.33
+7/22/2023,QR124,Milan / Malpensa (MXP/LIMC),Doha / Hamad International (DOH/OTHH),9:40:00,16:25:00,5:45:00,Qatar Airways (QR/QTR),Airbus A350-900 (A359),,,0,0,0,,1983,5259,634,2110,421.97
+7/23/2023,QR946,Doha / Hamad International (DOH/OTHH),Singapore / Changi (SIN/WSSS),0:00:00,0:00:00,8:38:00, (/), (),,,0,0,0,,5259,2672,0,0,421.97
+7/14/2022,GF24,Milan / Malpensa (MXP/LIMC),Bahrain / Bahrain (BAH/OBBI),11:45:00,18:45:00,6:00:00,Gulf Air (GF/GFA),Airbus A321LR (A21N),,,0,0,0,,1983,215,324,2181,219.42
+7/14/2022,GF165,Bahrain / Bahrain (BAH/OBBI),Singapore / Changi (SIN/WSSS),23:30:00,12:20:00,7:50:00,Gulf Air (GF/GFA),Boeing 787-9 (B789),,,0,0,0,,215,2672,324,2088,219.42
+9/9/2022,GF166,Singapore / Changi (SIN/WSSS),Bahrain / Bahrain (BAH/OBBI),20:00:00,23:29:00,8:29:00,Gulf Air (GF/GFA),Boeing 787-9 (B789),,,0,0,0,,2672,215,324,2088,219.42
+9/11/2022,GF25,Bahrain / Bahrain (BAH/OBBI),Milan / Malpensa (MXP/LIMC),1:40:00,6:55:00,6:15:00,Gulf Air (GF/GFA),Airbus A321LR (A21N),,,0,0,0,,215,1983,324,2181,219.42
+7/25/2022,TR674,Singapore / Changi (SIN/WSSS),Chiang Mai / Chiang Mai (CNX/VTCC),14:40:00,16:40:00,3:00:00,Scoot (TR/TGW),Airbus A321LR (A21N),,,0,0,0,,2672,3642,2695,2181,189.33
+7/27/2022,VZ111,Chiang Mai / Chiang Mai (CNX/VTCC),Bangkok / Suvarnabhumi (BKK/VTBS),14:35:00,15:55:00,1:20:00,MyTravel Airways (VZ/MYT),Airbus A320-200 (A320),,,0,0,0,,3642,331,546,2059,45.33
+7/29/2022,TR605,Bangkok / Suvarnabhumi (BKK/VTBS),Singapore / Changi (SIN/WSSS),15:25:00,19:00:00,2:35:00,Scoot (TR/TGW),Airbus A321LR (A21N),,,0,0,0,,331,2672,2695,2181,123.33
+11/30/2022,TK55,Singapore / Changi (SIN/WSSS),Istanbul / Istanbul Airport (IST/LTFM),23:10:00,5:15:00,11:05:00,Turkish Airlines (TK/THY),Boeing 777-300ER (B77W),,,0,0,0,,2672,8949,769,2023,189.63
+11/30/2022,TK1873,Istanbul / Istanbul Airport (IST/LTFM),Milan / Malpensa (MXP/LIMC),6:50:00,8:45:00,2:55:00,Turkish Airlines (TK/THY),Airbus A330-300 (A333),,,0,0,0,,8949,1983,769,31,189.63
+9/29/2022,TK1876,Milan / Malpensa (MXP/LIMC),Istanbul / Istanbul Airport (IST/LTFM),20:10:00,0:10:00,3:00:00,Turkish Airlines (TK/THY),Airbus A350-900 (A359),,,0,0,0,,1983,8949,769,2110,189.63
+9/30/2022,TK54,Istanbul / Istanbul Airport (IST/LTFM),Singapore / Changi (SIN/WSSS),2:05:00,17:55:00,10:50:00,Turkish Airlines (TK/THY),Boeing 777-300ER (B77W),,,0,0,0,,8949,2672,769,2023,189.63
+12/20/2018,JL38,Singapore / Changi (SIN/WSSS),Tokyo / Haneda (HND/RJTT),1:55:00,9:50:00,6:55:00,Japan Airlines (JL/JAL),Boeing 767 (B767),,,0,0,0,,2672,1152,406,2011,456.5
+12/20/2018,JL519,Tokyo / Haneda (HND/RJTT),Sapporo / New Chitose (CTS/RJCC),14:30:00,16:05:00,1:35:00,Japan Airlines (JL/JAL),Airbus A350-900 (A359),,,0,0,0,,1152,631,406,2110,456.5
+1/31/2019,JL106,Osaka / Itami (ITM/RJOO),Tokyo / Haneda (HND/RJTT),8:30:00,9:40:00,1:10:00,Japan Airlines (JL/JAL),Boeing 787-8 (B788),,,0,0,0,,1285,1152,406,2087,348.88
+1/31/2019,JL37,Tokyo / Haneda (HND/RJTT),Singapore / Changi (SIN/WSSS),11:25:00,17:30:00,7:05:00,Japan Airlines (JL/JAL),Boeing 787-9 (B789),,,0,0,0,,1152,2672,406,2088,348.88
+4/12/2024,W62430,Istanbul / Istanbul Airport (IST/LTFM),Budapest / Franz Liszt International (BUD/LHBP),9:10:00,10:15:00,2:05:00,Wizz Air (W6/WZZ),Airbus A321LR (A21N),,,0,0,0,,8949,429,859,2181,43.66
+4/14/2024,W6 2307,Budapest / Franz Liszt International (BUD/LHBP),Giza / Giza Sphinx International Airport (SPX/HESX),0:00:00,0:00:00,3:10:00, (/), (),,,0,0,0,,429,8975,0,0,73.95
+4/19/2024,W6 2308,Giza / Giza Sphinx International Airport (SPX/HESX),Budapest / Franz Liszt International (BUD/LHBP),0:00:00,0:00:00,3:10:00, (/), (),,,0,0,0,,8975,429,0,0,73.95
+4/19/2024,W62335,Budapest / Franz Liszt International (BUD/LHBP),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,1:22:00, (/), (),,,0,0,0,,429,1983,0,0,68.78
+12/24/2019,,Singapore / Changi (SIN/WSSS),Guangzhou / Canton-Baiyun (CAN/ZGGG),0:00:00,0:00:00,3:49:00, (/), (),,,0,0,0,,2672,478,0,0,190.5
+12/25/2019,,Guangzhou / Canton-Baiyun (CAN/ZGGG),Beijing / Beijing Daxing International Airport (PKX/ZBAD),0:00:00,0:00:00,2:42:00, (/), (),,,0,0,0,,478,9280,0,0,190.5
+1/5/2020,,Beijing / Beijing Daxing International Airport (PKX/ZBAD),Guangzhou / Canton-Baiyun (CAN/ZGGG),0:00:00,0:00:00,2:42:00, (/), (),,,0,0,0,,9280,478,0,0,188.5
+1/6/2020,,Guangzhou / Canton-Baiyun (CAN/ZGGG),Singapore / Changi (SIN/WSSS),0:00:00,0:00:00,3:49:00, (/), (),,,0,0,0,,478,2672,0,0,188.5
+4/4/2024,PC 1750,Ankara / Esenboga (ESB/LTAC),Tbilisi / Novo Alexeyevka (TBS/UGTB),0:00:00,0:00:00,1:37:00, (/), (),,,0,0,0,,833,3679,0,0,74.48
+4/8/2024,PC 311,Batumi / Batumi (BUS/UGSB),Istanbul / Sabiha Gokcen (SAW/LTFJ),0:00:00,0:00:00,1:38:00, (/), (),,,0,0,0,,3910,3659,0,0,71.58
+4/8/2024,PC 2672,Istanbul / Sabiha Gokcen (SAW/LTFJ),Ankara / Esenboga (ESB/LTAC),0:00:00,0:00:00,0:41:00, (/), (),,,0,0,0,,3659,833,0,0,71.58
+3/28/2024,PC 1824,Antalya / Antalya (AYT/LTAI),Beirut / Beirut (BEY/OLBA),0:00:00,0:00:00,0:59:00, (/), (),,,0,0,0,,207,272,0,0,66.58
+3/31/2024,PC 1825,Beirut / Beirut (BEY/OLBA),Antalya / Antalya (AYT/LTAI),0:00:00,0:00:00,0:59:00, (/), (),,,0,0,0,,272,207,0,0,66.58
+3/13/2024,W46315,Milan / Malpensa (MXP/LIMC),Barcelona / El Prat (BCN/LEBL),10:35:00,12:15:00,1:40:00,Aero Services Executive (W4/BES),Airbus A321LR (A21N),,,0,0,0,,1983,239,126,2181,22
+3/14/2024,VY7280,Barcelona / El Prat (BCN/LEBL),Algiers / Houari Boumediene (ALG/DAAG),0:00:00,0:00:00,0:57:00, (/), (),,,0,0,0,,239,104,0,0,58.68
+3/21/2024,AH6257,Constantine / Mohammed Boudiaf (CZL/DABC),Algiers / Houari Boumediene (ALG/DAAG),16:40:00,17:50:00,1:10:00,Air Algerie (AH/DAH),ATR 72-200 (AT72),,,0,0,0,,665,104,222,153,37.5
+3/23/2024,VY7281,Algiers / Houari Boumediene (ALG/DAAG),Barcelona / El Prat (BCN/LEBL),0:00:00,0:00:00,0:57:00, (/), (),,,0,0,0,,104,239,0,0,58.68
+3/25/2024,W46316,Barcelona / El Prat (BCN/LEBL),Milan / Malpensa (MXP/LIMC),12:55:00,14:45:00,1:50:00,Aero Services Executive (W4/BES),Airbus A321LR (A21N),,,0,0,0,,239,1983,126,2181,22
+2/24/2024,PC858,Istanbul / Sabiha Gokcen (SAW/LTFJ),Kuwait / Kuwait (KWI/OKKK),22:25:00,1:55:00,3:30:00,Pegasus Airlines (PC/PGT),Airbus A321-200 (A321),,,0,0,0,,3659,1538,1014,2076,59.74
+2/28/2024,PC859,Kuwait / Kuwait (KWI/OKKK),Istanbul / Sabiha Gokcen (SAW/LTFJ),3:05:00,6:50:00,3:45:00,Pegasus Airlines (PC/PGT),Airbus A321-200 (A321),,,0,0,0,,1538,3659,1014,2076,59.74
+11/2/2023,W4 8371,Rome / Leonardo da Vinci-Fiumicino (FCO/LIRF),Baku / Heydar Aliyev (GYD/UBBB),0:00:00,0:00:00,4:29:00, (/), (),,,0,0,0,,872,216,0,0,50.64
+11/4/2023,J2 8223,Baku / Heydar Aliyev (GYD/UBBB),Tbilisi / Novo Alexeyevka (TBS/UGTB),0:00:00,0:00:00,0:51:00, (/), (),,,0,0,0,,216,3679,0,0,92.22
+11/8/2023,W45568,Yerevan / Zvartnots (EVN/UDYZ),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,4:13:00, (/), (),,,0,0,0,,3593,1983,0,0,102.01
+8/5/2023,TR712,Singapore / Changi (SIN/WSSS),Athens / Eleftherios Venizelos (ATH/LGAV),0:00:00,0:00:00,12:28:00, (/), (),,,0,0,0,,2672,3583,0,0,370.01
+8/5/2023,D82963,Athens / Eleftherios Venizelos (ATH/LGAV),Helsinki / Vantaa (HEL/EFHK),20:20:00,23:55:00,3:35:00,Norwegian Air International (D8/IBK),Boeing 737 MAX 8 (B38M),,,0,0,0,,3583,1110,1644,2123,370.01
+8/19/2023,TK 1764,Helsinki / Vantaa (HEL/EFHK),Istanbul / Istanbul Airport (IST/LTFM),0:00:00,0:00:00,3:07:00, (/), (),,,0,0,0,,1110,8949,0,0,236.17
+8/20/2023,TK 208,Istanbul / Istanbul Airport (IST/LTFM),Singapore / Changi (SIN/WSSS),0:00:00,0:00:00,11:58:00, (/), (),,,0,0,0,,8949,2672,0,0,236.17
+6/19/2023,FR4638,Bergamo / Orio Al Serio (BGY/LIME),Porto / Francisco Sa Carneiro (OPO/LPPR),17:15:00,19:00:00,2:45:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,293,2202,668,231,38.72
+6/29/2023,EJU3928,Marrakech / Menara (RAK/GMMX),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,3:07:00, (/), (),,,0,0,0,,2474,1983,0,0,43.29
+5/11/2023,FR4774,Bergamo / Orio Al Serio (BGY/LIME),Thessaloniki / Makedonia (SKG/LGTS),0:00:00,0:00:00,1:53:00, (/), (),,,0,0,0,,293,2696,0,0,35.87
+5/15/2023,FR4775,Thessaloniki / Makedonia (SKG/LGTS),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:53:00, (/), (),,,0,0,0,,2696,293,0,0,35.87
+4/17/2023,FR1852,Marseille / Marseille Provence (MRS/LFML),Bergamo / Orio Al Serio (BGY/LIME),14:40:00,15:50:00,1:10:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,1928,293,668,231,24.35
+4/6/2023,W6 1432,Bergamo / Orio Al Serio (BGY/LIME),Warsaw / Chopin (Okecie) (WAW/EPWA),0:00:00,0:00:00,1:43:00, (/), (),,,0,0,0,,293,3142,0,0,51.7
+4/11/2023,FR3550,Hamburg / Fuhlsbuttel (HAM/EDDH),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:26:00, (/), (),,,0,0,0,,1093,293,0,0,71.35
+3/18/2023,FR9959,Milan / Malpensa (MXP/LIMC),Malta / Luqa (MLA/LMML),0:00:00,0:00:00,1:51:00, (/), (),,,0,0,0,,1983,1863,0,0,28.97
+3/20/2023,FR3606,Malta / Luqa (MLA/LMML),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:49:00, (/), (),,,0,0,0,,1863,293,0,0,28.97
+3/9/2023,FR4235,Bergamo / Orio Al Serio (BGY/LIME),Beauvais / Beauvais Tille (BVA/LFOB),0:00:00,0:00:00,1:12:00, (/), (),,,0,0,0,,293,440,0,0,25.6
+3/11/2023,BJ731,Paris / Charles de Gaulle (CDG/LFPG),Tunis / Tunis Carthage (TUN/DTTA),17:35:00,19:05:00,2:30:00,Nouvelair Tunisia (BJ/LBT),Airbus A320neo (A20N),,,0,0,0,,509,3044,464,2127,72.06
+3/13/2023,BJ 510,Tunis / Tunis Carthage (TUN/DTTA),Paris / Charles de Gaulle (CDG/LFPG),0:00:00,0:00:00,2:15:00, (/), (),,,0,0,0,,3044,509,0,0,72.06
+3/14/2023,FR3566,Beauvais / Beauvais Tille (BVA/LFOB),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:12:00, (/), (),,,0,0,0,,440,293,0,0,25.6
+12/29/2022,W65786,Milan / Malpensa (MXP/LIMC),London / Gatwick (LGW/EGKK),0:00:00,0:00:00,1:27:00, (/), (),,,0,0,0,,1983,1614,0,0,49.8
+1/4/2023,W65799,London / Gatwick (LGW/EGKK),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,1:27:00, (/), (),,,0,0,0,,1614,1983,0,0,49.8
+12/1/2022,FR3587,Bergamo / Orio Al Serio (BGY/LIME),Torp / Sandefjord (TRF/ENTO),6:25:00,8:55:00,2:30:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,293,3005,668,231,21.9
+12/5/2022,FR4680,Stockholm / Arlanda (ARN/ESSA),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,2:28:00, (/), (),,,0,0,0,,3622,293,0,0,64.63
+11/19/2022,W64352,Bergamo / Orio Al Serio (BGY/LIME),Sofia / Sofia (SOF/LBSF),8:25:00,11:25:00,2:00:00,Wizz Air (W6/WZZ),Airbus A320-200 (A320),,,0,0,0,,293,2738,859,2059,30.78
+11/22/2022,JU146,Belgrade / Nikola Tesla Beograd (BEG/LYBE),Bucharest / Henri Coanda (OTP/LROP),0:00:00,0:00:00,0:52:00, (/), (),,,0,0,0,,261,2230,0,0,80.73
+11/23/2022,W63135,Bucharest / Henri Coanda (OTP/LROP),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:59:00, (/), (),,,0,0,0,,2230,293,0,0,19.33
+8/18/2022,TW172,Singapore / Changi (SIN/WSSS),Seoul / Incheon (ICN/RKSI),0:00:00,0:00:00,6:30:00,Trans World Airlines (TW/TWA),Boeing 737 MAX 8 (B38M),,,0,0,0,,2672,3602,1104,2123,167.39
+8/25/2022,7C112,Jeju / Jeju International (CJU/RKPC),Seoul / Gimpo (GMP/RKSS),11:15:00,12:30:00,1:15:00,Jeju Air (7C/JJA),Boeing 737-800 (B738),,,0,0,0,,565,1010,1090,231,58.8
+8/23/2022,LJ 565,Pusan / Kimhae (PUS/RKPK),Jeju / Jeju International (CJU/RKPC),0:00:00,0:00:00,0:38:00, (/), (),,,0,0,0,,2425,565,0,0,58.8
+8/26/2022,TW171,Seoul / Incheon (ICN/RKSI),Singapore / Changi (SIN/WSSS),0:00:00,0:00:00,6:30:00,Trans World Airlines (TW/TWA),Boeing 737 MAX 8 (B38M),,,0,0,0,,3602,2672,1104,2123,167.39
+9/28/2025,PR127,New York / John F Kennedy (JFK/KJFK),Manila / Ninoy Aquino International (MNL/RPLL),2:10:00,6:35:00,16:25:00,Philippine Airlines (PR/PAL),Airbus A350 (A350),,,0,0,0,,1328,1898,597,2109,232.94
+9/29/2025,PR501,Manila / Ninoy Aquino International (MNL/RPLL),Singapore / Changi (SIN/WSSS),15:10:00,18:55:00,3:45:00,Philippine Airlines (PR/PAL),Airbus A321-200 (A321),,,0,0,0,,1898,2672,597,2076,232.94
+5/10/2022,W64606,Tel Aviv / Ben Gurion (TLV/LLBG),Larnaca / Larnaca (LCA/LCLK),12:40:00,13:45:00,1:05:00,Wizz Air (W6/WZZ),Airbus A321-200 (A321),,,0,0,0,,2962,1572,859,2076,32.21
+5/12/2022,W64605,Larnaca / Larnaca (LCA/LCLK),Tel Aviv / Ben Gurion (TLV/LLBG),16:00:00,17:05:00,1:05:00,Wizz Air (W6/WZZ),Airbus A321-200 (A321),,,0,0,0,,1572,2962,859,2076,32.21
+1/3/2022,,Bergamo / Orio Al Serio (BGY/LIME),Kyiv / Boryspil International Airport (KBP/UKBB),0:00:00,0:00:00,2:29:00, (/), (),,,0,0,0,,293,1388,0,0,52.74
+1/11/2022,FR7857,Lviv / Danylo Halytskyi International (LWO/UKLL),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:48:00, (/), (),,,0,0,0,,1720,293,0,0,337.82
+7/17/2021,,Palermo / Punta Raisi (PMO/LICJ),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,1:28:00, (/), (),,,0,0,0,,2350,1983,0,0,68.81
+7/15/2021,,Naples / Capodichino (NAP/LIRN),Catania / Fontanarossa (CTA/LICC),0:00:00,0:00:00,0:46:00, (/), (),,,0,0,0,,2016,625,0,0,33.69
+5/31/2019,TR734,Singapore / Changi (SIN/WSSS),Berlin / Tegel (TXL/EDDT),0:00:00,0:00:00,13:40:00, (/), (),,,0,0,0,,2672,3055,0,0,375
+5/31/2019,UT706,Berlin / Tegel (TXL/EDDT),Moscow / Vnukovo (VKO/UUWW),0:00:00,0:00:00,2:24:00, (/), (),,,0,0,0,,3055,3190,0,0,375
+6/9/2019,AY131,Helsinki / Vantaa (HEL/EFHK),Singapore / Changi (SIN/WSSS),0:25:00,18:25:00,13:00:00,Finnair (AY/FIN),Airbus A350-900 (A359),,,0,0,0,,1110,2672,304,2110,460
+3/6/2020,VJ970,Singapore / Changi (SIN/WSSS),Danang / Da Nang (DAD/VVDN),11:15:00,13:10:00,2:55:00,VietJet Air (VJ/VJC),Airbus A321-200 (A321),,,0,0,0,,2672,671,1632,2076,131.33
+3/10/2020,VJ973,Danang / Da Nang (DAD/VVDN),Singapore / Changi (SIN/WSSS),13:10:00,16:55:00,2:45:00,VietJet Air (VJ/VJC),Airbus A321-200 (A321),,,0,0,0,,671,2672,1632,2076,131.33
+12/23/2021,EJU7940,Milan / Linate (LIN/LIML),Amsterdam / Schiphol (AMS/EHAM),0:00:00,0:00:00,1:22:00, (/), (),,,0,0,0,,1627,122,0,0,35.06
+1/1/2022,,Brussels / Brussels (BRU/EBBR),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,1:08:00, (/), (),,,0,0,0,,403,1983,0,0,30.98
+4/11/2022,,Tel Aviv / Ben Gurion (TLV/LLBG),Zurich / Kloten (ZRH/LSZH),0:00:00,0:00:00,4:02:00, (/), (),,,0,0,0,,2962,3548,0,0,161
+4/12/2022,,Zurich / Kloten (ZRH/LSZH),New York / John F Kennedy (JFK/KJFK),0:00:00,0:00:00,8:46:00, (/), (),,,0,0,0,,3548,1328,0,0,161
+4/17/2022,,New York / John F Kennedy (JFK/KJFK),Geneva / Cointrin (GVA/LSGG),0:00:00,0:00:00,8:37:00, (/), (),,,0,0,0,,1328,1065,0,0,161
+4/18/2022,,Geneva / Cointrin (GVA/LSGG),Zurich / Kloten (ZRH/LSZH),0:00:00,0:00:00,0:33:00, (/), (),,,0,0,0,,1065,3548,0,0,161
+4/19/2022,,Zurich / Kloten (ZRH/LSZH),Tel Aviv / Ben Gurion (TLV/LLBG),0:00:00,0:00:00,4:02:00, (/), (),,,0,0,0,,3548,2962,0,0,161
+5/6/2022,RJ504,Cairo / Cairo (CAI/HECA),Amman / Queen Alia (AMM/OJAI),13:05:00,15:35:00,2:30:00,Royal Jordanian (RJ/RJA), (),,,0,0,0,,475,118,644,0,170
+5/6/2022,RJ344,Amman / Queen Alia (AMM/OJAI),Tel Aviv / Ben Gurion (TLV/LLBG),0:00:00,0:00:00,0:23:00, (/), (),,,0,0,0,,118,2962,0,0,170
+1/31/2023,FR1429,Bergamo / Orio Al Serio (BGY/LIME),Madrid / Barajas (MAD/LEMD),0:00:00,0:00:00,1:53:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,293,1739,668,231,28.09
+2/3/2023,FR9681,Madrid / Barajas (MAD/LEMD),Lisbon / Portela (LIS/LPPT),0:00:00,0:00:00,0:56:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,1739,1632,668,231,31.19
+2/4/2023,EJU7343,Lisbon / Portela (LIS/LPPT),Madrid / Barajas (MAD/LEMD),0:00:00,0:00:00,0:56:00, (/), (),,,0,0,0,,1632,1739,0,0,25.58
+2/4/2023,FR5983,Madrid / Barajas (MAD/LEMD),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:53:00, (/), (),,,0,0,0,,1739,293,0,0,28.09
+12/1/2023,W4 3870,Bergamo / Orio Al Serio (BGY/LIME),Tirana / Rinas (TIA/LATI),0:00:00,0:00:00,1:30:00, (/), (),,,0,0,0,,293,2922,0,0,10.92
+12/3/2023,W4 3845,Tirana / Rinas (TIA/LATI),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:30:00, (/), (),,,0,0,0,,2922,293,0,0,10.92
+12/20/2023,EJU3853,Milan / Malpensa (MXP/LIMC),Amsterdam / Schiphol (AMS/EHAM),0:00:00,0:00:00,1:19:00, (/), (),,,0,0,0,,1983,122,0,0,38.24
+12/28/2023,EJU3858,Amsterdam / Schiphol (AMS/EHAM),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,1:19:00, (/), (),,,0,0,0,,122,1983,0,0,77.91
+12/28/2023,W6 4124,Bergamo / Orio Al Serio (BGY/LIME),Belgrade / Nikola Tesla Beograd (BEG/LYBE),0:00:00,0:00:00,1:22:00, (/), (),,,0,0,0,,293,261,0,0,57.74
+1/1/2024,W6 4123,Belgrade / Nikola Tesla Beograd (BEG/LYBE),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:22:00, (/), (),,,0,0,0,,261,293,0,0,57.74
+5/5/2024,FR2428,Bergamo / Orio Al Serio (BGY/LIME),Sarajevo / Sarajevo (SJJ/LQSA),11:10:00,12:35:00,1:25:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,293,2684,668,231,97.46
+5/11/2024,W4 6450,Podgorica / Podgorica (TGD/LYPG),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,1:29:00, (/), (),,,0,0,0,,2898,1983,0,0,21.87
+5/13/2024,FR820,Bergamo / Orio Al Serio (BGY/LIME),Lisbon / Portela (LIS/LPPT),7:10:00,9:10:00,3:00:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,293,1632,668,231,48.75
+5/15/2024,FR2086,Lisbon / Portela (LIS/LPPT),Bergamo / Orio Al Serio (BGY/LIME),20:45:00,0:30:00,2:45:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,1632,293,668,231,48.75
+1/1/2025,AS373,Newark / Liberty International (EWR/KEWR),San Francisco / San Francisco International (SFO/KSFO),7:30:00,10:39:00,6:09:00,Alaska Airlines (AS/ASA),Boeing 737 MAX 9 (B39M),,,0,0,0,,851,2644,79,2124,387.15
+1/3/2025,F94126,San Francisco / San Francisco International (SFO/KSFO),Burbank / Glendale-Pasadena (BUR/KBUR),0:00:00,0:00:00,0:57:00, (/), (),,,0,0,0,,2644,436,0,0,86.26
+1/4/2025,F91199,Burbank / Glendale-Pasadena (BUR/KBUR),San Francisco / San Francisco International (SFO/KSFO),0:00:00,0:00:00,0:57:00, (/), (),,,0,0,0,,436,2644,0,0,86.26
+1/5/2025,UA2460,San Francisco / San Francisco International (SFO/KSFO),Newark / Liberty International (EWR/KEWR),0:00:00,0:00:00,5:48:00, (/), (),,,0,0,0,,2644,851,0,0,276.1
+11/11/2024,OD 808,Singapore / Changi (SIN/WSSS),Kuala Lumpur / Kuala Lumpur International (KUL/WMKK),0:00:00,0:00:00,0:39:00, (/), (),,,0,0,0,,2672,1527,0,0,134.5
+11/11/2024,OD 215,Kuala Lumpur / Kuala Lumpur International (KUL/WMKK),Mumbai / Chhatrapati Shivaji (BOM/VABB),0:00:00,0:00:00,5:08:00, (/), (),,,0,0,0,,1527,375,0,0,134.5
+11/13/2024,AI 816,Mumbai / Chhatrapati Shivaji (BOM/VABB),Delhi / Indira Gandhi (DEL/VIDP),0:00:00,0:00:00,1:47:00, (/), (),,,0,0,0,,375,689,0,0,99.58
+11/15/2024,SG 8214,Delhi / Indira Gandhi (DEL/VIDP),Calcutta / NS Chandra Bose Int (CCU/VECC),0:00:00,0:00:00,2:01:00, (/), (),,,0,0,0,,689,504,0,0,112.55
+11/20/2024,BS202,Calcutta / NS Chandra Bose Int (CCU/VECC),Dhaka / Zia (DAC/VGZR),11:30:00,13:00:00,0:30:00,British International Helicopters (BS/BIH),ATR 72-200 (AT72),,,0,0,0,,504,670,130,153,73.75
+11/20/2024,CZ 392,Dhaka / Zia (DAC/VGZR),Guangzhou / Canton-Baiyun (CAN/ZGGG),0:00:00,0:00:00,3:24:00, (/), (),,,0,0,0,,670,478,0,0,137.99
+11/21/2024,CZ 353,Guangzhou / Canton-Baiyun (CAN/ZGGG),Singapore / Changi (SIN/WSSS),0:00:00,0:00:00,3:49:00, (/), (),,,0,0,0,,478,2672,0,0,137.99
+11/22/2024,PR 512,Singapore / Changi (SIN/WSSS),Manila / Ninoy Aquino International (MNL/RPLL),0:00:00,0:00:00,3:27:00, (/), (),,,0,0,0,,2672,1898,0,0,455.1
+11/23/2024,PR126,Manila / Ninoy Aquino International (MNL/RPLL),New York / John F Kennedy (JFK/KJFK),19:25:00,23:40:00,16:15:00,Philippine Airlines (PR/PAL),Airbus A350 (A350),,,0,0,0,,1898,1328,597,2109,455.1
+2/7/2024,FR3112,Bergamo / Orio Al Serio (BGY/LIME),Iasi / Iasi (IAS/LRIA),10:20:00,13:35:00,2:15:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,293,1206,668,231,22.5
+2/8/2024,W4 3717,Iasi / Iasi (IAS/LRIA),Istanbul / Istanbul Airport (IST/LTFM),0:00:00,0:00:00,1:08:00, (/), (),,,0,0,0,,1206,8949,0,0,35.96
+3/1/2024,PC1213,Istanbul / Sabiha Gokcen (SAW/LTFJ),Bergamo / Orio Al Serio (BGY/LIME),14:20:00,16:10:00,2:50:00,Pegasus Airlines (PC/PGT),Airbus A321-200 (A321),,,0,0,0,,3659,293,1014,2076,107.51
+3/26/2024,TK7795,Bergamo / Orio Al Serio (BGY/LIME),Istanbul / Sabiha Gokcen (SAW/LTFJ),0:00:00,0:00:00,2:30:00, (/), (),,,0,0,0,,293,3659,0,0,227.19
+11/15/2023,U2 3905,Milan / Malpensa (MXP/LIMC),Prague / Praha-Ruzyne (PRG/LKPR),0:00:00,0:00:00,1:07:00, (/), (),,,0,0,0,,1983,2398,0,0,58.92
+11/28/2023,W45620,Prague / Praha-Ruzyne (PRG/LKPR),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,1:07:00, (/), (),,,0,0,0,,2398,1983,0,0,30.41
+2/16/2022,,Milan / Malpensa (MXP/LIMC),Athens / Eleftherios Venizelos (ATH/LGAV),0:00:00,0:00:00,2:18:00, (/), (),,,0,0,0,,1983,3583,0,0,91.24
+2/16/2022,,Athens / Eleftherios Venizelos (ATH/LGAV),Tel Aviv / Ben Gurion (TLV/LLBG),0:00:00,0:00:00,1:51:00, (/), (),,,0,0,0,,3583,2962,0,0,91.24
