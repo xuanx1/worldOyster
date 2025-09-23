@@ -141,6 +141,37 @@
             box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
         }
 
+        .progress-scrubber {
+            position: absolute;
+            top: -4px;
+            left: 0%;
+            width: 8px;
+            height: 11px;
+            background: #ffffff;
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 0 15px rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 1001;
+            opacity: 0.9;
+        }
+
+        .progress-scrubber:hover {
+            background: #ffffff;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 1), 0 0 25px rgba(255, 255, 255, 0.6);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .progress-scrubber.dragging {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.8);
+            transform: scale(1.2);
+        }
+
+        .progress-bar:hover .progress-scrubber {
+            opacity: 1;
+        }
+
         .city-list-container {
             flex: 1;
             background: #333;
@@ -478,6 +509,7 @@
                 <div id="map"></div>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progressFill"></div>
+                    <div class="progress-scrubber" id="progressScrubber"></div>
                 </div>
             </div>
         </div>

@@ -14,6 +14,19 @@ class AnimatedFlightMap {
         this.totalCO2 = 0; // Track total CO2 emissions in kg
         this.totalCostUSD = 0; // Track total cost in USD
         
+        // Scrubber properties
+        this.isDragging = false;
+        this.scrubberElement = null;
+        this.progressBarElement = null;
+        
+        // Lines visibility control
+        this.linesVisible = true;
+        
+        // Current animation tracking for pause functionality
+        this.currentAnimationPath = null;
+        this.currentPathLine = null;
+        this.pauseAfterCurrentFlight = false;
+        
         // Initialize exchange rates with fallback values
         this.exchangeRates = {
             USD_TO_SGD: 1.35, // Fallback values
@@ -26,6 +39,7 @@ class AnimatedFlightMap {
         this.loadFlightData(); // Load from CSV instead of sample data
         this.fetchExchangeRates(); // Fetch live rates
         this.updateStatistics();
+        this.initializeScrubber(); // Initialize scrubber functionality
         
         // Auto-start animation after data loads (increased delay for CSV loading)
         setTimeout(() => {
@@ -130,11 +144,11 @@ class AnimatedFlightMap {
             }
         });
         
-        // Create skip animation control
-        const SkipAnimationControl = L.Control.extend({
+        // Create play/pause animation control
+        const PlayPauseAnimationControl = L.Control.extend({
             onAdd: function(map) {
                 const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                button.innerHTML = '⏭️';
+                button.innerHTML = '⏸️'; // Start with pause since animation auto-starts
                 button.style.backgroundColor = '#333';
                 button.style.color = '#fff';
                 button.style.width = '30px';
@@ -144,14 +158,14 @@ class AnimatedFlightMap {
                 button.style.justifyContent = 'center';
                 button.style.cursor = 'pointer';
                 button.style.fontSize = '14px';
-                button.title = 'Skip Animation';
+                button.title = 'Pause Animation';
                 button.style.marginTop = '2px';
                 
                 button.onclick = () => {
-                    this.skipAnimation();
+                    this.togglePlayPause();
                 };
                 
-                this.skipButton = button;
+                this.playPauseButton = button;
                 return button;
             }.bind(this)
         });
@@ -182,9 +196,36 @@ class AnimatedFlightMap {
             }.bind(this)
         });
         
+        // Create toggle lines visibility control
+        const ToggleLinesControl = L.Control.extend({
+            onAdd: function(map) {
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+                button.innerHTML = '🛣️';
+                button.style.backgroundColor = '#333';
+                button.style.color = '#fff';
+                button.style.width = '30px';
+                button.style.height = '30px';
+                button.style.display = 'flex';
+                button.style.alignItems = 'center';
+                button.style.justifyContent = 'center';
+                button.style.cursor = 'pointer';
+                button.style.fontSize = '14px';
+                button.title = 'Hide Flight Lines';
+                button.style.marginTop = '2px';
+                
+                button.onclick = () => {
+                    this.toggleLinesVisibility();
+                };
+                
+                this.toggleLinesButton = button;
+                return button;
+            }.bind(this)
+        });
+        
         new ResetViewControl({ position: 'topright' }).addTo(this.map);
-        new SkipAnimationControl({ position: 'topright' }).addTo(this.map);
+        new PlayPauseAnimationControl({ position: 'topright' }).addTo(this.map);
         new ReplayAnimationControl({ position: 'topright' }).addTo(this.map);
+        new ToggleLinesControl({ position: 'topright' }).addTo(this.map);
     }
 
 
@@ -901,6 +942,8 @@ class AnimatedFlightMap {
         }
 
         this.isAnimating = true;
+        this.updatePlayPauseButton(); // Update button state
+        this.hideReplayButton(); // Hide replay button when starting
 
         if (this.currentCityIndex === 0) {
             // Start from first city
@@ -971,6 +1014,11 @@ class AnimatedFlightMap {
             
             // Continue to next city after a brief pause
             setTimeout(() => {
+                // Check if we should pause after this flight completed
+                if (this.checkForPendingPause()) {
+                    return; // Stop here, animation is now paused
+                }
+                
                 if (this.isAnimating) {
                     this.animateToNextCity();
                 }
@@ -993,15 +1041,16 @@ class AnimatedFlightMap {
         const distanceKm = this.calculateDistance(fromCity.lat, fromCity.lng, toCity.lat, toCity.lng);
         this.totalDistance += distanceKm;
         
-        // Use same flight calculations for all journeys (simplified)
-        const timeHours = distanceKm / 900;      // Flight speed for all
-        const co2EmissionKg = distanceKm * 0.25; // Flight emissions for all
+        // Use journey-specific calculations
+        const journeyData = toCity.originalFlight;
+        const timeHours = distanceKm / 900;      // Flight speed for all (could be enhanced later)
+        const co2EmissionKg = this.calculateEmissions(distanceKm, journeyData); // Use new emission calculation
         
         // Use actual cost from CSV if available (works for both flight and land journey CSVs)
         let costUSD;
-        if (journey && journey.costSGD && journey.costSGD > 0) {
-            costUSD = journey.costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
-            console.log(`Using actual cost from CSV: ${journey.costSGD} SGD = ${costUSD.toFixed(2)} USD`);
+        if (journeyData && journeyData.costSGD && journeyData.costSGD > 0) {
+            costUSD = journeyData.costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
+            console.log(`Using actual cost from CSV: ${journeyData.costSGD} SGD = ${costUSD.toFixed(2)} USD`);
         } else {
             costUSD = distanceKm * 0.25; // Default cost calculation
             console.log(`Using calculated cost: ${costUSD.toFixed(2)} USD`);
@@ -1022,9 +1071,18 @@ class AnimatedFlightMap {
             color: '#4CAF50',  // Green for all journeys
             weight: 1,         // Same weight for all
             opacity: 0.8
-        }).addTo(this.map);
+        });
+
+        // Only add to map if lines are visible
+        if (this.linesVisible) {
+            pathLine.addTo(this.map);
+        }
 
         this.visitedPaths.push(pathLine);
+        
+        // Store references for pause functionality
+        this.currentAnimationPath = path;
+        this.currentPathLine = pathLine;
 
         // Easing function (ease-in-out)
         const easeInOut = (t) => {
@@ -1036,6 +1094,18 @@ class AnimatedFlightMap {
         
         const animate = (currentTime) => {
             if (!this.isAnimating) {
+                // Complete the path if animation was stopped (paused)
+                if (this.currentAnimationPath && this.currentPathLine) {
+                    pathLine.setLatLngs(path);
+                    pathLine.setStyle({
+                        opacity: 0.6
+                    });
+                }
+                
+                // Clear current animation references
+                this.currentAnimationPath = null;
+                this.currentPathLine = null;
+                
                 callback();
                 return;
             }
@@ -1054,6 +1124,11 @@ class AnimatedFlightMap {
                 pathLine.setStyle({
                     opacity: 0.6
                 });
+                
+                // Clear current animation references
+                this.currentAnimationPath = null;
+                this.currentPathLine = null;
+                
                 callback();
                 return;
             }
@@ -1109,6 +1184,7 @@ class AnimatedFlightMap {
 
     completeAnimation() {
         this.isAnimating = false;
+        this.updatePlayPauseButton(); // Update button state
         
         // Mark last city as visited
         if (this.cities.length > 0) {
@@ -1145,116 +1221,129 @@ class AnimatedFlightMap {
         }, 1000);
     }
 
-    skipAnimation() {
-        // Prevent multiple executions - check if already completed or if no animation is running
-        if (!this.isAnimating && this.currentCityIndex >= this.cities.length) {
-            return; // Already completed
+    togglePlayPause() {
+        if (this.pauseAfterCurrentFlight) {
+            // If pause is pending, cancel it
+            this.pauseAfterCurrentFlight = false;
+            this.updatePlayPauseButton();
+        } else if (this.isAnimating) {
+            this.pauseAnimation();
+        } else {
+            this.resumeAnimation();
         }
-        
-        // Check if all cities are already visited (already skipped)
-        const allVisited = this.cities.every(city => city.visited);
-        if (allVisited && this.currentCityIndex >= this.cities.length) {
-            return; // Already skipped
+    }
+
+    pauseAnimation() {
+        // Instead of immediately stopping, set a flag to pause after current flight
+        this.pauseAfterCurrentFlight = true;
+        this.updatePlayPauseButton();
+    }
+
+    // Called when a flight animation completes to check if we should pause
+    checkForPendingPause() {
+        if (this.pauseAfterCurrentFlight) {
+            this.pauseAfterCurrentFlight = false;
+            this.isAnimating = false;
+            this.updatePlayPauseButton();
+            return true; // Indicates we paused
         }
+        return false; // Continue animation
+    }
+
+    completeCurrentPath() {
+        // If there's a current path being animated, complete it to avoid broken lines
+        if (this.currentAnimationPath && this.currentPathLine) {
+            this.currentPathLine.setLatLngs(this.currentAnimationPath);
+        }
+    }
+
+    resumeAnimation() {
+        // Clear any pending pause flag
+        this.pauseAfterCurrentFlight = false;
         
-        // Stop current animation
-        this.isAnimating = false;
-        
-        // Show all cities immediately
-        this.cities.forEach((city, index) => {
-            city.visited = true;
-            
-            // Show all city markers
-            if (this.cityMarkers[index]) {
-                this.cityMarkers[index].marker.addTo(this.map);
-                this.updateCityMarkerStyle(index, 'visited');
+        // Only resume if we haven't completed the journey
+        if (this.currentCityIndex < this.cities.length) {
+            this.isAnimating = true;
+            this.updatePlayPauseButton();
+            // Continue from current position
+            this.animateToNextCity();
+        } else {
+            // If journey is complete, restart from beginning
+            this.replayAnimation();
+        }
+    }
+
+    updatePlayPauseButton() {
+        if (this.playPauseButton) {
+            if (this.pauseAfterCurrentFlight) {
+                // Show pending pause state
+                this.playPauseButton.innerHTML = '⏸️';
+                this.playPauseButton.title = 'Pausing after current flight...';
+                this.playPauseButton.style.opacity = '0.7'; // Visual indication of pending state
+            } else if (this.isAnimating) {
+                this.playPauseButton.innerHTML = '⏸️';
+                this.playPauseButton.title = 'Pause Animation';
+                this.playPauseButton.style.opacity = '1';
+            } else {
+                this.playPauseButton.innerHTML = '▶️';
+                this.playPauseButton.title = 'Resume Animation';
+                this.playPauseButton.style.opacity = '1';
             }
-            
-            // Add all flight paths
-            if (index > 0) {
-                const fromCity = this.cities[index - 1];
-                const toCity = this.cities[index];
-                
-                console.log(`Skip: Drawing path from ${fromCity.name} to ${toCity.name}`);
-                console.log(`From coords: [${fromCity.lat}, ${fromCity.lng}]`);
-                console.log(`To coords: [${toCity.lat}, ${toCity.lng}]`);
-                
-                // Create path coordinates (same for all journeys)
-                const pathCoords = this.createGreatCirclePath(
-                    [fromCity.lat, fromCity.lng],
-                    [toCity.lat, toCity.lng]
-                );
-                
-                console.log(`Path coords length: ${pathCoords.length}`);
-                
-                // Create path with same styling for all journeys
-                const journeyPath = L.polyline(pathCoords, {
-                    color: '#4CAF50',  // Green for all
-                    weight: 2,         // Same weight for all
-                    opacity: 0.8
-                }).addTo(this.map);
-                
-                console.log(`Path added to map:`, journeyPath);
-                this.visitedPaths.push(journeyPath);
+        }
+    }
+
+    toggleLinesVisibility() {
+        this.linesVisible = !this.linesVisible;
+        
+        if (this.linesVisible) {
+            this.showAllLines();
+        } else {
+            this.hideAllLines();
+        }
+        
+        this.updateToggleLinesButton();
+    }
+
+    showAllLines() {
+        // Show all visited paths
+        this.visitedPaths.forEach(path => {
+            if (path && !this.map.hasLayer(path)) {
+                this.map.addLayer(path);
             }
         });
         
-        // Update current city index to the last city
-        this.currentCityIndex = this.cities.length;
-        
-        // Reset statistics before recalculating to avoid double-counting
-        this.totalDistance = 0;
-        this.totalTime = 0;
-        this.totalCO2 = 0;
-        this.totalCostUSD = 0;
-        
-        // Calculate all statistics using the same logic as normal animation
-        this.cities.forEach((city, index) => {
-            if (index > 0) {
-                const fromCity = this.cities[index - 1];
-                const toCity = this.cities[index];
-                
-                // Calculate distance (same as normal animation)
-                const distanceKm = this.calculateDistance(fromCity.lat, fromCity.lng, toCity.lat, toCity.lng);
-                this.totalDistance += distanceKm;
-                
-                // Use same calculations for all journeys (simplified)
-                const journey = toCity.originalFlight;
-                const timeHours = distanceKm / 900;      // Flight speed for all
-                const co2EmissionKg = distanceKm * 0.25; // Flight emissions for all
-                
-                // Use actual cost from CSV if available (works for both CSVs)
-                let costUSD;
-                if (journey && journey.costSGD && journey.costSGD > 0) {
-                    costUSD = journey.costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
-                } else {
-                    costUSD = distanceKm * 0.25; // Default cost calculation
-                }
-                
-                this.totalTime += timeHours;
-                this.totalCO2 += co2EmissionKg;
-                this.totalCostUSD += costUSD;
+        // Show current flight path if it exists
+        if (this.flightPath && !this.map.hasLayer(this.flightPath)) {
+            this.map.addLayer(this.flightPath);
+        }
+    }
+
+    hideAllLines() {
+        // Hide all visited paths
+        this.visitedPaths.forEach(path => {
+            if (path && this.map.hasLayer(path)) {
+                this.map.removeLayer(path);
             }
         });
         
-        // Update year to the last flight's year
-        if (this.cities.length > 0) {
-            this.updateCurrentTripYear(this.cities.length - 1);
+        // Hide current flight path if it exists
+        if (this.flightPath && this.map.hasLayer(this.flightPath)) {
+            this.map.removeLayer(this.flightPath);
         }
-        
-        // Update UI to show final state
-        this.updateProgress();
-        this.updateCityList();
-        this.updateStatistics();
-        
-        // Set current flight to show completion
-        const currentFlightElement = document.getElementById('currentFlight');
-        if (currentFlightElement) {
-            currentFlightElement.textContent = 'Journey Complete!';
+    }
+
+    updateToggleLinesButton() {
+        if (this.toggleLinesButton) {
+            if (this.linesVisible) {
+                this.toggleLinesButton.innerHTML = '🛣️';
+                this.toggleLinesButton.title = 'Hide Flight Lines';
+                this.toggleLinesButton.style.backgroundColor = '#333';
+            } else {
+                this.toggleLinesButton.innerHTML = '❌';
+                this.toggleLinesButton.title = 'Show Flight Lines';
+                this.toggleLinesButton.style.backgroundColor = '#666';
+            }
         }
-        
-        // Show replay button and hide skip button
-        this.showReplayButton();
     }
 
     replayAnimation() {
@@ -1331,8 +1420,10 @@ class AnimatedFlightMap {
         if (this.replayButton) {
             this.replayButton.style.display = 'flex';
         }
-        if (this.skipButton) {
-            this.skipButton.style.display = 'none';
+        // Don't modify the play/pause button when showing replay button
+        // The animation is complete, so hide the play/pause button instead
+        if (this.playPauseButton) {
+            this.playPauseButton.style.display = 'none';
         }
     }
     
@@ -1340,8 +1431,11 @@ class AnimatedFlightMap {
         if (this.replayButton) {
             this.replayButton.style.display = 'none';
         }
-        if (this.skipButton) {
-            this.skipButton.style.display = 'flex';
+        if (this.playPauseButton) {
+            // Show the play/pause button again when hiding replay button
+            this.playPauseButton.style.display = 'flex';
+            // Animation is running, show pause button
+            this.updatePlayPauseButton();
         }
     }
 
@@ -1349,6 +1443,311 @@ class AnimatedFlightMap {
         const visitedCount = this.cities.filter(city => city.visited).length;
         const progress = this.cities.length > 0 ? (visitedCount / this.cities.length) * 100 : 0;
         document.getElementById('progressFill').style.width = progress + '%';
+        
+        // Update scrubber position
+        this.updateScrubberPosition(progress);
+    }
+
+    initializeScrubber() {
+        this.scrubberElement = document.getElementById('progressScrubber');
+        this.progressBarElement = document.querySelector('.progress-bar');
+        
+        if (!this.scrubberElement || !this.progressBarElement) {
+            console.warn('Progress scrubber elements not found');
+            return;
+        }
+
+        // Add mouse event listeners
+        this.scrubberElement.addEventListener('mousedown', (e) => this.startDrag(e));
+        this.progressBarElement.addEventListener('click', (e) => this.handleProgressBarClick(e));
+        
+        // Add global mouse events for dragging
+        document.addEventListener('mousemove', (e) => this.handleDrag(e));
+        document.addEventListener('mouseup', () => this.stopDrag());
+        
+        // Prevent text selection during drag
+        this.scrubberElement.addEventListener('selectstart', (e) => e.preventDefault());
+    }
+
+    updateScrubberPosition(progressPercentage) {
+        if (!this.scrubberElement) return;
+        
+        // Clamp the position between 0 and 100%
+        const clampedProgress = Math.max(0, Math.min(100, progressPercentage));
+        this.scrubberElement.style.left = clampedProgress + '%';
+        
+        // Also update the progress fill to follow the scrubber
+        const progressFill = document.getElementById('progressFill');
+        if (progressFill) {
+            progressFill.style.width = clampedProgress + '%';
+        }
+    }
+
+    startDrag(e) {
+        e.preventDefault();
+        this.isDragging = true;
+        this.scrubberElement.classList.add('dragging');
+        
+        // Pause animation while dragging
+        this.wasAnimating = this.isAnimating;
+        if (this.isAnimating) {
+            this.isAnimating = false;
+        }
+    }
+
+    handleDrag(e) {
+        if (!this.isDragging || !this.progressBarElement) return;
+        
+        const rect = this.progressBarElement.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const progressPercentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+        
+        // Update scrubber and progress fill position
+        this.updateScrubberPosition(progressPercentage);
+        
+        // Calculate which city this corresponds to
+        const targetCityIndex = Math.floor((progressPercentage / 100) * this.cities.length);
+        
+        // Jump to that position in the journey
+        this.jumpToCity(targetCityIndex);
+    }
+
+    stopDrag() {
+        if (!this.isDragging) return;
+        
+        this.isDragging = false;
+        this.scrubberElement.classList.remove('dragging');
+        
+        // Resume animation if it was running before
+        if (this.wasAnimating) {
+            this.isAnimating = true;
+        }
+    }
+
+    handleProgressBarClick(e) {
+        if (this.isDragging) return;
+        
+        const rect = this.progressBarElement.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const progressPercentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
+        
+        // Update scrubber and progress fill position
+        this.updateScrubberPosition(progressPercentage);
+        
+        // Calculate which city this corresponds to
+        const targetCityIndex = Math.floor((progressPercentage / 100) * this.cities.length);
+        
+        // Jump to that position in the journey
+        this.jumpToCity(targetCityIndex);
+    }
+
+    jumpToCity(targetIndex) {
+        if (targetIndex < 0 || targetIndex >= this.cities.length) return;
+        
+        // Reset all cities to unvisited
+        this.cities.forEach(city => {
+            city.visited = false;
+            city.current = false;
+        });
+        
+        // Mark cities up to target as visited
+        for (let i = 0; i <= targetIndex; i++) {
+            this.cities[i].visited = true;
+        }
+        
+        // Set current city
+        this.currentCityIndex = targetIndex;
+        if (this.cities[targetIndex]) {
+            this.cities[targetIndex].current = true;
+        }
+        
+        // Recalculate statistics up to current position
+        this.recalculateStatistics();
+        
+        // Update current trip year
+        if (this.currentCityIndex >= 0 && this.currentCityIndex < this.cities.length) {
+            this.updateCurrentTripYear(this.currentCityIndex);
+        }
+        
+        // Update current flight display
+        this.updateCurrentFlightDisplay();
+        
+        // Update the visual state
+        this.clearMap();
+        this.drawVisitedPaths();
+        this.addCityMarkers(); // Add this before positioning dot to ensure markers are visible
+        this.positionDotAtCurrentCity();
+        this.updateCityList();
+        this.updateStatistics();
+    }
+
+    // Recalculate all statistics based on current city index
+    recalculateStatistics() {
+        // Reset totals
+        this.totalDistance = 0;
+        this.totalTime = 0;
+        this.totalCO2 = 0;
+        this.totalCostUSD = 0;
+        
+        // Calculate statistics for journeys up to current position
+        for (let i = 0; i < this.currentCityIndex; i++) {
+            if (i + 1 < this.cities.length) {
+                const fromCity = this.cities[i];
+                const toCity = this.cities[i + 1];
+                
+                // Calculate distance
+                const distanceKm = this.calculateDistance(fromCity.lat, fromCity.lng, toCity.lat, toCity.lng);
+                this.totalDistance += distanceKm;
+                
+                // Calculate time, emissions, and cost using same logic as animation
+                const journeyData = toCity.originalFlight;
+                const timeHours = distanceKm / 900;
+                const co2EmissionKg = this.calculateEmissions(distanceKm, journeyData);
+                
+                let costUSD;
+                if (journeyData && journeyData.costSGD && journeyData.costSGD > 0) {
+                    costUSD = journeyData.costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
+                } else {
+                    costUSD = distanceKm * 0.25;
+                }
+                
+                this.totalTime += timeHours;
+                this.totalCO2 += co2EmissionKg;
+                this.totalCostUSD += costUSD;
+            }
+        }
+    }
+
+    // Position the flight dot at the current city
+    positionDotAtCurrentCity() {
+        if (this.currentCityIndex >= 0 && this.currentCityIndex < this.cities.length) {
+            const currentCity = this.cities[this.currentCityIndex];
+            
+            // Create or update the flight dot
+            if (!this.flightDot) {
+                this.flightDot = L.circleMarker([currentCity.lat, currentCity.lng], {
+                    color: '#FFD700',
+                    fillColor: '#FFD700',
+                    fillOpacity: 0.8,
+                    radius: 8,
+                    weight: 2
+                });
+            } else {
+                this.flightDot.setLatLng([currentCity.lat, currentCity.lng]);
+            }
+            
+            // Add to map if not already there
+            if (!this.map.hasLayer(this.flightDot)) {
+                this.flightDot.addTo(this.map);
+            }
+        }
+    }
+
+    // Update the current flight display based on current position
+    updateCurrentFlightDisplay() {
+        const currentFlightElement = document.getElementById('currentFlight');
+        if (currentFlightElement) {
+            if (this.currentCityIndex >= this.cities.length) {
+                currentFlightElement.textContent = 'Journey Complete!';
+            } else if (this.currentCityIndex > 0) {
+                const fromCity = this.cities[this.currentCityIndex - 1];
+                const toCity = this.cities[this.currentCityIndex];
+                currentFlightElement.textContent = `${fromCity.name} → ${toCity.name}`;
+            } else if (this.currentCityIndex === 0 && this.cities.length > 0) {
+                currentFlightElement.textContent = `Starting at ${this.cities[0].name}`;
+            } else {
+                currentFlightElement.textContent = 'Ready to begin journey';
+            }
+        }
+    }
+
+    drawVisitedPaths() {
+        // Clear existing paths
+        this.visitedPaths.forEach(path => {
+            if (path && this.map.hasLayer(path)) {
+                this.map.removeLayer(path);
+            }
+        });
+        this.visitedPaths = [];
+        
+        // Draw paths for visited cities
+        for (let i = 0; i < this.currentCityIndex; i++) {
+            if (i + 1 < this.cities.length) {
+                const fromCity = this.cities[i];
+                const toCity = this.cities[i + 1];
+                
+                const path = L.polyline([
+                    [fromCity.lat, fromCity.lng],
+                    [toCity.lat, toCity.lng]
+                ], {
+                    color: '#4CAF50',
+                    weight: 2,
+                    opacity: 0.7
+                });
+                
+                // Only add to map if lines are visible
+                if (this.linesVisible) {
+                    path.addTo(this.map);
+                }
+                
+                this.visitedPaths.push(path);
+            }
+        }
+        
+        // Add city markers
+        this.addCityMarkers();
+    }
+
+    clearMap() {
+        // Remove flight dot
+        if (this.flightDot && this.map.hasLayer(this.flightDot)) {
+            this.map.removeLayer(this.flightDot);
+        }
+        
+        // Remove current flight path
+        if (this.flightPath && this.map.hasLayer(this.flightPath)) {
+            this.map.removeLayer(this.flightPath);
+        }
+        
+        // Remove city markers
+        this.cityMarkers.forEach(cityMarker => {
+            if (cityMarker && cityMarker.marker && this.map.hasLayer(cityMarker.marker)) {
+                this.map.removeLayer(cityMarker.marker);
+            }
+        });
+        this.cityMarkers = [];
+    }
+
+    // Add city markers for all cities and style them based on their visited state
+    addCityMarkers() {
+        this.cities.forEach((city, index) => {
+            // Create marker if it doesn't exist
+            if (!this.cityMarkers[index]) {
+                this.createCityMarker(city);
+            }
+            
+            if (this.cityMarkers[index]) {
+                // Only show visited cities and current city (not unvisited grey markers)
+                if (city.current || city.visited) {
+                    // Add marker to map if not already there
+                    if (!this.map.hasLayer(this.cityMarkers[index].marker)) {
+                        this.cityMarkers[index].marker.addTo(this.map);
+                    }
+                    
+                    // Update marker style based on city state
+                    if (city.current) {
+                        this.updateCityMarkerStyle(index, 'current');
+                    } else if (city.visited) {
+                        this.updateCityMarkerStyle(index, 'visited');
+                    }
+                } else {
+                    // Remove unvisited markers from map
+                    if (this.map.hasLayer(this.cityMarkers[index].marker)) {
+                        this.map.removeLayer(this.cityMarkers[index].marker);
+                    }
+                }
+            }
+        });
     }
 
     updateCityList() {
@@ -1579,7 +1978,7 @@ class AnimatedFlightMap {
                         hours: Math.round((distance / 900) * 10) / 10
                     },
                     estimatedCO2: {
-                        kg: Math.round(distance * 0.25)
+                        kg: Math.round(this.calculateEmissions(distance, toCity.originalFlight))
                     },
                     cost: (() => {
                         // Use actual cost from CSV if available, otherwise fall back to calculation
@@ -1656,6 +2055,50 @@ class AnimatedFlightMap {
             Math.sin(dLng / 2) * Math.sin(dLng / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
+    }
+
+    // Calculate CO2 emissions based on transportation mode
+    calculateEmissions(distanceKm, journey) {
+        if (!journey) {
+            // Default to flight if no journey data
+            return distanceKm * 0.25; // kg CO2 per km for flights
+        }
+
+        const transportMode = journey.mode || journey.type || 'flight';
+        const mode = transportMode.toLowerCase();
+
+        // CO2 emission factors (kg CO2 per km)
+        const emissionFactors = {
+            'flight': 0.25,      // Commercial flight
+            'plane': 0.25,       // Alternative flight term
+            'airplane': 0.25,    // Alternative flight term
+            'car': 0.12,         // Gasoline car
+            'automobile': 0.12,  // Alternative car term
+            'train': 0.04,       // Electric/diesel train
+            'rail': 0.04,        // Alternative train term
+            'railway': 0.04,     // Alternative train term
+            'bus': 0.08,         // Intercity bus
+            'coach': 0.08,       // Alternative bus term
+            'ferry': 0.15,       // Ferry/boat
+            'boat': 0.15,        // Alternative ferry term
+            'ship': 0.15,        // Alternative ferry term
+            'metro': 0.03,       // Subway/metro
+            'subway': 0.03,      // Alternative metro term
+            'tram': 0.03,        // Tram/streetcar
+            'walk': 0,           // Walking
+            'walking': 0,        // Alternative walking term
+            'bike': 0,           // Bicycle
+            'bicycle': 0,        // Alternative bicycle term
+            'scooter': 0.02,     // Electric scooter
+            'motorcycle': 0.09   // Motorcycle
+        };
+
+        // Get emission factor, default to car if unknown mode
+        const factor = emissionFactors[mode] || emissionFactors['car'];
+        
+        console.log(`Emission calculation: ${distanceKm.toFixed(1)}km × ${factor} kg/km = ${(distanceKm * factor).toFixed(2)}kg CO2 (mode: ${mode})`);
+        
+        return distanceKm * factor;
     }
 
     // Update statistics display
