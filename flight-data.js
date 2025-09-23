@@ -2,6 +2,7 @@
 class FlightDataManager {
     constructor() {
         this.csvData = [];
+        this.landJourneyData = [];
         this.flightRadarData = [];
         this.combinedData = [];
         this.currencyRates = {
@@ -11,7 +12,9 @@ class FlightDataManager {
             RMB: 5.32      // 1 SGD = 5.32 RMB
         };
         this.airportCoords = new Map();
+        this.cityCoords = new Map();
         this.initializeAirportCoordinates();
+        this.initializeCityCoordinates();
     }
 
     // Initialize airport coordinates for mapping
@@ -114,7 +117,15 @@ class FlightDataManager {
             
             // Africa
             'ALG': [36.6910, 3.2155],   // Algiers
-            'CZL': [36.2760, 6.6204],   // Constantine
+                        'Tunis': [36.8065, 10.1815],
+            'Bizerte': [37.2746, 9.8739],
+            'Tangier': [35.7595, -5.8340],
+            'Chefchaouen': [35.1688, -5.2636],
+            'Rabat': [34.0209, -6.8416],
+            'Marrakesh': [31.6295, -7.9811],
+            'Algiers': [36.7538, 3.0588],
+            'Oran': [35.6969, -0.6331],
+            'Constantine': [36.3650, 6.6147],   // Constantine
             'SPX': [30.1167, 31.1500],  // Giza Sphinx
             
             // Asia - East Asia
@@ -153,6 +164,241 @@ class FlightDataManager {
 
         for (const [code, coords] of Object.entries(airports)) {
             this.airportCoords.set(code, coords);
+        }
+    }
+
+    // Initialize city coordinates for land journeys
+    initializeCityCoordinates() {
+        const cities = {
+            // Japan
+            'Sapporo': [43.0642, 141.3469],
+            'Tokyo': [35.6762, 139.6503],
+            'Osaka': [34.6937, 135.5023],
+            'Kyoto': [35.0116, 135.7681],
+            'Nara': [34.6851, 135.8048],
+            'Hiroshima': [34.3853, 132.4553],
+            'Fukuoka': [33.5904, 130.4017],
+            'Sendai': [38.2682, 140.8694],
+            'Nagoya': [35.1815, 136.9066],
+            'Kanazawa': [36.5944, 136.6256],
+            'Takayama': [36.1460, 137.2531],
+            'Matsumoto': [36.2381, 137.9722],
+            
+            // Europe
+            'Berlin': [52.5200, 13.4050],
+            'Munich': [48.1351, 11.5820],
+            'Prague': [50.0755, 14.4378],
+            'Pilsen': [49.7384, 13.3736],
+            'Vienna': [48.2082, 16.3738],
+            'Salzburg': [47.8095, 13.0550],
+            'Zurich': [47.3769, 8.5417],
+            'Geneva': [46.2044, 6.1432],
+            'Paris': [48.8566, 2.3522],
+            'Versailles': [48.8048, 2.1203],
+            'Monaco': [43.7384, 7.4246],
+            'Nice': [43.7102, 7.2620],
+            'Marseille': [43.2965, 5.3698],
+            'Narbonne': [43.1837, 3.0032],
+            'Amsterdam': [52.3676, 4.9041],
+            'Utrecht': [52.0907, 5.1214],
+            'Rotterdam': [51.9244, 4.4777],
+            'Brussels': [50.8503, 4.3517],
+            'Antwerp': [51.2194, 4.4025],
+            'Düsseldorf': [51.2277, 6.7735],
+            'Dusseldorf': [51.2277, 6.7735],
+            'Cologne': [50.9375, 6.9603],
+            'Hamburg': [53.5511, 9.9937],
+            'Munich': [48.1351, 11.5820],
+            'Stuttgart': [48.7758, 9.1829],
+            'Frankfurt': [50.1109, 8.6821],
+            'Basel': [47.5596, 7.5886],
+            'Innsbruck': [47.2692, 11.4041],
+            'London': [51.5074, -0.1278],
+            'Edinburgh': [55.9533, -3.1883],
+            'Dublin': [53.3498, -6.2603],
+            'Madrid': [40.4168, -3.7038],
+                        'Gibraltar': [36.1408, -5.3536],
+            'La Linea de la Concepcion': [36.1659, -5.3477],
+            'Gibraltar': [36.1408, -5.3536],
+            'Barcelona': [41.3851, 2.1734],
+            'Malaga': [36.7213, -4.4214],
+            'Seville': [37.3886, -5.9823],
+            'Valencia': [39.4699, -0.3763],
+            'Rome': [41.9028, 12.4964],
+            'Florence': [43.7696, 11.2558],
+            'Venice': [45.4408, 12.3155],
+            'Milan': [45.4642, 9.1900],
+            'Verona': [45.4384, 10.9916],
+            'Turin': [45.0703, 7.6869],
+            'Brescia': [45.5416, 10.2118],
+            'Brecia': [45.5416, 10.2118],
+            'Naples': [40.8518, 14.2681],
+            'Pompeii': [40.7489, 14.4989],
+            'Salerno': [40.6824, 14.7681],
+            'Amalfi': [40.6340, 14.6026],
+            'Catania': [37.5079, 15.0830],
+            'Palermo': [38.1157, 13.3613],
+            'Modena': [44.6478, 10.9249],
+            'San Marino': [43.9424, 12.4578],
+            'Bozen': [46.4983, 11.3548],
+            'Trieste': [45.6495, 13.7768],
+            'Novara': [45.4469, 8.6216],
+            'Pisa': [43.7228, 10.4017],
+            'Stockholm': [59.3293, 18.0686],
+            'Gothenburg': [57.7089, 11.9746],
+            'Malmö': [55.6044, 13.0038],
+            'Malmo': [55.6044, 13.0038],
+            'Copenhagen': [55.6761, 12.5683],
+            'Oslo': [59.9139, 10.7522],
+            'Helsinki': [60.1699, 24.9384],
+            'Warsaw': [52.2297, 21.0122],
+            'Krakow': [50.0647, 19.9450],
+            'Poznan': [52.4064, 16.9252],
+            'Kyiv': [50.4501, 30.5234],
+            'Lviv': [49.8397, 24.0297],
+            'Budapest': [47.4979, 19.0402],
+            'Bucharest': [44.4268, 26.1025],
+            'Brașov': [45.6427, 25.5887],
+            'Brasov': [45.6427, 25.5887],
+            'Sofia': [42.6977, 23.3219],
+            'Skopje': [41.9973, 21.4280],
+            'Belgrade': [44.7866, 20.4489],
+            'Novi Sad': [45.2671, 19.8335],
+            'Ljubljana': [46.0569, 14.5058],
+            'Zagreb': [45.8150, 15.9819],
+            'Bratislava': [48.1486, 17.1077],
+            'Sarajevo': [43.8563, 18.4131],
+            'Mostar': [43.3438, 17.8078],
+            'Visoko': [43.9869, 18.1797],
+            'Podgorica': [42.4304, 19.2594],
+            'Athens': [37.9838, 23.7275],
+            'Thessaloniki': [40.6401, 22.9444],
+            'Ouranoupoli': [40.3211, 23.9781],
+            'Daphni': [40.2397, 24.2036],
+            'Istanbul': [41.0082, 28.9784],
+            'Ankara': [39.9334, 32.8597],
+            'Antalya': [36.8969, 30.7133],
+            'Denizli': [37.7765, 29.0864],
+            'Pamukkale': [37.9200, 29.1200],
+            'Tbilisi': [41.7151, 44.8271],
+            'Yerevan': [40.1792, 44.4991],
+            'Gori': [41.9847, 44.1097],
+            'Batumi': [41.6168, 41.6367],
+            'Kutaisi': [42.2679, 42.6958],
+            'Beirut': [33.8938, 35.5018],
+            'Tripoli': [34.4333, 35.8500],
+            'Lisbon': [38.7223, -9.1393],
+            'Porto': [41.1579, -8.6291],
+            
+            // Asia
+            'Seoul': [37.5665, 126.9780],
+            'Busan': [35.1796, 129.0756],
+            'Daegu': [35.8722, 128.6025],
+            'Daejeon': [36.3504, 127.3845],
+            'Beijing': [39.9042, 116.4074],
+            'Tianjin': [39.3434, 117.3616],
+            'Shanghai': [31.2304, 121.4737],
+            'Hong Kong': [22.3193, 114.1694],
+            'Taipei': [25.0330, 121.5654],
+            'Singapore': [1.3521, 103.8198],
+            'Johor Bahru': [1.4927, 103.7414],
+            'Malacca': [2.1896, 102.2501],
+            'Batam': [1.1307, 104.0532],
+            'Moscow': [55.7558, 37.6176],
+            'St. Petersburg': [59.9311, 30.3609],
+            'Tallinn': [59.4370, 24.7536],
+            'Da Nang': [16.0544, 108.2022],
+            'Hoi An': [15.8801, 108.3380],
+            'Bangkok': [13.7563, 100.5018],
+            'Kuala Lumpur': [3.1390, 101.6869],
+            'Singapore': [1.3521, 103.8198],
+            'Manila': [14.5995, 120.9842],
+            'Ho Chi Minh City': [10.8231, 106.6297],
+            'Hanoi': [21.0285, 105.8542],
+            'Mumbai': [19.0760, 72.8777],
+            'Delhi': [28.7041, 77.1025],
+            'Bangalore': [12.9716, 77.5946],
+            
+            // Middle East
+            'Dubai': [25.2048, 55.2708],
+            'Abu Dhabi': [24.4539, 54.3773],
+            'Doha': [25.2854, 51.5310],
+            'Kuwait City': [29.3759, 47.9774],
+            'Riyadh': [24.7136, 46.6753],
+            'Tel Aviv': [32.0853, 34.7818],
+            'Jerusalem': [31.7683, 35.2137],
+            'Eilat': [29.5581, 34.9482],
+            'Amman': [31.9454, 35.9284],
+            'Petra': [30.3285, 35.4444],
+            'Taba': [29.4881, 34.8997],
+            'Cairo': [30.0444, 31.2357],
+            'Alexandria': [31.2001, 29.9187],
+            'Luxor': [25.6872, 32.6396],
+            'New Cairo City': [30.0330, 31.4978],
+            'Larnaca': [34.9176, 33.6291],
+            'Kyrenia': [35.3413, 33.3192],
+            'Casablanca': [33.5731, -7.5898],
+            'Chefchaoun': [35.1689, -5.2636],
+            
+            // North America
+            'New York': [40.7128, -74.0060],
+            'Philadelphia': [39.9526, -75.1652],
+            'Los Angeles': [34.0522, -118.2437],
+            'Los Angles': [34.0522, -118.2437],
+            'Chicago': [41.8781, -87.6298],
+            'Milwaukee': [43.0389, -87.9065],
+            'San Francisco': [37.7749, -122.4194],
+            'Seattle': [47.6062, -122.3321],
+            'Boston': [42.3601, -71.0589],
+            'Atlantic City': [39.3643, -74.4229],
+            'Washington DC': [38.9072, -77.0369],
+            'Miami': [25.7617, -80.1918],
+            'Las Vegas': [36.1699, -115.1398],
+            'Toronto': [43.6532, -79.3832],
+            'Niagara': [43.0896, -79.0849],
+            'Vancouver': [49.2827, -123.1207],
+            'Montreal': [45.5017, -73.5673],
+            'Ottawa': [45.4215, -75.6972],
+            'Tijuana': [32.5149, -117.0382],
+            
+            // South America
+            'São Paulo': [-23.5558, -46.6396],
+            'Rio de Janeiro': [-22.9068, -43.1729],
+            'Buenos Aires': [-34.6118, -58.3960],
+            'La Paz': [-16.5000, -68.1500],
+            'Uyuni': [-20.4637, -66.8267],
+            'Puno': [-15.8422, -70.0199],
+            'Cusco': [-13.5319, -71.9675],
+            'Ollantaytambo': [-13.2594, -72.2653],
+            'Aguas Calientes': [-13.1549, -72.5250],
+            'Aguas Caliente': [-13.1549, -72.5250],
+            'Lima': [-12.0464, -77.0428],
+            'Ica': [-14.0678, -75.7286],
+            'Huacachina': [-14.0873, -75.7627],
+            'Santiago': [-33.4489, -70.6693],
+            'Bogotá': [4.7110, -74.0721],
+            
+            // Australia & Oceania
+            'Sydney': [-33.8688, 151.2093],
+            'Melbourne': [-37.8136, 144.9631],
+            'Brisbane': [-27.4698, 153.0251],
+            'Perth': [-31.9505, 115.8605],
+            'Adelaide': [-34.9285, 138.6007],
+            'Auckland': [-36.8485, 174.7633],
+            'Wellington': [-41.2924, 174.7787],
+            
+            // Africa
+            'Cape Town': [-33.9249, 18.4241],
+            'Johannesburg': [-26.2041, 28.0473],
+            'Nairobi': [-1.2864, 36.8172],
+            'Lagos': [6.5244, 3.3792],
+            'Marrakech': [31.6295, -7.9811],
+            'Tunis': [36.8065, 10.1815],
+            'Algiers': [36.7538, 3.0588]
+        };
+
+        for (const [city, coords] of Object.entries(cities)) {
+            this.cityCoords.set(city, coords);
         }
     }
 
@@ -196,10 +442,68 @@ class FlightDataManager {
                 }
             }
             
+            console.log('=== FLIGHT DATA PROCESSING COMPLETED ===');
+            console.log(`Total flights processed: ${this.csvData.length}`);
             console.log(`Loaded ${this.csvData.length} flights from CSV`);
             return this.csvData;
         } catch (error) {
             console.error('Error loading CSV data:', error);
+            return [];
+        }
+    }
+
+    // Load land journey data from CSV
+    async loadLandJourneyData() {
+        try {
+            console.log('=== ATTEMPTING TO LOAD LAND JOURNEY CSV ===');
+            const response = await fetch('./land-journey.csv');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            console.log('Land journey CSV response OK, reading text...');
+            const csvText = await response.text();
+            console.log('Land journey CSV text length:', csvText.length);
+            console.log('First 200 chars:', csvText.substring(0, 200));
+            
+            const lines = csvText.split('\n').filter(line => line.trim()); // Filter out empty lines
+            const headers = this.parseCSVLine(lines[0]); // First non-empty line is headers
+            
+            console.log('Land journey headers:', headers);
+            console.log(`Processing ${lines.length - 1} land journey records`);
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    const values = this.parseCSVLine(lines[i]);
+                    const journey = {};
+                    headers.forEach((header, index) => {
+                        journey[header] = values[index] || '';
+                    });
+                    
+                    // Process and enrich land journey data
+                    const processedJourney = this.processLandJourneyData(journey);
+                    if (processedJourney) {
+                        // DEBUG: Check for impossible routes
+                        if ((processedJourney.origin === 'Singapore' && processedJourney.destination === 'Helsinki') ||
+                            (processedJourney.origin === 'Helsinki' && processedJourney.destination === 'Singapore') ||
+                            (processedJourney.origin === 'Singapore' && processedJourney.destination === 'Beijing') ||
+                            (processedJourney.origin === 'Beijing' && processedJourney.destination === 'Singapore')) {
+                            console.error('IMPOSSIBLE LAND JOURNEY DETECTED IN PROCESSING:', processedJourney);
+                            console.error('Raw journey data:', journey);
+                            console.error('This should NOT happen - land journey CSV should not contain these routes');
+                        }
+                        this.landJourneyData.push(processedJourney);
+                    }
+                }
+            }
+            
+            console.log(`Loaded ${this.landJourneyData.length} land journeys from CSV`);
+            return this.landJourneyData;
+        } catch (error) {
+            console.error('Error loading land journey data:', error);
+            console.error('Error details:', error.message);
+            console.error('Error stack:', error.stack);
             return [];
         }
     }
@@ -254,12 +558,17 @@ class FlightDataManager {
                 flightClass: flight['Flight class'] || flight.flightClass,
                 flightReason: flight['Flight reason'] || flight.flightReason,
                 note: flight.Note || flight.note,
-                source: source,
+                source: 'flight-diary',  // Force source to be flight-diary
+                type: 'flight',         // Force type to be flight
                 actualCostSGD: hasActualCost ? parseFloat(actualCostSGD) : null,
                 costSGD: hasActualCost ? parseFloat(actualCostSGD) : this.estimateFlightCost(flight),
                 estimatedCost: flight.estimatedCost || this.estimateFlightCost(flight)
             };
 
+            console.log('=== PROCESSED FLIGHT TYPE CHECK ===');
+            console.log('processedFlight.type:', processedFlight.type);
+            console.log('processedFlight.source:', processedFlight.source);
+            
             // Extract airport codes
             processedFlight.fromCode = this.extractAirportCode(processedFlight.from);
             processedFlight.toCode = this.extractAirportCode(processedFlight.to);
@@ -350,6 +659,172 @@ class FlightDataManager {
         return degrees * (Math.PI / 180);
     }
 
+    // Process and standardize land journey data
+    processLandJourneyData(journey) {
+        try {
+            console.log('=== PROCESSING LAND JOURNEY DATA ===');
+            console.log('Raw journey object:', journey);
+            console.log('Raw date value:', journey.date);
+            
+            // Convert DD/MM/YYYY format to standard date format
+            let convertedDate = journey.date;
+            if (journey.date && journey.date.includes('/')) {
+                const dateParts = journey.date.split('/');
+                if (dateParts.length === 3) {
+                    // Convert DD/MM/YYYY to YYYY-MM-DD
+                    const day = dateParts[0].padStart(2, '0');
+                    const month = dateParts[1].padStart(2, '0');
+                    const year = dateParts[2];
+                    convertedDate = `${year}-${month}-${day}`;
+                    console.log(`Converted date from ${journey.date} to ${convertedDate}`);
+                }
+            }
+            
+            // Extract actual cost from CSV (cost_sgd field)
+            const actualCostSGD = journey['cost_sgd'] || journey.cost_sgd;
+            const hasActualCost = actualCostSGD && !isNaN(parseFloat(actualCostSGD)) && parseFloat(actualCostSGD) > 0;
+            
+            const processedJourney = {
+                date: convertedDate,  // Use converted date
+                origin: journey.origin,
+                destination: journey.destination,
+                mode: journey.mode,
+                actualCostSGD: hasActualCost ? parseFloat(actualCostSGD) : null,
+                costSGD: hasActualCost ? parseFloat(actualCostSGD) : this.estimateLandJourneyCost(journey),
+                estimatedCost: this.estimateLandJourneyCost(journey),
+                source: 'land-journey',  // Force source to be land-journey
+                type: 'land'             // Force type to be land
+            };
+            
+            console.log('=== PROCESSED LAND JOURNEY TYPE CHECK ===');
+            console.log('processedJourney.type:', processedJourney.type);
+            console.log('processedJourney.source:', processedJourney.source);
+
+            // Get coordinates for origin and destination cities
+            const originCoords = this.cityCoords.get(processedJourney.origin);
+            const destinationCoords = this.cityCoords.get(processedJourney.destination);
+            
+            if (originCoords && destinationCoords) {
+                processedJourney.distance = this.haversineDistance(originCoords, destinationCoords);
+                processedJourney.originCoords = originCoords;
+                processedJourney.destinationCoords = destinationCoords;
+            } else {
+                console.warn(`Missing coordinates for land journey: ${processedJourney.origin} -> ${processedJourney.destination}`);
+            }
+
+            console.log('=== FINAL PROCESSED LAND JOURNEY ===');
+            console.log('processedJourney.date:', processedJourney.date);
+            console.log('Full processed journey:', processedJourney);
+
+            return processedJourney;
+        } catch (error) {
+            console.error('Error processing land journey data:', error);
+            return null;
+        }
+    }
+
+    // Estimate land journey cost based on distance and mode
+    estimateLandJourneyCost(journey) {
+        const origin = journey.origin;
+        const destination = journey.destination;
+        const mode = (journey.mode || '').toLowerCase();
+        
+        const originCoords = this.cityCoords.get(origin);
+        const destinationCoords = this.cityCoords.get(destination);
+        
+        if (!originCoords || !destinationCoords) return 50; // Default cost if coordinates unknown
+        
+        const distance = this.haversineDistance(originCoords, destinationCoords);
+        
+        // Base cost calculation per km (in SGD)
+        let costPerKm = 0.10; // Default rate
+        
+        if (mode.includes('train') || mode.includes('rail')) {
+            costPerKm = 0.12; // Train rates
+        } else if (mode.includes('bus')) {
+            costPerKm = 0.08; // Bus rates (cheaper)
+        } else if (mode.includes('car') || mode.includes('taxi')) {
+            costPerKm = 0.15; // Car/taxi rates
+        } else if (mode.includes('ferry') || mode.includes('boat')) {
+            costPerKm = 0.20; // Ferry rates
+        }
+        
+        let baseCost = distance * costPerKm;
+        
+        // Add some randomness for realism
+        baseCost *= (0.8 + Math.random() * 0.4);
+        
+        return Math.round(baseCost);
+    }
+
+
+    // Main data loading method - loads both flights and land journeys
+    async loadData() {
+        try {
+            console.log('=== STARTING loadData() ===');
+            
+            // Load flight data
+            console.log('Loading flight data...');
+            const flightDataResult = await this.loadCSVData();
+            console.log('=== FLIGHT DATA LOAD RESULT ===');
+            console.log(`Flight data loaded: ${this.csvData.length} records`);
+            console.log('Flight data result:', flightDataResult ? flightDataResult.length : 'null/undefined');
+            
+            // Load land journey data
+            console.log('=== ABOUT TO LOAD LAND JOURNEY DATA ===');
+            console.log('Loading land journey data...');
+            const landJourneyResult = await this.loadLandJourneyData();
+            console.log('=== LAND JOURNEY DATA LOAD RESULT ===');
+            console.log(`Land journey data loaded: ${this.landJourneyData.length} records`);
+            console.log('Land journey result:', landJourneyResult ? landJourneyResult.length : 'null/undefined');
+            
+            // Combine and sort all data by date
+            this.combinedData = [...this.csvData, ...this.landJourneyData]
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+            console.log('=== DATA TYPE VERIFICATION ===');
+            console.log(`Flight data types: ${this.csvData.map(f => f.type).slice(0, 5)}`);
+            console.log(`Land journey types: ${this.landJourneyData.map(l => l.type).slice(0, 5)}`);
+            console.log(`Combined data types: ${this.combinedData.map(c => c.type).slice(0, 10)}`);
+            
+            // DEBUG: Check date ranges
+            console.log('=== DATE RANGE ANALYSIS ===');
+            if (this.csvData.length > 0) {
+                const flightDates = this.csvData.map(f => new Date(f.date)).sort((a, b) => a - b);
+                console.log(`Flight date range: ${flightDates[0].toISOString().split('T')[0]} to ${flightDates[flightDates.length-1].toISOString().split('T')[0]}`);
+            }
+            if (this.landJourneyData.length > 0) {
+                const landDates = this.landJourneyData.map(l => new Date(l.date)).sort((a, b) => a - b);
+                console.log(`Land journey date range: ${landDates[0].toISOString().split('T')[0]} to ${landDates[landDates.length-1].toISOString().split('T')[0]}`);
+            }
+            if (this.combinedData.length > 0) {
+                const combinedDates = this.combinedData.map(c => new Date(c.date)).sort((a, b) => a - b);
+                console.log(`Combined date range: ${combinedDates[0].toISOString().split('T')[0]} to ${combinedDates[combinedDates.length-1].toISOString().split('T')[0]}`);
+            }
+                
+            console.log('Data loading complete:', {
+                flights: this.csvData.length,
+                landJourneys: this.landJourneyData.length,
+                combined: this.combinedData.length
+            });
+            
+            // Show first few records with their types
+            console.log('First 5 combined records:');
+            this.combinedData.slice(0, 5).forEach((record, i) => {
+                console.log(`${i+1}. Type: ${record.type}, Source: ${record.source}, Date: ${record.date}`);
+                if (record.type === 'land') {
+                    console.log(`   Land: ${record.origin} -> ${record.destination} (${record.mode})`);
+                } else {
+                    console.log(`   Flight: ${record.fromCode} -> ${record.toCode}`);
+                }
+            });
+            
+            return this.combinedData;
+        } catch (error) {
+            console.error('Error loading data:', error);
+            throw error;
+        }
+    }
 
     // Filter data by date range
     filterByDateRange(startDate, endDate) {
@@ -366,10 +841,10 @@ const flightDataManager = new FlightDataManager();
 
 // Initialize data loading when page loads
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Loading flight data...');
+    console.log('Loading all travel data...');
     
     try {
-        await flightDataManager.loadCSVData();
+        await flightDataManager.loadData();
         
         // Update last updated timestamp
         document.getElementById('last-updated').textContent = new Date().toLocaleString();

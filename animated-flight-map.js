@@ -191,25 +191,53 @@ class AnimatedFlightMap {
 
     async loadFlightData() {
         try {
-            // Create flight data manager and load CSV
+            // Create flight data manager and load both CSV and land journey data
             const flightDataManager = new FlightDataManager();
-            const flights = await flightDataManager.loadCSVData();
+            const combinedData = await flightDataManager.loadData(); // Use loadData() instead of loadCSVData()
             
-            if (flights && flights.length > 0) {
-                console.log(`Loading ${flights.length} flights from CSV`);
-                console.log('First few flights:', flights.slice(0, 3).map(f => ({
-                    date: f.date,
-                    from: f.from,
-                    to: f.to,
-                    fromCode: f.fromCode,
-                    toCode: f.toCode
+            if (combinedData && combinedData.length > 0) {
+                console.log(`Loading ${combinedData.length} journeys (${flightDataManager.csvData.length} flights + ${flightDataManager.landJourneyData.length} land journeys)`);
+                
+                // DEBUG: Check if combined data is properly sorted
+                console.log('=== COMBINED DATA SORTING DEBUG ===');
+                console.log('First 20 combined journeys by date:');
+                combinedData.slice(0, 20).forEach((journey, i) => {
+                    console.log(`${i+1}. ${journey.date} - ${journey.type} - ${journey.from || journey.origin} -> ${journey.to || journey.destination}`);
+                });
+                
+                console.log('Last 20 combined journeys by date:');
+                combinedData.slice(-20).forEach((journey, i) => {
+                    const index = combinedData.length - 20 + i;
+                    console.log(`${index+1}. ${journey.date} - ${journey.type} - ${journey.from || journey.origin} -> ${journey.to || journey.destination}`);
+                });
+                
+                console.log('First few journeys:', combinedData.slice(0, 3).map(j => ({
+                    date: j.date,
+                    from: j.from,
+                    to: j.to,
+                    fromCode: j.fromCode,
+                    toCode: j.toCode,
+                    source: j.source,
+                    type: j.type,
+                    origin: j.origin,
+                    destination: j.destination
                 })));
                 
-                // Calculate year range from flight dates
-                this.updateHeaderYear(flights);
+                // DEBUG: Check for suspicious land journeys
+                const suspiciousLandJourneys = combinedData.filter(j => 
+                    j.type === 'land' && 
+                    (j.origin === 'Singapore' || j.destination === 'Singapore') &&
+                    (j.destination === 'Beijing' || j.destination === 'Busan' || j.origin === 'Beijing' || j.origin === 'Busan')
+                );
+                if (suspiciousLandJourneys.length > 0) {
+                    console.error('FOUND SUSPICIOUS LAND JOURNEYS:', suspiciousLandJourneys);
+                }
                 
-                // Convert flights to city sequence
-                const citySequence = this.convertFlightsToCities(flights);
+                // Calculate year range from combined journey dates
+                this.updateHeaderYear(combinedData);
+                
+                // Convert journeys to city sequence
+                const citySequence = this.convertFlightsToCities(combinedData);
                 
                 // Add cities to map
                 citySequence.forEach(city => this.addCity(city));
@@ -226,24 +254,24 @@ class AnimatedFlightMap {
                 }
                 
             } else {
-                console.warn('No flight data loaded, using sample data');
+                console.warn('No journey data loaded, using sample data');
                 this.loadSampleCities();
             }
         } catch (error) {
-            console.error('Error loading flight data:', error);
+            console.error('Error loading journey data:', error);
             console.warn('Falling back to sample data');
             this.loadSampleCities();
         }
     }
     
-    updateHeaderYear(flights) {
-        // Store flights for year updates during animation
-        this.flightData = flights;
+    updateHeaderYear(journeys) {
+        // Store journeys for year updates during animation
+        this.flightData = journeys;
         
-        // Set initial year from first flight (using 'date' field from CSV)
-        if (flights.length > 0) {
-            const firstFlightDate = new Date(flights[0].date || flights[0].departureDate);
-            const firstYear = firstFlightDate.getFullYear();
+        // Set initial year from first journey (using 'date' field from CSV)
+        if (journeys.length > 0) {
+            const firstJourneyDate = new Date(journeys[0].date || journeys[0].departureDate);
+            const firstYear = firstJourneyDate.getFullYear();
             
             console.log('Setting initial header year to:', firstYear);
             
@@ -303,89 +331,155 @@ class AnimatedFlightMap {
         }
     }
 
-    convertFlightsToCities(flights) {
-        console.log('Converting flights to cities, input flights:', flights.length);
-        console.log('Sample flight data:', flights[0]);
+    convertFlightsToCities(journeys) {
+        console.log('Converting journeys to cities, input journeys:', journeys.length);
+        console.log('Sample journey data:', journeys[0]);
         
         const citySequence = [];
         const addedCities = new Set(); // Track cities we've already added
         
-        // Sort flights by date
-        flights.sort((a, b) => new Date(a.date) - new Date(b.date));
-        console.log('After sorting, first flight date:', flights[0]?.date);
-        console.log('After sorting, last flight date:', flights[flights.length - 1]?.date);
-        console.log('Sample of sorted flight dates:', flights.slice(0, 10).map(f => f.date));
+        // Sort journeys by date
+        journeys.sort((a, b) => new Date(a.date) - new Date(b.date));
+        console.log('After sorting, first journey date:', journeys[0]?.date);
+        console.log('After sorting, last journey date:', journeys[journeys.length - 1]?.date);
+        console.log('Sample of sorted journey dates:', journeys.slice(0, 10).map(j => j.date));
         
-        // Create a proper flight sequence that maintains chronological order
-        this.flightSequence = []; // Store the actual flight sequence for date mapping
+        // Create a proper journey sequence that maintains chronological order
+        this.flightSequence = []; // Store the actual journey sequence for date mapping (keeping name for compatibility)
         
-        flights.forEach((flight, index) => {
-            console.log(`Processing flight ${index}: ${flight.fromCode} -> ${flight.toCode}, date: ${flight.date}`);
+        journeys.forEach((journey, index) => {
+            // Treat all journeys the same way visually
+            const fromLocation = journey.from || journey.origin;
+            const toLocation = journey.to || journey.destination;
+            const fromCode = journey.fromCode || journey.origin;
+            const toCode = journey.toCode || journey.destination;
             
-            // Always add departure city for first flight
-            if (citySequence.length === 0 && flight.fromCode) {
-                const coords = this.getAirportCoordinates(flight.fromCode);
+            console.log(`Processing journey ${index}: ${fromCode} -> ${toCode}, date: ${journey.date}, type: ${journey.type}`);
+            
+            // Always add departure city for first journey
+            if (citySequence.length === 0 && fromCode) {
+                const coords = this.getJourneyCoordinates(journey, 'from');
                 if (coords) {
                     console.log('=== CREATING FIRST CITY ===');
-                    console.log('flight object:', flight);
-                    console.log('flight.date value:', flight.date);
-                    console.log('typeof flight.date:', typeof flight.date);
+                    console.log('journey object:', journey);
+                    console.log('journey.date value:', journey.date);
+                    console.log('typeof journey.date:', typeof journey.date);
                     
                     const city = {
-                        name: this.extractCityName(flight.from),
-                        country: this.extractCountry(flight.from),
+                        name: this.extractLocationName(fromLocation, fromCode),
+                        country: this.extractCountry(fromLocation),
                         lat: coords[0],
                         lng: coords[1],
-                        airportCode: flight.fromCode,
-                        flightDate: flight.date,
-                        flightIndex: this.flightSequence.length
+                        airportCode: fromCode,
+                        locationCode: fromCode,
+                        flightDate: journey.date,
+                        flightIndex: this.flightSequence.length,
+                        journeyType: 'flight' // Treat all as flights visually
                     };
                     console.log('=== CREATED FIRST CITY ===');
                     console.log('city.flightDate:', city.flightDate);
                     console.log('Adding first city:', city);
                     citySequence.push(city);
-                    addedCities.add(flight.fromCode);
-                    this.flightSequence.push(flight);
+                    addedCities.add(fromCode);
+                    this.flightSequence.push(journey);
                 }
             }
             
-            // Always add arrival city (this represents the flight destination)
-            if (flight.toCode) {
-                const coords = this.getAirportCoordinates(flight.toCode);
+            // Always add arrival city (this represents the journey destination)
+            if (toCode) {
+                const coords = this.getJourneyCoordinates(journey, 'to');
                 if (coords) {
                     console.log('=== CREATING DESTINATION CITY ===');
-                    console.log('flight object:', flight);
-                    console.log('flight.date value:', flight.date);
-                    console.log('typeof flight.date:', typeof flight.date);
+                    console.log('journey object:', journey);
+                    console.log('journey.date value:', journey.date);
+                    console.log('typeof journey.date:', typeof journey.date);
                     
                     const city = {
-                        name: this.extractCityName(flight.to),
-                        country: this.extractCountry(flight.to),
+                        name: this.extractLocationName(toLocation, toCode),
+                        country: this.extractCountry(toLocation),
                         lat: coords[0],
                         lng: coords[1],
-                        airportCode: flight.toCode,
-                        flightDate: flight.date,
+                        airportCode: toCode,
+                        locationCode: toCode,
+                        flightDate: journey.date,
                         flightIndex: this.flightSequence.length,
-                        originalFlight: flight
+                        originalFlight: journey,
+                        journeyType: 'flight' // Treat all as flights visually
                     };
                     console.log('=== CREATED DESTINATION CITY ===');
                     console.log('city.flightDate:', city.flightDate);
                     console.log('Adding destination city:', city);
                     citySequence.push(city);
-                    this.flightSequence.push(flight);
+                    this.flightSequence.push(journey);
                 }
             }
         });
         
-        console.log('Flight route sequence (chronological):', citySequence.map(c => `${c.name} (${c.airportCode}) - ${c.flightDate}`));
+        console.log('Journey route sequence (chronological):', citySequence.map(c => `${c.name} (${c.locationCode}) - ${c.flightDate} [${c.journeyType}]`));
         console.log(`Total cities in sequence: ${citySequence.length}`);
         return citySequence;
     }
     
+    getJourneyCoordinates(journey, direction) {
+        // Try to get coordinates for any journey type
+        let locationCode;
+        
+        if (direction === 'from') {
+            locationCode = journey.fromCode || journey.origin;
+        } else {
+            locationCode = journey.toCode || journey.destination;
+        }
+        
+        console.log(`Looking up coordinates for: ${locationCode} (direction: ${direction})`);
+        
+        // Try airport coordinates first, then city coordinates
+        let coords = this.getAirportCoordinates(locationCode) || this.getCityCoordinates(locationCode);
+        
+        if (!coords) {
+            console.warn(`No coordinates found for: ${locationCode}`);
+            // Try to get from the journey object directly (for land journeys)
+            if (journey.type === 'land') {
+                if (direction === 'from' && journey.originCoords) {
+                    coords = journey.originCoords;
+                } else if (direction === 'to' && journey.destinationCoords) {
+                    coords = journey.destinationCoords;
+                }
+            }
+        }
+        
+        console.log(`Coordinates for ${locationCode}:`, coords);
+        return coords;
+    }
+    
+    getCityCoordinates(cityName) {
+        // Use cached flight data manager if available, or create one
+        if (!this.coordinateManager) {
+            this.coordinateManager = new FlightDataManager();
+        }
+        return this.coordinateManager.cityCoords.get(cityName);
+    }
+
     getAirportCoordinates(airportCode) {
-        // Use the airport coordinates from flight-data.js
-        const flightDataManager = new FlightDataManager();
-        return flightDataManager.airportCoords.get(airportCode);
+        // Use cached flight data manager if available, or create one
+        if (!this.coordinateManager) {
+            this.coordinateManager = new FlightDataManager();
+        }
+        return this.coordinateManager.airportCoords.get(airportCode);
+    }
+    
+    extractLocationName(locationString, locationCode) {
+        // Handle both flight and land journey location names
+        if (!locationString) {
+            return locationCode;
+        }
+        
+        // For flights, extract city name from "City Name / Airport Name (CODE/ICAO)" format
+        if (locationString.includes(' / ')) {
+            return this.extractCityName(locationString);
+        }
+        
+        // For land journeys, use the location string directly (it's just the city name)
+        return locationString;
     }
     
     extractCityName(airportString) {
@@ -405,6 +499,12 @@ class AnimatedFlightMap {
         if (cityName === 'Beauvais' || airportString.includes('Beauvais')) {
             cityName = 'Paris';
         }
+        if (cityName === 'Reyes Acozac' || airportString.includes('Reyes Acozac')) {
+            cityName = 'Mexico City';
+        }
+        if (cityName === 'Fort Lauderdale' || airportString.includes('Fort Lauderdale')) {
+            cityName = 'Miami';
+        }
         if (cityName === 'Burbank' || airportString.includes('Burbank')) {
             cityName = 'Los Angeles';
         }
@@ -419,173 +519,274 @@ class AnimatedFlightMap {
     }
     
     extractCountry(airportString) {
-        // Extract airport code first
+        // First try to extract airport code
         const airportCode = this.extractAirportCode(airportString);
         
-        // Airport code to country mapping - COMPLETE DATABASE
-        const airportToCountry = {
-            // USA
-            'EWR': 'USA', 'FLL': 'USA', 'LGA': 'USA', 'MSY': 'USA', 'LAS': 'USA',
-            'SEA': 'USA', 'JFK': 'USA', 'MIA': 'USA', 'ORD': 'USA', 'BUR': 'USA',
-            'LAX': 'USA', 'SFO': 'USA', 'DEN': 'USA',
+        // If we have an airport code, use airport-to-country mapping
+        if (airportCode) {
+            // Airport code to country mapping - COMPLETE DATABASE
+            const airportToCountry = {
+                // USA
+                'EWR': 'USA', 'FLL': 'USA', 'LGA': 'USA', 'MSY': 'USA', 'LAS': 'USA',
+                'SEA': 'USA', 'JFK': 'USA', 'MIA': 'USA', 'ORD': 'USA', 'BUR': 'USA',
+                'LAX': 'USA', 'SFO': 'USA', 'DEN': 'USA',
+                
+                // South America
+                'BOG': 'Colombia', 'LPB': 'Bolivia', 'CUZ': 'Peru', 'LIM': 'Peru', 'SCL': 'Chile',
+                
+                // Mexico
+                'MEX': 'Mexico', 'NLU': 'Mexico', 'OAX': 'Mexico',
+                
+                // Europe - Italy
+                'MXP': 'Italy', 'FCO': 'Italy', 'CIA': 'Italy', 'BGY': 'Italy', 'LIN': 'Italy', 'PMO': 'Italy',
+                
+                // Europe - France  
+                'BVA': 'France', 'CDG': 'France', 'ORY': 'France', 'MRS': 'France',
+                
+                // Europe - UK
+                'LHR': 'UK', 'LGW': 'UK', 'STN': 'UK', 'LTN': 'UK',
+                
+                // Europe - Netherlands
+                'AMS': 'Netherlands',
+                
+                // Europe - Spain
+                'MAD': 'Spain', 'BCN': 'Spain', 'PMI': 'Spain',
+                
+                // Europe - Germany
+                'FRA': 'Germany', 'MUC': 'Germany', 'TXL': 'Germany', 'BER': 'Germany', 'HAM': 'Germany',
+                
+                // Europe - Switzerland
+                'ZUR': 'Switzerland', 'ZRH': 'Switzerland', 'GVA': 'Switzerland',
+                
+                // Europe - Austria
+                'VIE': 'Austria',
+                
+                // Europe - Czech Republic
+                'PRG': 'Czech Republic',
+                
+                // Europe - Poland
+                'WAW': 'Poland',
+                
+                // Europe - Hungary
+                'BUD': 'Hungary',
+                
+                // Europe - Romania
+                'OTP': 'Romania', 'IAS': 'Romania',
+                
+                // Europe - Bulgaria
+                'SOF': 'Bulgaria',
+                
+                // Europe - Serbia
+                'BEG': 'Serbia',
+                
+                // Europe - Bosnia and Herzegovina
+                'SJJ': 'Bosnia and Herzegovina',
+                
+                // Europe - Montenegro
+                'TGD': 'Montenegro',
+                
+                // Europe - Albania
+                'TIA': 'Albania',
+                
+                // Europe - Nordics
+                'ARN': 'Sweden', 'CPH': 'Denmark', 'OSL': 'Norway', 'TRF': 'Norway',
+                'HEL': 'Finland',
+                
+                // Europe - Greece
+                'ATH': 'Greece', 'SKG': 'Greece',
+                
+                // Europe - Portugal
+                'LIS': 'Portugal', 'OPO': 'Portugal',
+                
+                // Europe - Malta
+                'MLA': 'Malta',
+                
+                // Europe - Turkey
+                'SAW': 'Turkey', 'IST': 'Turkey', 'ESB': 'Turkey', 'AYT': 'Turkey',
+                
+                // Europe - Cyprus
+                'LCA': 'Cyprus',
+                
+                // Europe - Belgium
+                'BRU': 'Belgium',
+                
+                // Asia - Japan
+                'NRT': 'Japan', 'HND': 'Japan', 'KIX': 'Japan', 'NGO': 'Japan', 'CTS': 'Japan', 'ITM': 'Japan',
+                
+                // Asia - South Korea
+                'ICN': 'South Korea', 'GMP': 'South Korea', 'PUS': 'South Korea', 'CJU': 'South Korea',
+                
+                // Asia - China
+                'PVG': 'China', 'PEK': 'China', 'CAN': 'China', 'PKX': 'China',
+                
+                // Asia - Hong Kong
+                'HKG': 'Hong Kong',
+                
+                // Asia - Taiwan
+                'TPE': 'Taiwan', 'TSA': 'Taiwan',
+                
+                // Asia - Singapore
+                'SIN': 'Singapore',
+                
+                // Asia - Malaysia
+                'KUL': 'Malaysia',
+                
+                // Asia - Indonesia
+                'CGK': 'Indonesia',
+                
+                // Asia - Thailand
+                'BKK': 'Thailand', 'DMK': 'Thailand', 'CNX': 'Thailand',
+                
+                // Asia - Vietnam
+                'SGN': 'Vietnam', 'DAD': 'Vietnam',
+                
+                // Asia - Philippines
+                'MNL': 'Philippines',
+                
+                // Asia - India
+                'DEL': 'India', 'BOM': 'India', 'CCU': 'India',
+                
+                // Asia - Bangladesh
+                'DAC': 'Bangladesh',
+                
+                // Middle East & Gulf
+                'DXB': 'UAE', 'AUH': 'UAE', 'SHJ': 'UAE',
+                'DOH': 'Qatar', 
+                'KWI': 'Kuwait',
+                'RUH': 'Saudi Arabia', 'JED': 'Saudi Arabia',
+                'MCT': 'Oman',
+                'BAH': 'Bahrain',
+                'BEY': 'Lebanon',
+                'TLV': 'Israel',
+                'AMM': 'Jordan',
+                
+                // Caucasus & Central Asia
+                'TBS': 'Georgia', 'BUS': 'Georgia',
+                'GYD': 'Azerbaijan',
+                'EVN': 'Armenia',
+                
+                // Africa
+                'CAI': 'Egypt', 'SPX': 'Egypt',
+                'ALG': 'Algeria', 'CZL': 'Algeria',
+                'TUN': 'Tunisia',
+                'RAK': 'Morocco',
+                'JNB': 'South Africa', 'CPT': 'South Africa',
+                'NBO': 'Kenya', 'ADD': 'Ethiopia', 'LOS': 'Nigeria',
+                
+                // Oceania
+                'SYD': 'Australia', 'MEL': 'Australia', 'BNE': 'Australia',
+                'PER': 'Australia', 'AKL': 'New Zealand', 'WLG': 'New Zealand',
+                
+                // Canada
+                'YYZ': 'Canada', 'YVR': 'Canada', 'YUL': 'Canada', 'YYC': 'Canada',
+                
+                // Russia & Former Soviet Union
+                'VKO': 'Russia',
+                'KBP': 'Ukraine', 'LWO': 'Ukraine'
+            };
             
-            // South America
-            'BOG': 'Colombia', 'LPB': 'Bolivia', 'CUZ': 'Peru', 'LIM': 'Peru', 'SCL': 'Chile',
-            
-            // Mexico
-            'MEX': 'Mexico', 'NLU': 'Mexico', 'OAX': 'Mexico',
-            
-            // Europe - Italy
-            'MXP': 'Italy', 'FCO': 'Italy', 'CIA': 'Italy', 'BGY': 'Italy', 'LIN': 'Italy', 'PMO': 'Italy',
-            
-            // Europe - France  
-            'BVA': 'France', 'CDG': 'France', 'ORY': 'France', 'MRS': 'France',
-            
-            // Europe - UK
-            'LHR': 'UK', 'LGW': 'UK', 'STN': 'UK', 'LTN': 'UK',
-            
-            // Europe - Netherlands
-            'AMS': 'Netherlands',
-            
-            // Europe - Spain
-            'MAD': 'Spain', 'BCN': 'Spain', 'PMI': 'Spain',
+            const country = airportToCountry[airportCode];
+            if (!country && airportCode) {
+                console.warn(`Unknown airport code: ${airportCode} for ${airportString}`);
+            }
+            return country || 'Unknown';
+        }
+        
+        // If no airport code, treat as city name and use city-to-country mapping
+        const cityName = airportString.trim();
+        const cityToCountry = {
+            // Japan
+            'Sapporo': 'Japan', 'Tokyo': 'Japan', 'Osaka': 'Japan', 'Kyoto': 'Japan', 'Nara': 'Japan',
             
             // Europe - Germany
-            'FRA': 'Germany', 'MUC': 'Germany', 'TXL': 'Germany', 'BER': 'Germany', 'HAM': 'Germany',
+            'Berlin': 'Germany', 'Munich': 'Germany', 'Hamburg': 'Germany', 'Cologne': 'Germany', 
+            'Frankfurt': 'Germany', 'Stuttgart': 'Germany', 'Düsseldorf': 'Germany', 'Dusseldorf': 'Germany',
             
-            // Europe - Switzerland
-            'ZUR': 'Switzerland', 'ZRH': 'Switzerland', 'GVA': 'Switzerland',
+            // Europe - Austria & Switzerland
+            'Vienna': 'Austria', 'Salzburg': 'Austria', 'Innsbruck': 'Austria',
+            'Zurich': 'Switzerland', 'Geneva': 'Switzerland', 'Basel': 'Switzerland',
             
-            // Europe - Austria
-            'VIE': 'Austria',
+            // Europe - France
+            'Paris': 'France', 'Versailles': 'France', 'Monaco': 'Monaco', 'Nice': 'France', 
+            'Marseille': 'France', 'Narbonne': 'France',
             
-            // Europe - Czech Republic
-            'PRG': 'Czech Republic',
-            
-            // Europe - Poland
-            'WAW': 'Poland',
-            
-            // Europe - Hungary
-            'BUD': 'Hungary',
-            
-            // Europe - Romania
-            'OTP': 'Romania', 'IAS': 'Romania',
-            
-            // Europe - Bulgaria
-            'SOF': 'Bulgaria',
-            
-            // Europe - Serbia
-            'BEG': 'Serbia',
-            
-            // Europe - Bosnia and Herzegovina
-            'SJJ': 'Bosnia and Herzegovina',
-            
-            // Europe - Montenegro
-            'TGD': 'Montenegro',
-            
-            // Europe - Albania
-            'TIA': 'Albania',
-            
-            // Europe - Nordics
-            'ARN': 'Sweden', 'CPH': 'Denmark', 'OSL': 'Norway', 'TRF': 'Norway',
-            'HEL': 'Finland',
-            
-            // Europe - Greece
-            'ATH': 'Greece', 'SKG': 'Greece',
-            
-            // Europe - Portugal
-            'LIS': 'Portugal', 'OPO': 'Portugal',
-            
-            // Europe - Malta
-            'MLA': 'Malta',
-            
-            // Europe - Turkey
-            'SAW': 'Turkey', 'IST': 'Turkey', 'ESB': 'Turkey', 'AYT': 'Turkey',
-            
-            // Europe - Cyprus
-            'LCA': 'Cyprus',
+            // Europe - Netherlands
+            'Amsterdam': 'Netherlands', 'Utrecht': 'Netherlands', 'Rotterdam': 'Netherlands',
             
             // Europe - Belgium
-            'BRU': 'Belgium',
+            'Brussels': 'Belgium', 'Antwerp': 'Belgium',
             
-            // Asia - Japan
-            'NRT': 'Japan', 'HND': 'Japan', 'KIX': 'Japan', 'NGO': 'Japan', 'CTS': 'Japan', 'ITM': 'Japan',
+            // Europe - Czech Republic
+            'Prague': 'Czech Republic', 'Pilsen': 'Czech Republic',
             
-            // Asia - South Korea
-            'ICN': 'South Korea', 'GMP': 'South Korea', 'PUS': 'South Korea', 'CJU': 'South Korea',
+            // Europe - UK & Ireland
+            'London': 'UK', 'Edinburgh': 'UK', 'Dublin': 'Ireland',
             
-            // Asia - China
-            'PVG': 'China', 'PEK': 'China', 'CAN': 'China', 'PKX': 'China',
+            // Europe - Spain & Portugal
+            'Madrid': 'Spain', 'Barcelona': 'Spain', 'Valencia': 'Spain', 'Seville': 'Spain', 'Malaga': 'Spain',
+            'Gibraltar': 'Gibraltar', 'La Linea de la Concepcion': 'Spain',
+            'Lisbon': 'Portugal', 'Porto': 'Portugal',
             
-            // Asia - Hong Kong
-            'HKG': 'Hong Kong',
+            // Europe - Italy
+            'Rome': 'Italy', 'Florence': 'Italy', 'Venice': 'Italy', 'Milan': 'Italy', 'Verona': 'Italy',
+            'Turin': 'Italy', 'Brescia': 'Italy', 'Brecia': 'Italy', 'Naples': 'Italy', 'Pompeii': 'Italy',
+            'Salerno': 'Italy', 'Amalfi': 'Italy', 'Catania': 'Italy', 'Palermo': 'Italy', 'Modena': 'Italy',
+            'San Marino': 'San Marino', 'Bozen': 'Italy', 'Trieste': 'Italy', 'Novara': 'Italy', 'Pisa': 'Italy',
             
-            // Asia - Taiwan
-            'TPE': 'Taiwan', 'TSA': 'Taiwan',
+            // Europe - Nordic
+            'Stockholm': 'Sweden', 'Gothenburg': 'Sweden', 'Malmö': 'Sweden', 'Malmo': 'Sweden',
+            'Copenhagen': 'Denmark', 'Oslo': 'Norway', 'Helsinki': 'Finland',
             
-            // Asia - Singapore
-            'SIN': 'Singapore',
+            // Europe - Eastern Europe
+            'Warsaw': 'Poland', 'Krakow': 'Poland', 'Poznan': 'Poland',
+            'Kyiv': 'Ukraine', 'Lviv': 'Ukraine',
+            'Budapest': 'Hungary', 'Bucharest': 'Romania', 'Brașov': 'Romania', 'Brasov': 'Romania',
+            'Sofia': 'Bulgaria', 'Skopje': 'North Macedonia', 'Belgrade': 'Serbia', 'Novi Sad': 'Serbia',
+            'Ljubljana': 'Slovenia', 'Zagreb': 'Croatia', 'Bratislava': 'Slovakia',
+            'Sarajevo': 'Bosnia and Herzegovina', 'Mostar': 'Bosnia and Herzegovina', 'Visoko': 'Bosnia and Herzegovina',
+            'Podgorica': 'Montenegro',
             
-            // Asia - Malaysia
-            'KUL': 'Malaysia',
+            // Europe - Greece & Balkans
+            'Athens': 'Greece', 'Thessaloniki': 'Greece', 'Ouranoupoli': 'Greece', 'Daphni': 'Greece',
             
-            // Asia - Indonesia
-            'CGK': 'Indonesia',
+            // Europe - Turkey & Caucasus
+            'Istanbul': 'Turkey', 'Ankara': 'Turkey', 'Antalya': 'Turkey', 'Denizli': 'Turkey', 'Pamukkale': 'Turkey',
+            'Tbilisi': 'Georgia', 'Yerevan': 'Armenia', 'Gori': 'Georgia', 'Batumi': 'Georgia', 'Kutaisi': 'Georgia',
             
-            // Asia - Thailand
-            'BKK': 'Thailand', 'DMK': 'Thailand', 'CNX': 'Thailand',
-            
-            // Asia - Vietnam
-            'SGN': 'Vietnam', 'DAD': 'Vietnam',
-            
-            // Asia - Philippines
-            'MNL': 'Philippines',
-            
-            // Asia - India
-            'DEL': 'India', 'BOM': 'India', 'CCU': 'India',
-            
-            // Asia - Bangladesh
-            'DAC': 'Bangladesh',
-            
-            // Middle East & Gulf
-            'DXB': 'UAE', 'AUH': 'UAE', 'SHJ': 'UAE',
-            'DOH': 'Qatar', 
-            'KWI': 'Kuwait',
-            'RUH': 'Saudi Arabia', 'JED': 'Saudi Arabia',
-            'MCT': 'Oman',
-            'BAH': 'Bahrain',
-            'BEY': 'Lebanon',
-            'TLV': 'Israel',
-            'AMM': 'Jordan',
-            
-            // Caucasus & Central Asia
-            'TBS': 'Georgia', 'BUS': 'Georgia',
-            'GYD': 'Azerbaijan',
-            'EVN': 'Armenia',
+            // Middle East
+            'Beirut': 'Lebanon', 'Tripoli': 'Lebanon', 'Jerusalem': 'Israel', 'Eilat': 'Israel',
+            'Amman': 'Jordan', 'Petra': 'Jordan', 'Taba': 'Egypt',
             
             // Africa
-            'CAI': 'Egypt', 'SPX': 'Egypt',
-            'ALG': 'Algeria', 'CZL': 'Algeria',
-            'TUN': 'Tunisia',
-            'RAK': 'Morocco',
-            'JNB': 'South Africa', 'CPT': 'South Africa',
-            'NBO': 'Kenya', 'ADD': 'Ethiopia', 'LOS': 'Nigeria',
+            'Cairo': 'Egypt', 'Alexandria': 'Egypt', 'Luxor': 'Egypt', 'New Cairo City': 'Egypt',
+            'Casablanca': 'Morocco', 'Marrakech': 'Morocco', 'Chefchaoun': 'Morocco',
+            'Tunis': 'Tunisia', 'Algiers': 'Algeria',
+            'Larnaca': 'Cyprus', 'Kyrenia': 'Cyprus',
             
-            // Oceania
-            'SYD': 'Australia', 'MEL': 'Australia', 'BNE': 'Australia',
-            'PER': 'Australia', 'AKL': 'New Zealand', 'WLG': 'New Zealand',
+            // Asia
+            'Seoul': 'South Korea', 'Busan': 'South Korea', 'Daegu': 'South Korea', 'Daejeon': 'South Korea',
+            'Beijing': 'China', 'Tianjin': 'China', 'Shanghai': 'China',
+            'Hong Kong': 'Hong Kong', 'Taipei': 'Taiwan',
+            'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
+            'Moscow': 'Russia', 'St. Petersburg': 'Russia', 'Tallinn': 'Estonia',
+            'Da Nang': 'Vietnam', 'Hoi An': 'Vietnam',
             
-            // Canada
-            'YYZ': 'Canada', 'YVR': 'Canada', 'YUL': 'Canada', 'YYC': 'Canada',
+            // North America
+            'New York': 'USA', 'Philadelphia': 'USA', 'Los Angeles': 'USA', 'Los Angles': 'USA',
+            'Chicago': 'USA', 'Milwaukee': 'USA', 'San Francisco': 'USA', 'Seattle': 'USA',
+            'Boston': 'USA', 'Atlantic City': 'USA', 'Washington DC': 'USA',
+            'Toronto': 'Canada', 'Vancouver': 'Canada', 'Montreal': 'Canada', 'Ottawa': 'Canada', 'Niagara': 'Canada',
+            'Tijuana': 'Mexico',
             
-            // Russia & Former Soviet Union
-            'VKO': 'Russia',
-            'KBP': 'Ukraine', 'LWO': 'Ukraine'
+            // South America
+            'La Paz': 'Bolivia', 'Uyuni': 'Bolivia', 'Puno': 'Peru', 'Cusco': 'Peru',
+            'Ollantaytambo': 'Peru', 'Aguas Calientes': 'Peru', 'Aguas Caliente': 'Peru',
+            'Lima': 'Peru', 'Ica': 'Peru', 'Huacachina': 'Peru'
         };
         
-        const country = airportToCountry[airportCode];
-        if (!country && airportCode) {
-            console.warn(`Unknown airport code: ${airportCode} for ${airportString}`);
+        const country = cityToCountry[cityName];
+        if (!country) {
+            console.warn(`Unknown city: ${cityName}`);
         }
         return country || 'Unknown';
     }
@@ -778,11 +979,9 @@ class AnimatedFlightMap {
     }
 
     animateFlightPath(fromCity, toCity, callback) {
-        // Create great circle path
-        const path = this.createGreatCirclePath(
-            [fromCity.lat, fromCity.lng],
-            [toCity.lat, toCity.lng]
-        );
+        // Create great circle path for all journeys (same visual treatment)
+        const path = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng]);
+        const journey = toCity.originalFlight;
 
         // Calculate distance for timing (rough distance in degrees)
         const distance = Math.sqrt(
@@ -794,36 +993,34 @@ class AnimatedFlightMap {
         const distanceKm = this.calculateDistance(fromCity.lat, fromCity.lng, toCity.lat, toCity.lng);
         this.totalDistance += distanceKm;
         
-        // All journeys in CSV are flights - calculate flight statistics
-        const flightTimeHours = distanceKm / 900; // Flight average speed 900 km/h
-        const co2EmissionKg = distanceKm * 0.25;  // Flight CO2: 0.25 kg per km
+        // Use same flight calculations for all journeys (simplified)
+        const timeHours = distanceKm / 900;      // Flight speed for all
+        const co2EmissionKg = distanceKm * 0.25; // Flight emissions for all
         
-        // Use actual cost from CSV if available, otherwise fall back to calculation
+        // Use actual cost from CSV if available (works for both flight and land journey CSVs)
         let costUSD;
-        if (toCity.originalFlight && toCity.originalFlight.costSGD && toCity.originalFlight.costSGD > 0) {
-            // Convert actual SGD cost to USD
-            costUSD = toCity.originalFlight.costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
-            console.log(`Using actual cost from CSV: ${toCity.originalFlight.costSGD} SGD = ${costUSD.toFixed(2)} USD`);
+        if (journey && journey.costSGD && journey.costSGD > 0) {
+            costUSD = journey.costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
+            console.log(`Using actual cost from CSV: ${journey.costSGD} SGD = ${costUSD.toFixed(2)} USD`);
         } else {
-            // Fall back to calculation method
-            costUSD = distanceKm * 0.25;        // Flight cost: ~$0.25/km
-            console.log(`Using calculated cost: ${costUSD.toFixed(2)} USD (no CSV cost available)`);
+            costUSD = distanceKm * 0.25; // Default cost calculation
+            console.log(`Using calculated cost: ${costUSD.toFixed(2)} USD`);
         }
         
-        this.totalTime += flightTimeHours;
+        this.totalTime += timeHours;
         this.totalCO2 += co2EmissionKg;
         this.totalCostUSD += costUSD;
         
-        // Show increment box for flight journey
-        this.showIncrement(distanceKm, flightTimeHours, co2EmissionKg, costUSD, false);
+        // Show increment box
+        this.showIncrement(distanceKm, timeHours, co2EmissionKg, costUSD, false);
         
         // Faster animation - reduced timing (min 500ms, max 2000ms)
         const animationDuration = Math.max(500, Math.min(2000, distance * 100));
 
-        // Create empty path line that will be progressively drawn
+        // Create empty path line that will be progressively drawn (same styling for all journeys)
         const pathLine = L.polyline([], {
-            color: '#4CAF50',
-            weight: 1,
+            color: '#4CAF50',  // Green for all journeys
+            weight: 1,         // Same weight for all
             opacity: 0.8
         }).addTo(this.map);
 
@@ -978,19 +1175,27 @@ class AnimatedFlightMap {
                 const fromCity = this.cities[index - 1];
                 const toCity = this.cities[index];
                 
-                // Create and add flight path
+                console.log(`Skip: Drawing path from ${fromCity.name} to ${toCity.name}`);
+                console.log(`From coords: [${fromCity.lat}, ${fromCity.lng}]`);
+                console.log(`To coords: [${toCity.lat}, ${toCity.lng}]`);
+                
+                // Create path coordinates (same for all journeys)
                 const pathCoords = this.createGreatCirclePath(
                     [fromCity.lat, fromCity.lng],
                     [toCity.lat, toCity.lng]
                 );
                 
-                const flightPath = L.polyline(pathCoords, {
-                    color: '#4CAF50',
-                    weight: 2,
+                console.log(`Path coords length: ${pathCoords.length}`);
+                
+                // Create path with same styling for all journeys
+                const journeyPath = L.polyline(pathCoords, {
+                    color: '#4CAF50',  // Green for all
+                    weight: 2,         // Same weight for all
                     opacity: 0.8
                 }).addTo(this.map);
                 
-                this.visitedPaths.push(flightPath);
+                console.log(`Path added to map:`, journeyPath);
+                this.visitedPaths.push(journeyPath);
             }
         });
         
@@ -1013,21 +1218,20 @@ class AnimatedFlightMap {
                 const distanceKm = this.calculateDistance(fromCity.lat, fromCity.lng, toCity.lat, toCity.lng);
                 this.totalDistance += distanceKm;
                 
-                // All journeys in CSV are flights - calculate flight statistics (same as normal animation)
-                const flightTimeHours = distanceKm / 900; // Flight average speed 900 km/h
-                const co2EmissionKg = distanceKm * 0.25;  // Flight CO2: 0.25 kg per km
+                // Use same calculations for all journeys (simplified)
+                const journey = toCity.originalFlight;
+                const timeHours = distanceKm / 900;      // Flight speed for all
+                const co2EmissionKg = distanceKm * 0.25; // Flight emissions for all
                 
-                // Use actual cost from CSV if available, otherwise fall back to calculation (same as normal animation)
+                // Use actual cost from CSV if available (works for both CSVs)
                 let costUSD;
-                if (toCity.originalFlight && toCity.originalFlight.costSGD && toCity.originalFlight.costSGD > 0) {
-                    // Convert actual SGD cost to USD
-                    costUSD = toCity.originalFlight.costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
+                if (journey && journey.costSGD && journey.costSGD > 0) {
+                    costUSD = journey.costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
                 } else {
-                    // Fall back to calculation method
-                    costUSD = distanceKm * 0.25;        // Flight cost: ~$0.25/km
+                    costUSD = distanceKm * 0.25; // Default cost calculation
                 }
                 
-                this.totalTime += flightTimeHours;
+                this.totalTime += timeHours;
                 this.totalCO2 += co2EmissionKg;
                 this.totalCostUSD += costUSD;
             }
@@ -1151,23 +1355,70 @@ class AnimatedFlightMap {
         const cityListContainer = document.getElementById('cityList');
         cityListContainer.innerHTML = '';
 
-        // Create a map to track unique cities and their display elements
+        // Debug: Check the order of cities before sorting
+        console.log('=== CITY ORDER DEBUG ===');
+        console.log('Original cities order (first 10):');
+        this.cities.slice(0, 10).forEach((city, i) => {
+            console.log(`${i+1}. ${city.name} - ${city.flightDate} (${new Date(city.flightDate).toISOString()})`);
+        });
+
+        // Sort cities by flight date to ensure chronological order
+        const sortedCities = [...this.cities].sort((a, b) => {
+            const dateA = new Date(a.flightDate);
+            const dateB = new Date(b.flightDate);
+            return dateA - dateB;
+        });
+
+        console.log('Sorted cities order (first 10):');
+        sortedCities.slice(0, 10).forEach((city, i) => {
+            console.log(`${i+1}. ${city.name} - ${city.flightDate} (${new Date(city.flightDate).toISOString()})`);
+        });
+
+        // Create a map to track unique cities and their first travel date
         const uniqueCities = new Map();
         const cityElements = new Map();
         let cityDisplayOrder = 1; // Independent numbering for displayed cities
 
-        this.cities.forEach((city, index) => {
+        // First pass: identify unique cities with their earliest travel date
+        sortedCities.forEach((city, index) => {
             const cityKey = `${city.name}-${city.country}`;
             
-            // If this city hasn't been seen before, create its display element
+            // If this city hasn't been seen before, record it
             if (!uniqueCities.has(cityKey)) {
+                const originalIndex = this.cities.findIndex(c => 
+                    c.name === city.name && 
+                    c.country === city.country && 
+                    c.flightDate === city.flightDate
+                );
+                
+                uniqueCities.set(cityKey, { 
+                    firstIndex: originalIndex,
+                    city: city,
+                    displayOrder: cityDisplayOrder,
+                    travelDate: city.flightDate
+                });
+                cityDisplayOrder++;
+            }
+        });
+
+        // Second pass: create elements in chronological order
+        const sortedUniqueCities = Array.from(uniqueCities.entries())
+            .sort((a, b) => new Date(a[1].travelDate) - new Date(b[1].travelDate));
+            
+        console.log('Final unique cities order (first 10):');
+        sortedUniqueCities.slice(0, 10).forEach(([cityKey, cityData], i) => {
+            console.log(`${i+1}. ${cityData.city.name} - ${cityData.travelDate} (${new Date(cityData.travelDate).toISOString()})`);
+        });
+        
+        sortedUniqueCities.forEach(([cityKey, cityData], displayIndex) => {
+                const city = cityData.city;
                 const cityItem = document.createElement('div');
                 cityItem.className = 'city-item';
                 cityItem.setAttribute('data-city-key', cityKey);
-                cityItem.setAttribute('data-city-index', index);
+                cityItem.setAttribute('data-city-index', cityData.firstIndex);
                 
                 cityItem.innerHTML = `
-                    <div class="city-status">${cityDisplayOrder}</div>
+                    <div class="city-status">${displayIndex + 1}</div>
                     <div class="city-info">
                         <div class="city-name">${city.name}</div>
                         <div class="city-country">${city.country}</div>
@@ -1175,15 +1426,14 @@ class AnimatedFlightMap {
                 `;
 
                 cityListContainer.appendChild(cityItem);
-                uniqueCities.set(cityKey, { firstIndex: index, element: cityItem, displayOrder: cityDisplayOrder });
                 cityElements.set(cityKey, cityItem);
-                cityDisplayOrder++; // Increment for next unique city
-            }
-        });
+            });
 
         // Update status for all unique cities based on current position
         uniqueCities.forEach((cityData, cityKey) => {
-            const cityElement = cityData.element;
+            const cityElement = cityElements.get(cityKey);
+            if (!cityElement) return;
+            
             const statusDiv = cityElement.querySelector('.city-status');
             
             // Reset classes
@@ -1433,7 +1683,19 @@ class AnimatedFlightMap {
         if (totalDistanceEl) {
             if (this.totalDistance > 0) {
                 const distanceKm = Math.round(this.totalDistance);
-                this.animateNumber(totalDistanceEl, distanceKm, 800, (val) => `${Math.round(val).toLocaleString()} km`);
+                const earthCircumference = 40075; // Earth's circumference in km
+                const earthTimes = (distanceKm / earthCircumference);
+                
+                let metaphor = '';
+                if (earthTimes >= 1) {
+                    metaphor = `<span style="font-size: 0.65em; font-weight: 700;">${earthTimes.toFixed(1)}x Around Earth</span>`;
+                } else if (earthTimes >= 0.5) {
+                    metaphor = `<span style="font-size: 0.65em; font-weight: 700;">${(earthTimes * 100).toFixed(0)}% Around Earth</span>`;
+                } else if (earthTimes >= 0.1) {
+                    metaphor = `<span style="font-size: 0.65em; font-weight: 700;">${(earthTimes * 100).toFixed(0)}% Around Earth</span>`;
+                }
+                
+                this.animateNumber(totalDistanceEl, distanceKm, 800, (val) => `${Math.round(val).toLocaleString()} km ${metaphor}`);
             } else {
                 totalDistanceEl.textContent = '-';
             }
@@ -1441,14 +1703,25 @@ class AnimatedFlightMap {
         if (totalTimeEl) {
             if (this.totalTime > 0) {
                 const totalMinutes = Math.round(this.totalTime * 60);
+                const totalHours = this.totalTime;
+                const totalDays = totalHours / 24;
+                const totalWeeks = totalDays / 7;
+                
+                let timeMetaphor = '';
+                if (totalWeeks >= 1) {
+                    timeMetaphor = `<span style="font-size: 0.65em; font-weight: 900;">${totalWeeks.toFixed(1)} Weeks</span>`;
+                } else if (totalDays >= 1) {
+                    timeMetaphor = `<span style="font-size: 0.65em; font-weight: 900;">${totalDays.toFixed(1)} Days</span>`;
+                }
+                
                 this.animateNumber(totalTimeEl, totalMinutes, 700, (val) => {
                     const minutes = Math.round(val);
                     const hours = Math.floor(minutes / 60);
                     const remainingMinutes = minutes % 60;
                     if (hours > 0) {
-                        return `${hours}h ${remainingMinutes}m`;
+                        return `${hours}h ${remainingMinutes}m ${timeMetaphor}`;
                     } else {
-                        return `${remainingMinutes}m`;
+                        return `${remainingMinutes}m ${timeMetaphor}`;
                     }
                 });
             } else {
@@ -1550,14 +1823,26 @@ class AnimatedFlightMap {
             
             if (progress < 1) {
                 if (formatter) {
-                    element.textContent = formatter(currentValue);
+                    const result = formatter(currentValue);
+                    // Check if result contains HTML tags
+                    if (result.includes('<')) {
+                        element.innerHTML = result;
+                    } else {
+                        element.textContent = result;
+                    }
                 } else {
                     element.textContent = Math.round(currentValue);
                 }
                 requestAnimationFrame(animate);
             } else {
                 if (formatter) {
-                    element.textContent = formatter(targetValue);
+                    const result = formatter(targetValue);
+                    // Check if result contains HTML tags
+                    if (result.includes('<')) {
+                        element.innerHTML = result;
+                    } else {
+                        element.textContent = result;
+                    }
                 } else {
                     element.textContent = targetValue;
                 }
