@@ -24,7 +24,7 @@ class AnimatedFlightMap {
         
         // Current animation tracking for pause functionality
         this.currentAnimationPath = null;
-        this.currentPathLine = null;
+        this.currentPathLines = null;
         this.pauseAfterCurrentFlight = false;
         
         // Initialize exchange rates with fallback values
@@ -48,14 +48,22 @@ class AnimatedFlightMap {
     }
 
     initializeMap() {
+        // Define world bounds to prevent panning outside the map
+        const worldBounds = [
+            [-90, -180], // Southwest corner
+            [90, 180]    // Northeast corner
+        ];
+
         // Initialize map with minimal styling
         this.map = L.map('map', {
             center: [25, 10],
-            zoom: 1.4,
-            minZoom: 1.4,
+            zoom: 1.45,
+            minZoom: 1.45,
             maxZoom: 6,
             zoomControl: false,
-            dragging: false
+            dragging: false,
+            maxBounds: worldBounds,
+            maxBoundsViscosity: 1.0 // Makes the bounds "sticky"
         });
 
         // Add simple continent outlines using a minimal tile layer
@@ -65,11 +73,39 @@ class AnimatedFlightMap {
             maxZoom: 6
         }).addTo(this.map);
 
+        // Add zoom event listeners to control panning
+        this.map.on('zoomend', () => {
+            this.updatePanningState();
+        });
+
+        // Initial panning state setup
+        this.updatePanningState();
+
         // Add custom reset view button
         this.addResetViewButton();
 
         // Create custom flight dot marker
         this.createFlightDot();
+    }
+
+    updatePanningState() {
+        const currentZoom = this.map.getZoom();
+        const minZoom = this.map.options.minZoom;
+        
+        // Enable panning only when zoomed in beyond the minimum zoom level
+        if (currentZoom > minZoom) {
+            if (!this.map.dragging.enabled()) {
+                this.map.dragging.enable();
+                console.log('Panning enabled - zoom level:', currentZoom);
+            }
+        } else {
+            if (this.map.dragging.enabled()) {
+                this.map.dragging.disable();
+                console.log('Panning disabled - at minimum zoom level:', currentZoom);
+            }
+            // When at minimum zoom, always return to original centered view
+            this.map.setView([25, 10], minZoom);
+        }
     }
 
     async fetchExchangeRates() {
@@ -136,8 +172,10 @@ class AnimatedFlightMap {
                 button.style.fontSize = '16px';
                 button.title = 'Reset View';
                 
-                button.onclick = function() {
+                button.onclick = () => {
                     map.setView([25, 10], 1.4);
+                    // Update panning state after reset
+                    this.updatePanningState();
                 };
                 
                 return button;
@@ -1067,23 +1105,47 @@ class AnimatedFlightMap {
         // Faster animation - reduced timing (min 500ms, max 2000ms)
         const animationDuration = Math.max(500, Math.min(2000, distance * 100));
 
-        // Create empty path line that will be progressively drawn (same styling for all journeys)
-        const pathLine = L.polyline([], {
-            color: '#4CAF50',  // Green for all journeys
-            weight: 1,         // Same weight for all
-            opacity: 0.8
-        });
+        // Check if this is a date line crossing path
+        const isDateLineCrossing = Math.abs(toCity.lng - fromCity.lng) > 180;
+        const pathLines = [];
 
-        // Only add to map if lines are visible
-        if (this.linesVisible) {
-            pathLine.addTo(this.map);
+        if (isDateLineCrossing) {
+            // Create multiple polylines for date line crossing
+            const segments = this.splitPathAtDateLine(path);
+            segments.forEach(segment => {
+                if (segment.length > 0) {
+                    const segmentLine = L.polyline([], {
+                        color: '#4CAF50',
+                        weight: 1,
+                        opacity: 0.8
+                    });
+                    
+                    if (this.linesVisible) {
+                        segmentLine.addTo(this.map);
+                    }
+                    pathLines.push({ line: segmentLine, points: segment });
+                }
+            });
+        } else {
+            // Create single path line for regular routes
+            const pathLine = L.polyline([], {
+                color: '#4CAF50',
+                weight: 1,
+                opacity: 0.8
+            });
+
+            if (this.linesVisible) {
+                pathLine.addTo(this.map);
+            }
+            pathLines.push({ line: pathLine, points: path });
         }
 
-        this.visitedPaths.push(pathLine);
+        // Store all path lines for cleanup
+        pathLines.forEach(pathData => this.visitedPaths.push(pathData.line));
         
         // Store references for pause functionality
         this.currentAnimationPath = path;
-        this.currentPathLine = pathLine;
+        this.currentPathLines = pathLines;
 
         // Easing function (ease-in-out)
         const easeInOut = (t) => {
@@ -1096,16 +1158,16 @@ class AnimatedFlightMap {
         const animate = (currentTime) => {
             if (!this.isAnimating) {
                 // Complete the path if animation was stopped (paused)
-                if (this.currentAnimationPath && this.currentPathLine) {
-                    pathLine.setLatLngs(path);
-                    pathLine.setStyle({
-                        opacity: 0.6
+                if (this.currentAnimationPath && this.currentPathLines) {
+                    pathLines.forEach(pathData => {
+                        pathData.line.setLatLngs(pathData.points);
+                        pathData.line.setStyle({ opacity: 0.6 });
                     });
                 }
                 
                 // Clear current animation references
                 this.currentAnimationPath = null;
-                this.currentPathLine = null;
+                this.currentPathLines = null;
                 
                 callback();
                 return;
@@ -1121,14 +1183,14 @@ class AnimatedFlightMap {
             if (progress >= 1) {
                 // Animation complete
                 this.flightDot.setLatLng(path[path.length - 1]);
-                pathLine.setLatLngs(path);
-                pathLine.setStyle({
-                    opacity: 0.6
+                pathLines.forEach(pathData => {
+                    pathData.line.setLatLngs(pathData.points);
+                    pathData.line.setStyle({ opacity: 0.6 });
                 });
                 
                 // Clear current animation references
                 this.currentAnimationPath = null;
-                this.currentPathLine = null;
+                this.currentPathLines = null;
                 
                 callback();
                 return;
@@ -1138,9 +1200,8 @@ class AnimatedFlightMap {
             if (currentStep < path.length) {
                 this.flightDot.setLatLng(path[currentStep]);
                 
-                // Add current point to the path (progressive drawing)
-                const currentPath = path.slice(0, currentStep + 1);
-                pathLine.setLatLngs(currentPath);
+                // Update path lines progressively
+                this.updatePathLinesProgress(pathLines, path, currentStep);
             }
             
             requestAnimationFrame(animate);
@@ -1150,6 +1211,19 @@ class AnimatedFlightMap {
     }
 
     createGreatCirclePath(start, end, numPoints = 100) {
+        // Check if this path crosses the date line (longitude ±180)
+        const lonDiff = Math.abs(end[1] - start[1]);
+        
+        // If longitude difference is greater than 180, it's likely crossing the date line
+        if (lonDiff > 180) {
+            return this.createDateLineCrossingPath(start, end, numPoints);
+        }
+        
+        // Regular great circle path for non-date-line-crossing routes
+        return this.createSingleGreatCirclePath(start, end, numPoints);
+    }
+
+    createSingleGreatCirclePath(start, end, numPoints = 100) {
         const lat1 = start[0] * Math.PI / 180;
         const lon1 = start[1] * Math.PI / 180;
         const lat2 = end[0] * Math.PI / 180;
@@ -1181,6 +1255,121 @@ class AnimatedFlightMap {
         }
         
         return path;
+    }
+
+    createDateLineCrossingPath(start, end, numPoints = 100) {
+        // For date line crossings, we need to create two separate path segments
+        const paths = [];
+        
+        // Determine which direction to cross (east or west)
+        let startLon = start[1];
+        let endLon = end[1];
+        
+        // Normalize longitudes to -180 to 180 range
+        while (startLon > 180) startLon -= 360;
+        while (startLon < -180) startLon += 360;
+        while (endLon > 180) endLon -= 360;
+        while (endLon < -180) endLon += 360;
+        
+        // Choose the shorter path direction
+        const directDiff = endLon - startLon;
+        const crossingEast = directDiff < -180 || (directDiff > 0 && directDiff < 180);
+        
+        if (crossingEast) {
+            // Going east across date line
+            const midPoint1 = [
+                start[0] + (end[0] - start[0]) * 0.5,
+                180
+            ];
+            const midPoint2 = [
+                start[0] + (end[0] - start[0]) * 0.5,
+                -180
+            ];
+            
+            // First segment: start to +180
+            const segment1 = this.createSingleGreatCirclePath(start, midPoint1, numPoints / 2);
+            // Second segment: -180 to end
+            const segment2 = this.createSingleGreatCirclePath(midPoint2, end, numPoints / 2);
+            
+            return [...segment1, ...segment2];
+        } else {
+            // Going west across date line
+            const midPoint1 = [
+                start[0] + (end[0] - start[0]) * 0.5,
+                -180
+            ];
+            const midPoint2 = [
+                start[0] + (end[0] - start[0]) * 0.5,
+                180
+            ];
+            
+            // First segment: start to -180
+            const segment1 = this.createSingleGreatCirclePath(start, midPoint1, numPoints / 2);
+            // Second segment: +180 to end
+            const segment2 = this.createSingleGreatCirclePath(midPoint2, end, numPoints / 2);
+            
+            return [...segment1, ...segment2];
+        }
+    }
+
+    splitPathAtDateLine(path) {
+        const segments = [];
+        let currentSegment = [];
+        
+        for (let i = 0; i < path.length; i++) {
+            const point = path[i];
+            const lon = point[1];
+            
+            // Check for date line crossing
+            if (i > 0) {
+                const prevLon = path[i - 1][1];
+                const lonDiff = Math.abs(lon - prevLon);
+                
+                // If longitude jumps by more than 180 degrees, we've crossed the date line
+                if (lonDiff > 180) {
+                    // Finish current segment
+                    if (currentSegment.length > 0) {
+                        segments.push([...currentSegment]);
+                    }
+                    // Start new segment
+                    currentSegment = [point];
+                    continue;
+                }
+            }
+            
+            currentSegment.push(point);
+        }
+        
+        // Add the last segment
+        if (currentSegment.length > 0) {
+            segments.push(currentSegment);
+        }
+        
+        return segments;
+    }
+
+    updatePathLinesProgress(pathLines, fullPath, currentStep) {
+        if (pathLines.length === 1) {
+            // Single line - normal behavior
+            const currentPath = fullPath.slice(0, currentStep + 1);
+            pathLines[0].line.setLatLngs(currentPath);
+        } else {
+            // Multiple lines - need to distribute progress across segments
+            let totalPointsDrawn = 0;
+            
+            for (let i = 0; i < pathLines.length; i++) {
+                const pathData = pathLines[i];
+                const segmentLength = pathData.points.length;
+                
+                if (currentStep >= totalPointsDrawn) {
+                    const segmentProgress = Math.min(currentStep - totalPointsDrawn, segmentLength - 1);
+                    const segmentPath = pathData.points.slice(0, segmentProgress + 1);
+                    pathData.line.setLatLngs(segmentPath);
+                }
+                
+                totalPointsDrawn += segmentLength;
+            }
+        }
     }
 
     completeAnimation() {
@@ -1253,8 +1442,10 @@ class AnimatedFlightMap {
 
     completeCurrentPath() {
         // If there's a current path being animated, complete it to avoid broken lines
-        if (this.currentAnimationPath && this.currentPathLine) {
-            this.currentPathLine.setLatLngs(this.currentAnimationPath);
+        if (this.currentAnimationPath && this.currentPathLines) {
+            this.currentPathLines.forEach(pathData => {
+                pathData.line.setLatLngs(pathData.points);
+            });
         }
     }
 
@@ -1689,21 +1880,46 @@ class AnimatedFlightMap {
                 const fromCity = this.cities[i];
                 const toCity = this.cities[i + 1];
                 
-                const path = L.polyline([
-                    [fromCity.lat, fromCity.lng],
-                    [toCity.lat, toCity.lng]
-                ], {
-                    color: '#4CAF50',
-                    weight: 2,
-                    opacity: 0.7
-                });
+                // Use the same great circle path logic as animation
+                const pathPoints = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng]);
                 
-                // Only add to map if lines are visible
-                if (this.linesVisible) {
-                    path.addTo(this.map);
+                // Check if this is a date line crossing
+                const isDateLineCrossing = Math.abs(toCity.lng - fromCity.lng) > 180;
+                
+                if (isDateLineCrossing) {
+                    // Create multiple polylines for date line crossing
+                    const segments = this.splitPathAtDateLine(pathPoints);
+                    segments.forEach(segment => {
+                        if (segment.length > 0) {
+                            const segmentPath = L.polyline(segment, {
+                                color: '#4CAF50',
+                                weight: 2,
+                                opacity: 0.7
+                            });
+                            
+                            // Only add to map if lines are visible
+                            if (this.linesVisible) {
+                                segmentPath.addTo(this.map);
+                            }
+                            
+                            this.visitedPaths.push(segmentPath);
+                        }
+                    });
+                } else {
+                    // Create single path for regular routes
+                    const path = L.polyline(pathPoints, {
+                        color: '#4CAF50',
+                        weight: 2,
+                        opacity: 0.7
+                    });
+                    
+                    // Only add to map if lines are visible
+                    if (this.linesVisible) {
+                        path.addTo(this.map);
+                    }
+                    
+                    this.visitedPaths.push(path);
                 }
-                
-                this.visitedPaths.push(path);
             }
         }
         
