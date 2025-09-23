@@ -800,8 +800,9 @@ class AnimatedFlightMap {
             
             // Africa
             'Cairo': 'Egypt', 'Alexandria': 'Egypt', 'Luxor': 'Egypt', 'New Cairo City': 'Egypt',
-            'Casablanca': 'Morocco', 'Marrakech': 'Morocco', 'Chefchaoun': 'Morocco',
-            'Tunis': 'Tunisia', 'Algiers': 'Algeria',
+            'Casablanca': 'Morocco', 'Marrakech': 'Morocco', 'Chefchaoun': 'Morocco', 'Tangier': 'Morocco', 'Rabat': 'Morocco', 'Marrakesh': 'Morocco',
+            'Tunis': 'Tunisia', 'Bizerte': 'Tunisia',
+            'Algiers': 'Algeria', 'Oran': 'Algeria', 'Constantine': 'Algeria',
             'Larnaca': 'Cyprus', 'Kyrenia': 'Cyprus',
             
             // Asia
