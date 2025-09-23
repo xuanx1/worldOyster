@@ -1,4 +1,4 @@
-[# Is the World Your Oyster? 🗺️✈️](https://xuanx1.github.io/worldOyster/animated-flight-map.html)
+# [Is the World Your Oyster?](https://xuanx1.github.io/worldOyster/animated-flight-map.html) 🗺️✈️
 An interactive animated flight map that visualizes travel journeys with video-like timeline controls and environmental impact tracking. [**Preview** ](https://xuanx1.github.io/worldOyster/animated-flight-map.html)
 
 ![Screenshot 2025-09-23 015354](https://github.com/user-attachments/assets/c54b6a5e-84de-4e5f-baf3-be1cde4c0ce9)
