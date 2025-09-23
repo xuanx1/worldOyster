@@ -200,7 +200,7 @@ class AnimatedFlightMap {
         const ToggleLinesControl = L.Control.extend({
             onAdd: function(map) {
                 const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                button.innerHTML = '🛣️';
+                button.innerHTML = '✈️';
                 button.style.backgroundColor = '#333';
                 button.style.color = '#fff';
                 button.style.width = '30px';
@@ -1183,9 +1183,6 @@ class AnimatedFlightMap {
     }
 
     completeAnimation() {
-        this.isAnimating = false;
-        this.updatePlayPauseButton(); // Update button state
-        
         // Mark last city as visited
         if (this.cities.length > 0) {
             this.cities[this.cities.length - 1].visited = true;
@@ -1201,14 +1198,17 @@ class AnimatedFlightMap {
             this.updateCurrentTripYear(this.cities.length - 1);
         }
         
-        // Set current flight to show completion
+        // Set current flight to show completion briefly
         const currentFlightElement = document.getElementById('currentFlight');
         if (currentFlightElement) {
             currentFlightElement.textContent = 'Journey Complete!';
         }
         
-        // Show replay button instead of auto-restarting
-        this.showReplayButton();
+        // Auto-restart animation after a brief pause (loop the animation)
+        setTimeout(() => {
+            this.resetAnimationState();
+            this.startAnimation();
+        }, 2000); // 2 second pause before restarting
     }
 
     restartAnimation() {
@@ -1335,13 +1335,15 @@ class AnimatedFlightMap {
     updateToggleLinesButton() {
         if (this.toggleLinesButton) {
             if (this.linesVisible) {
-                this.toggleLinesButton.innerHTML = '🛣️';
+                this.toggleLinesButton.innerHTML = '✈️';
                 this.toggleLinesButton.title = 'Hide Flight Lines';
                 this.toggleLinesButton.style.backgroundColor = '#333';
+                this.toggleLinesButton.style.opacity = '1';
             } else {
-                this.toggleLinesButton.innerHTML = '❌';
+                this.toggleLinesButton.innerHTML = '✈️';
                 this.toggleLinesButton.title = 'Show Flight Lines';
                 this.toggleLinesButton.style.backgroundColor = '#666';
+                this.toggleLinesButton.style.opacity = '0.5';
             }
         }
     }
@@ -1518,9 +1520,19 @@ class AnimatedFlightMap {
         this.isDragging = false;
         this.scrubberElement.classList.remove('dragging');
         
-        // Resume animation if it was running before
+        // Resume animation if it was running before scrubbing
         if (this.wasAnimating) {
             this.isAnimating = true;
+            this.updatePlayPauseButton(); // Update button state
+            
+            // Continue animation from next city position
+            // Increment currentCityIndex to move to next city for animation
+            if (this.currentCityIndex < this.cities.length - 1) {
+                this.currentCityIndex++; // Move to next city for animation
+                setTimeout(() => {
+                    this.animateToNextCity();
+                }, 800); // Small delay to allow user to see the position
+            }
         }
     }
 
