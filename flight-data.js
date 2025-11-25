@@ -128,7 +128,7 @@ class FlightDataManager {
             'Constantine': [36.3650, 6.6147],   // Constantine
             'SPX': [30.1167, 31.1500],  // Giza Sphinx
             
-            // Asia - East Asia
+            // Asia
             'HND': [35.5494, 139.7798], // Tokyo Haneda
             'CTS': [42.7752, 141.6929], // Sapporo New Chitose
             'ITM': [34.7855, 135.4381], // Osaka Itami
@@ -136,24 +136,30 @@ class FlightDataManager {
             'CJU': [33.5113, 126.4930], // Jeju
             'GMP': [37.5583, 126.7906], // Seoul Gimpo
             'PUS': [35.1795, 129.0756], // Busan
-            
-            // Asia - Southeast Asia
+            'FNJ': [39.2241, 125.7625], // Pyongyang Sunan
             'MNL': [14.5086, 121.0194], // Manila
             'KUL': [2.7456, 101.7072],  // Kuala Lumpur
+            'CGK': [-6.1256, 106.6560], // Jakarta Soekarno-Hatta
             'CNX': [18.7668, 98.9628],  // Chiang Mai
             'BKK': [13.6900, 100.7501], // Bangkok Suvarnabhumi
+            'SGN': [10.8188, 106.6519], // Ho Chi Minh City (Saigon)
             'DAD': [16.0439, 108.1987], // Da Nang
-            
-            // Asia - South Asia
             'BOM': [19.0896, 72.8656],  // Mumbai
             'DEL': [28.5562, 77.1000],  // Delhi
             'CCU': [22.6549, 88.4469],  // Kolkata
             'DAC': [23.8103, 90.4125],  // Dhaka
-            
-            // China
+            'PEK': [40.0799, 116.6031], // Beijing Capital
             'CAN': [23.3924, 113.2988], // Guangzhou
             'PKX': [39.5098, 116.4105], // Beijing Daxing
-            
+            'WUH': [30.7838, 114.2081], // Wuhan Tianhe
+            'HAK': [19.9349, 110.4591], // Haikou Meilan
+            'LHW': [36.5152, 103.6203], // Lanzhou Zhongchuan
+                        
+            // Southeast Asia
+            'VTE': [17.9883, 102.5633], // Vientiane Wattay
+            'YIA': [-7.9006, 110.0568], // Yogyakarta International
+            'BKI': [5.9372, 116.0517],  // Kota Kinabalu
+                        
             // Russia
             'VKO': [55.5915, 37.2615],  // Moscow Vnukovo
             
@@ -217,7 +223,7 @@ class FlightDataManager {
             'Edinburgh': [55.9533, -3.1883],
             'Dublin': [53.3498, -6.2603],
             'Madrid': [40.4168, -3.7038],
-                        'Gibraltar': [36.1408, -5.3536],
+            'Gibraltar': [36.1408, -5.3536],
             'La Linea de la Concepcion': [36.1659, -5.3477],
             'Gibraltar': [36.1408, -5.3536],
             'Barcelona': [41.3851, 2.1734],
@@ -295,6 +301,11 @@ class FlightDataManager {
             'Busan': [35.1796, 129.0756],
             'Daegu': [35.8722, 128.6025],
             'Daejeon': [36.3504, 127.3845],
+            'Pyongyang': [39.0392, 125.7625],
+            'Kaesong': [37.9704, 126.5547],
+            'Nampo': [38.7375, 125.4078],
+            'Sariwon': [38.5072, 125.7600],
+            'Dandong': [40.1290, 124.3544],
             'Beijing': [39.9042, 116.4074],
             'Tianjin': [39.3434, 117.3616],
             'Shanghai': [31.2304, 121.4737],
@@ -314,10 +325,27 @@ class FlightDataManager {
             'Singapore': [1.3521, 103.8198],
             'Manila': [14.5995, 120.9842],
             'Ho Chi Minh City': [10.8231, 106.6297],
+            'Ho Chi Minh (Saigon)': [10.8231, 106.6297],
+            'Saigon': [10.8231, 106.6297],
+            'Hochiminh': [10.8231, 106.6297],
             'Hanoi': [21.0285, 105.8542],
             'Mumbai': [19.0760, 72.8777],
             'Delhi': [28.7041, 77.1025],
             'Bangalore': [12.9716, 77.5946],
+            'Jakarta': [-6.2088, 106.8456],
+            'Bandung': [-6.9175, 107.6191],
+            'Bangkok': [13.7563, 100.5018],
+            'Vientiane': [17.9757, 102.6331],
+            'Luang Prabang': [19.8857, 102.1346],
+            'Wuhan': [30.5928, 114.3055],
+            'Nanyang': [32.9908, 112.5283],
+            "Xi'an": [34.3416, 108.9398],
+            'Xian': [34.3416, 108.9398],
+            'Lanzhou': [36.0611, 103.8343],
+            'Yogyakarta': [-7.7956, 110.3695],
+            'Surakarta': [-7.5666, 110.8166],
+            'Penang': [5.4141, 100.3288],
+            'Phuket': [7.8804, 98.3923],
             
             // Middle East
             'Dubai': [25.2048, 55.2708],
@@ -369,6 +397,7 @@ class FlightDataManager {
             'Uyuni': [-20.4637, -66.8267],
             'Puno': [-15.8422, -70.0199],
             'Cusco': [-13.5319, -71.9675],
+            'Cuzco': [-13.5319, -71.9675], // Alternate spelling of Cusco
             'Ollantaytambo': [-13.2594, -72.2653],
             'Aguas Calientes': [-13.1549, -72.5250],
             'Aguas Caliente': [-13.1549, -72.5250],

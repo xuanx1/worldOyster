@@ -12,7 +12,7 @@ class AnimatedFlightMap {
         this.totalDistance = 0; // Track total distance traveled
         this.totalTime = 0; // Track total travel time in hours
         this.totalCO2 = 0; // Track total CO2 emissions in kg
-        this.totalCostUSD = 0; // Track total cost in USD
+        this.totalCostSGD = 0; // Track total cost in SGD (base currency)
         
         // Scrubber properties
         this.isDragging = false;
@@ -114,8 +114,10 @@ class AnimatedFlightMap {
             const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
             if (response.ok) {
                 const data = await response.json();
+                const usdToSgd = data.rates.SGD || 1.35;
                 this.exchangeRates = {
-                    USD_TO_SGD: data.rates.SGD || 1.3,
+                    USD_TO_SGD: usdToSgd,
+                    SGD_TO_USD: 1 / usdToSgd, // Calculate inverse
                     USD_TO_EUR: data.rates.EUR || 0.9,
                     USD_TO_RMB: data.rates.CNY || 7.2
                 };
@@ -435,11 +437,14 @@ class AnimatedFlightMap {
             
             console.log(`Processing journey ${index}: ${fromCode} -> ${toCode}, date: ${journey.date}, type: ${journey.type}`);
             
-            // Always add departure city for first journey
-            if (citySequence.length === 0 && fromCode) {
+            // Add departure city only if it's the first journey OR if the previous journey's destination doesn't match this origin
+            const previousCity = citySequence.length > 0 ? citySequence[citySequence.length - 1] : null;
+            const needsOriginCity = citySequence.length === 0 || (previousCity && previousCity.locationCode !== fromCode);
+            
+            if (needsOriginCity && fromCode) {
                 const coords = this.getJourneyCoordinates(journey, 'from');
                 if (coords) {
-                    console.log('=== CREATING FIRST CITY ===');
+                    console.log('=== CREATING ORIGIN CITY (disconnected from previous) ===');
                     console.log('journey object:', journey);
                     console.log('journey.date value:', journey.date);
                     console.log('typeof journey.date:', typeof journey.date);
@@ -453,11 +458,12 @@ class AnimatedFlightMap {
                         locationCode: fromCode,
                         flightDate: journey.date,
                         flightIndex: this.flightSequence.length,
-                        journeyType: 'flight' // Treat all as flights visually
+                        journeyType: 'flight', // Treat all as flights visually
+                        isDisconnected: index > 0 // Mark as disconnected if not the first city
                     };
-                    console.log('=== CREATED FIRST CITY ===');
+                    console.log('=== CREATED ORIGIN CITY ===');
                     console.log('city.flightDate:', city.flightDate);
-                    console.log('Adding first city:', city);
+                    console.log('Adding origin city:', city);
                     citySequence.push(city);
                     addedCities.add(fromCode);
                     this.flightSequence.push(journey);
@@ -697,6 +703,10 @@ class AnimatedFlightMap {
                 
                 // Asia - China
                 'PVG': 'China', 'PEK': 'China', 'CAN': 'China', 'PKX': 'China',
+                'WUH': 'China', 'HAK': 'China', 'LHW': 'China',
+                
+                // Asia - North Korea
+                'FNJ': 'North Korea',
                 
                 // Asia - Hong Kong
                 'HKG': 'Hong Kong',
@@ -708,16 +718,16 @@ class AnimatedFlightMap {
                 'SIN': 'Singapore',
                 
                 // Asia - Malaysia
-                'KUL': 'Malaysia',
+                'KUL': 'Malaysia', 'BKI': 'Malaysia',
                 
                 // Asia - Indonesia
-                'CGK': 'Indonesia',
+                'CGK': 'Indonesia', 'YIA': 'Indonesia',
                 
                 // Asia - Thailand
                 'BKK': 'Thailand', 'DMK': 'Thailand', 'CNX': 'Thailand',
                 
                 // Asia - Vietnam
-                'SGN': 'Vietnam', 'DAD': 'Vietnam',
+                'SGN': 'Vietnam', 'DAD': 'Vietnam', 'VTE': 'Laos',
                 
                 // Asia - Philippines
                 'MNL': 'Philippines',
@@ -845,11 +855,18 @@ class AnimatedFlightMap {
             
             // Asia
             'Seoul': 'South Korea', 'Busan': 'South Korea', 'Daegu': 'South Korea', 'Daejeon': 'South Korea',
-            'Beijing': 'China', 'Tianjin': 'China', 'Shanghai': 'China',
+            'Pyongyang': 'North Korea', 'Kaesong': 'North Korea', 'Nampo': 'North Korea', 'Sariwon': 'North Korea',
+            'Dandong': 'China',
+            'Beijing': 'China', 'Tianjin': 'China', 'Shanghai': 'China', 'Wuhan': 'China', 
+            'Nanyang': 'China', 'Xian': 'China', "Xi'an": 'China', 'Lanzhou': 'China', 'Haikou': 'China',
             'Hong Kong': 'Hong Kong', 'Taipei': 'Taiwan',
             'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
+            'Penang': 'Malaysia', 'Kota Kinabalu': 'Malaysia',
             'Moscow': 'Russia', 'St. Petersburg': 'Russia', 'Tallinn': 'Estonia',
-            'Da Nang': 'Vietnam', 'Hoi An': 'Vietnam',
+            'Da Nang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam',
+            'Vientiane': 'Laos', 'Luang Prabang': 'Laos',
+            'Bangkok': 'Thailand', 'Phuket': 'Thailand',
+            'Yogyakarta': 'Indonesia', 'Surakarta': 'Indonesia', 'Jakarta': 'Indonesia', 'Bandung': 'Indonesia',
             
             // North America
             'New York': 'USA', 'Philadelphia': 'USA', 'Los Angeles': 'USA', 'Los Angles': 'USA',
@@ -859,7 +876,7 @@ class AnimatedFlightMap {
             'Tijuana': 'Mexico',
             
             // South America
-            'La Paz': 'Bolivia', 'Uyuni': 'Bolivia', 'Puno': 'Peru', 'Cusco': 'Peru',
+            'La Paz': 'Bolivia', 'Uyuni': 'Bolivia', 'Puno': 'Peru', 'Cusco': 'Peru', 'Cuzco': 'Peru',
             'Ollantaytambo': 'Peru', 'Aguas Calientes': 'Peru', 'Aguas Caliente': 'Peru',
             'Lima': 'Peru', 'Ica': 'Peru', 'Huacachina': 'Peru'
         };
@@ -1033,7 +1050,39 @@ class AnimatedFlightMap {
 
         this.updateCityList();
 
-        // Create flight path
+        // Check if this is a disconnected city (new journey starting from a different location)
+        if (toCity.isDisconnected) {
+            // Don't draw a line - just show the marker and move on
+            console.log(`Skipping animation for disconnected city: ${toCity.name}`);
+            
+            if (this.cityMarkers[this.currentCityIndex]) {
+                this.cityMarkers[this.currentCityIndex].marker.addTo(this.map);
+            }
+            
+            // Update current trip year in header
+            this.updateCurrentTripYear(this.currentCityIndex);
+            
+            // Mark as current (starting point of new journey)
+            toCity.visited = true;
+            this.updateCityMarkerStyle(this.currentCityIndex, 'current');
+            this.currentCityIndex++;
+            this.updateProgress();
+            this.updateCityList();
+            this.updateStatistics();
+            
+            // Move to next city immediately
+            setTimeout(() => {
+                if (this.checkForPendingPause()) {
+                    return;
+                }
+                if (this.isAnimating) {
+                    this.animateToNextCity();
+                }
+            }, 500);
+            return;
+        }
+
+        // Create flight path for connected cities
         this.animateFlightPath(fromCity, toCity, () => {
             // Animation complete callback - show and mark destination city when arrived
             if (this.cityMarkers[this.currentCityIndex]) {
@@ -1085,22 +1134,21 @@ class AnimatedFlightMap {
         const timeHours = distanceKm / 900;      // Flight speed for all (could be enhanced later)
         const co2EmissionKg = this.calculateEmissions(distanceKm, journeyData); // Use new emission calculation
         
-        // Use actual cost from CSV if available (works for both flight and land journey CSVs)
-        let costUSD;
+        // Use actual cost from CSV only (no estimates)
+        let costSGD = 0;
         if (journeyData && journeyData.costSGD && journeyData.costSGD > 0) {
-            costUSD = journeyData.costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
-            console.log(`Using actual cost from CSV: ${journeyData.costSGD} SGD = ${costUSD.toFixed(2)} USD`);
+            costSGD = journeyData.costSGD;
+            console.log(`Using actual cost from CSV: ${costSGD.toFixed(2)} SGD`);
         } else {
-            costUSD = distanceKm * 0.25; // Default cost calculation
-            console.log(`Using calculated cost: ${costUSD.toFixed(2)} USD`);
+            console.log(`No cost data in CSV, using 0 SGD`);
         }
         
         this.totalTime += timeHours;
         this.totalCO2 += co2EmissionKg;
-        this.totalCostUSD += costUSD;
+        this.totalCostSGD += costSGD;
         
         // Show increment box
-        this.showIncrement(distanceKm, timeHours, co2EmissionKg, costUSD, false);
+        this.showIncrement(distanceKm, timeHours, co2EmissionKg, costSGD, false);
         
         // Faster animation - reduced timing (min 500ms, max 2000ms)
         const animationDuration = Math.max(500, Math.min(2000, distance * 100));
@@ -1589,7 +1637,7 @@ class AnimatedFlightMap {
         this.totalDistance = 0;
         this.totalTime = 0;
         this.totalCO2 = 0;
-        this.totalCostUSD = 0;
+        this.totalCostSGD = 0;
         
         // Reset progress bar
         document.getElementById('progressFill').style.width = '0%';
@@ -1791,7 +1839,7 @@ class AnimatedFlightMap {
         this.totalDistance = 0;
         this.totalTime = 0;
         this.totalCO2 = 0;
-        this.totalCostUSD = 0;
+        this.totalCostSGD = 0;
         
         // Calculate statistics for journeys up to current position
         for (let i = 0; i < this.currentCityIndex; i++) {
@@ -1808,16 +1856,14 @@ class AnimatedFlightMap {
                 const timeHours = distanceKm / 900;
                 const co2EmissionKg = this.calculateEmissions(distanceKm, journeyData);
                 
-                let costUSD;
+                let costSGD = 0;
                 if (journeyData && journeyData.costSGD && journeyData.costSGD > 0) {
-                    costUSD = journeyData.costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
-                } else {
-                    costUSD = distanceKm * 0.25;
+                    costSGD = journeyData.costSGD;
                 }
                 
                 this.totalTime += timeHours;
                 this.totalCO2 += co2EmissionKg;
-                this.totalCostUSD += costUSD;
+                this.totalCostSGD += costSGD;
             }
         }
     }
@@ -2009,13 +2055,16 @@ class AnimatedFlightMap {
 
         // First pass: identify unique cities with their earliest travel date
         sortedCities.forEach((city, index) => {
-            const cityKey = `${city.name}-${city.country}`;
+            // Normalize city name and create a unique key
+            const normalizedName = city.name.trim();
+            const normalizedCountry = city.country ? city.country.trim() : '';
+            const cityKey = `${normalizedName}-${normalizedCountry}`;
             
             // If this city hasn't been seen before, record it
             if (!uniqueCities.has(cityKey)) {
                 const originalIndex = this.cities.findIndex(c => 
-                    c.name === city.name && 
-                    c.country === city.country && 
+                    c.name.trim() === normalizedName && 
+                    (c.country ? c.country.trim() : '') === normalizedCountry && 
                     c.flightDate === city.flightDate
                 );
                 
@@ -2163,8 +2212,8 @@ class AnimatedFlightMap {
                     tons: Math.round((this.totalCO2 / 1000) * 100) / 100
                 },
                 costs: {
-                    USD: Math.round(this.totalCostUSD),
-                    SGD: Math.round(this.totalCostUSD * (this.exchangeRates.USD_TO_SGD || 1.35))
+                    SGD: Math.round(this.totalCostSGD),
+                    USD: Math.round(this.totalCostSGD * (this.exchangeRates.SGD_TO_USD || 0.74))
                 }
             },
             cities: this.cities.map((city, index) => ({
@@ -2416,17 +2465,17 @@ class AnimatedFlightMap {
         
         // Separate USD and SGD cost displays
         if (totalCostUSDEl) {
-            if (this.totalCostUSD > 0) {
-                this.animateNumber(totalCostUSDEl, this.totalCostUSD, 800, (val) => `US$${Math.round(val).toLocaleString()}`);
+            if (this.totalCostSGD > 0) {
+                const totalCostUSD = this.totalCostSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
+                this.animateNumber(totalCostUSDEl, totalCostUSD, 800, (val) => `US$${Math.round(val).toLocaleString()}`);
             } else {
                 totalCostUSDEl.textContent = '-';
             }
         }
         
         if (totalCostSGDEl) {
-            if (this.totalCostUSD > 0) {
-                const sgdValue = this.totalCostUSD * this.exchangeRates.USD_TO_SGD;
-                this.animateNumber(totalCostSGDEl, sgdValue, 800, (val) => `S$${Math.round(val).toLocaleString()}`);
+            if (this.totalCostSGD > 0) {
+                this.animateNumber(totalCostSGDEl, this.totalCostSGD, 800, (val) => `S$${Math.round(val).toLocaleString()}`);
             } else {
                 totalCostSGDEl.textContent = '-';
             }
@@ -2547,8 +2596,8 @@ class AnimatedFlightMap {
     }
 
     // Show increment displays next to each stat
-    showIncrement(distance, time, co2, cost, isTrainJourney) {
-        console.log('showIncrement called:', { distance, time, co2, cost, isTrainJourney });
+    showIncrement(distance, time, co2, costSGD, isTrainJourney) {
+        console.log('showIncrement called:', { distance, time, co2, costSGD, isTrainJourney });
         
         const incDistance = document.getElementById('incDistance');
         const incTime = document.getElementById('incTime');
@@ -2584,16 +2633,16 @@ class AnimatedFlightMap {
             incCO2.classList.add('show');
         }
         
-        // Update and show USD cost increment
+        // Update and show USD cost increment (convert from SGD)
         if (incCostUSD) {
-            incCostUSD.textContent = `+US$${Math.round(cost)}`;
+            const costUSD = costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
+            incCostUSD.textContent = `+US$${Math.round(costUSD)}`;
             incCostUSD.classList.add('show');
         }
         
         // Update and show SGD cost increment
         if (incCostSGD) {
-            const sgdCost = cost * this.exchangeRates.USD_TO_SGD;
-            incCostSGD.textContent = `+S$${Math.round(sgdCost)}`;
+            incCostSGD.textContent = `+S$${Math.round(costSGD)}`;
             incCostSGD.classList.add('show');
         }
         

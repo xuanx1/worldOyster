@@ -1,9 +1,9 @@
 Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registration,Seat number,Seat type,Flight class,Flight reason,Note,Dep_id,Arr_id,Airline_id,Aircraft_id,Cost_sgd
 8/30/2025,NK 2124,Newark / Liberty International (EWR/KEWR),Fort Lauderdale / Hollywood (FLL/KFLL),0:00:00,0:00:00,2:34:00, (/), (),,,0,0,0,,851,892,0,0,97.23
 8/30/2025,AV 37,Fort Lauderdale / Hollywood (FLL/KFLL),Bogota / Eldorado Intl. (BOG/SKBO),0:00:00,0:00:00,3:34:00, (/), (),,,0,0,0,,892,371,0,0,97.23
-8/30/2025,AV 239,Bogota / Eldorado Intl. (BOG/SKBO),El Alto / El Alto International Airport (LPB/SLLP),0:00:00,0:00:00,3:33:00, (/), (),,,0,0,0,,371,1667,0,0,97.23
-9/13/2025,JA 7046,Cuzco / Velazco Astete (CUZ/SPZO),Lima / Jorge Chavez International (LIM/SPIM),0:00:00,0:00:00,1:02:00, (/), (),,,0,0,0,,643,1626,0,0,55.45
-9/17/2025,LA 521,Lima / Jorge Chavez International (LIM/SPIM),Santiago / Comodoro Arturo Merino Benitez (SCL/SCEL),0:00:00,0:00:00,3:34:00, (/), (),,,0,0,0,,1626,2606,0,0,106.17
+8/30/2025,AV 239,Bogota / Eldorado Intl. (BOG/SKBO),El Alto / El Alto International Airport (LPB/SLLP),0:00:00,0:00:00,3:33:00, (/), (),,,0,0,0,,371,1667,0,0,97.23
+9/13/2025,JA 7046,Cusco / Velazco Astete (CUZ/SPZO),Lima / Jorge Chavez International (LIM/SPIM),0:00:00,0:00:00,1:02:00, (/), (),,,0,0,0,,643,1626,0,0,55.45
+9/17/2025,LA 521,Lima / Jorge Chavez International (LIM/SPIM),Santiago / Comodoro Arturo Merino Benitez (SCL/SCEL),0:00:00,0:00:00,3:34:00, (/), (),,,0,0,0,,1626,2606,0,0,106.17
 9/19/2025,LA 522,Santiago / Comodoro Arturo Merino Benitez (SCL/SCEL),Lima / Jorge Chavez International (LIM/SPIM),0:00:00,0:00:00,3:34:00, (/), (),,,0,0,0,,2606,1626,0,0,106.17
 9/21/2025,LA2690,Lima / Jorge Chavez International (LIM/SPIM),New York / John F Kennedy (JFK/KJFK),12:00:00,21:05:00,8:05:00,LATAM Airlines (LA/LAN),Boeing 767-300 (B763),CC-CWV,,0,0,0,,1626,1328,2656,244,1036.44
 8/25/2025,UA2402,Newark / Liberty International (EWR/KEWR),New Orleans / Moisant Fld (MSY/KMSY),16:42:00,18:52:00,3:10:00,United Airlines (UA/UAL),Boeing 737-900 (B739),N37422,,0,0,0,,851,1942,808,232,94.55
@@ -67,6 +67,7 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 4/19/2024,W62335,Budapest / Franz Liszt International (BUD/LHBP),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,1:22:00, (/), (),,,0,0,0,,429,1983,0,0,68.78
 12/24/2019,,Singapore / Changi (SIN/WSSS),Guangzhou / Canton-Baiyun (CAN/ZGGG),0:00:00,0:00:00,3:49:00, (/), (),,,0,0,0,,2672,478,0,0,190.5
 12/25/2019,,Guangzhou / Canton-Baiyun (CAN/ZGGG),Beijing / Beijing Daxing International Airport (PKX/ZBAD),0:00:00,0:00:00,2:42:00, (/), (),,,0,0,0,,478,9280,0,0,190.5
+12/28/2019,JS152,"Beijing / Peking-Capital (PEK/ZBAA)","Pyongyang / Sunan (FNJ/ZKPY)",13:05:00,15:40:00,01:35:00,"Air Koryo (JS/KOR)","Tupolev TU-204 (T204)",,,0,0,0,,2292,908,444,1778,750
 1/5/2020,,Beijing / Beijing Daxing International Airport (PKX/ZBAD),Guangzhou / Canton-Baiyun (CAN/ZGGG),0:00:00,0:00:00,2:42:00, (/), (),,,0,0,0,,9280,478,0,0,188.5
 1/6/2020,,Guangzhou / Canton-Baiyun (CAN/ZGGG),Singapore / Changi (SIN/WSSS),0:00:00,0:00:00,3:49:00, (/), (),,,0,0,0,,478,2672,0,0,188.5
 4/4/2024,PC 1750,Ankara / Esenboga (ESB/LTAC),Tbilisi / Novo Alexeyevka (TBS/UGTB),0:00:00,0:00:00,1:37:00, (/), (),,,0,0,0,,833,3679,0,0,74.48
@@ -159,8 +160,20 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 11/20/2024,BS202,Calcutta / NS Chandra Bose Int (CCU/VECC),Dhaka / Zia (DAC/VGZR),11:30:00,13:00:00,0:30:00,British International Helicopters (BS/BIH),ATR 72-200 (AT72),,,0,0,0,,504,670,130,153,73.75
 11/20/2024,CZ 392,Dhaka / Zia (DAC/VGZR),Guangzhou / Canton-Baiyun (CAN/ZGGG),0:00:00,0:00:00,3:24:00, (/), (),,,0,0,0,,670,478,0,0,137.99
 11/21/2024,CZ 353,Guangzhou / Canton-Baiyun (CAN/ZGGG),Singapore / Changi (SIN/WSSS),0:00:00,0:00:00,3:49:00, (/), (),,,0,0,0,,478,2672,0,0,137.99
-11/22/2024,PR 512,Singapore / Changi (SIN/WSSS),Manila / Ninoy Aquino International (MNL/RPLL),0:00:00,0:00:00,3:27:00, (/), (),,,0,0,0,,2672,1898,0,0,455.1
+11/22/2024,PR 512,Singapore / Changi (SIN/WSSS),Manila / Ninoy Aquino International (MNL/RPLL),0:00:00,0:00:00,3:27:00, (/), (),,,0,0,0,,2672,1898,0,0,455.1
 11/23/2024,PR126,Manila / Ninoy Aquino International (MNL/RPLL),New York / John F Kennedy (JFK/KJFK),19:25:00,23:40:00,16:15:00,Philippine Airlines (PR/PAL),Airbus A350 (A350),,,0,0,0,,1898,1328,597,2109,455.1
+10/18/2025,IP89,"Singapore / Changi (SIN/WSSS)","Jakarta / Soekarno Hatta (CGK/WIII)",11:00:00,11:50:00,01:50:00,"Pelita Air Service (IP/PAS)","Airbus A320 (A320)",,,0,0,0,,2672,534,1008,27,144.06
+10/20/2025,IP88,"Jakarta / Soekarno Hatta (CGK/WIII)","Singapore / Changi (SIN/WSSS)",07:10:00,10:00:00,01:50:00,"Pelita Air Service (IP/PAS)","Airbus A320-200 (A320)",,,0,0,0,,534,2672,1008,2059,144.06
+11/14/2025,TR610,"Singapore / Changi (SIN/WSSS)","Bangkok / Suvarnabhumi (BKK/VTBS)",16:00:00,17:25:00,02:25:00,"Scoot (TR/TGW)","Airbus A320 (A320)",9V-TRO,,0,0,0,,2672,331,2695,27,182.01
+11/16/2025,VJ1832,"Vientiane / Wattay (VTE/VLVT)","Ho Chi Minh (Saigon) / Tan Son Nhat (SGN/VVTS)",18:45:00,20:45:00,02:00:00,"VietJet Air (VJ/VJC)","Airbus A320 (A320)",VN-A676,,0,0,0,,3244,2650,1632,27,63.82
+11/17/2025,VJ811,"Ho Chi Minh (Saigon) / Tan Son Nhat (SGN/VVTS)","Singapore / Changi (SIN/WSSS)",08:50:00,12:05:00,02:15:00,"VietJet Air (VJ/VJC)","Airbus A320 (A320)",VN-A672,,0,0,0,,2650,2672,1632,27,63.82
+12/21/2025,TR120,"Singapore / Changi (SIN/WSSS)","Wuhan / Tianhe (WUH/ZHHH)",18:20:00,23:15:00,04:55:00,"Scoot (TR/TGW)","Boeing 787-8 (B788)",,,0,0,0,,2672,3249,2695,2087,270.2
+1/2/2026,HU459,"Lanzhou / Lanzhou Zhongchuan International Airport (LHW/ZLLL)","Haikou / Meilan (HAK/ZJHK)",07:05:00,10:05:00,03:00:00,"Hainan Airlines (HU/CHH)","Boeing 737-800 (B738)",,,0,0,0,,3794,3788,181,231,138.72
+1/2/2026,HU459,"Haikou / Meilan (HAK/ZJHK)","Singapore / Changi (SIN/WSSS)",11:30:00,14:55:00,03:25:00,"Hainan Airlines (HU/CHH)","Boeing 737-800 (B738)",,,0,0,0,,3788,2672,181,231,138.72
+2/8/2026,TR200,"Singapore / Changi (SIN/WSSS)","Yogyakarta / Yogyakarta International Airport (YIA/WAHI)",07:50:00,09:20:00,02:30:00,"Scoot (TR/TGW)","Airbus A321LR (A21N)",,,0,0,0,,2672,9188,2695,2181,101.4
+2/8/2026,TR237,"Yogyakarta / Yogyakarta International Airport (YIA/WAHI)","Singapore / Changi (SIN/WSSS)",10:20:00,13:40:00,02:20:00,"Scoot (TR/TGW)","Airbus A321neo (A21N)",,,0,0,0,,9188,2672,2695,2128,101.4
+4/17/2026,TR496,"Singapore / Changi (SIN/WSSS)","Kota Kinabalu / Kota Kinabalu (BKI/WBKK)",18:45:00,21:10:00,02:25:00,"Scoot (TR/TGW)","Airbus A320neo (A20N)",,,0,0,0,,2672,329,2695,2127,73.64
+4/20/2026,TR493,"Kota Kinabalu / Kota Kinabalu (BKI/WBKK)","Singapore / Changi (SIN/WSSS)",20:00:00,22:30:00,02:30:00,"Scoot (TR/TGW)","Airbus A321LR (A21N)",,,0,0,0,,329,2672,2695,2181,73.64
 2/7/2024,FR3112,Bergamo / Orio Al Serio (BGY/LIME),Iasi / Iasi (IAS/LRIA),10:20:00,13:35:00,2:15:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,293,1206,668,231,22.5
 2/8/2024,W4 3717,Iasi / Iasi (IAS/LRIA),Istanbul / Istanbul Airport (IST/LTFM),0:00:00,0:00:00,1:08:00, (/), (),,,0,0,0,,1206,8949,0,0,35.96
 3/1/2024,PC1213,Istanbul / Sabiha Gokcen (SAW/LTFJ),Bergamo / Orio Al Serio (BGY/LIME),14:20:00,16:10:00,2:50:00,Pegasus Airlines (PC/PGT),Airbus A321-200 (A321),,,0,0,0,,3659,293,1014,2076,107.51

@@ -7,6 +7,12 @@ Osaka,Nara,train,9,29/12/2018
 Nara,Osaka,train,9,29/12/2018
 Moscow,St. Petersburg,train,85,3/6/2019
 St. Petersburg,Helsinki,train,70,7/6/2019
+Pyongyang,Kaesong,bus,18,30/12/2019
+Kaesong,Nampo,bus,13,30/12/2019
+Nampo,Sariwon,bus,15,31/12/2019
+Sariwon,Pyongyang,bus,18,31/12/2019
+Pyongyang,Dandong,train,32,2/1/2020
+Dandong,Beijing,train,32,2/1/2020
 Beijing,Tianjin,train,35,3/1/2020
 Tianjin,Beijing,train,35,5/1/2020
 Da Nang,Hoi An,bus,2,8/3/2020
@@ -37,7 +43,7 @@ Amsterdam,Dusseldorf,bus,15,29/12/2021
 Dusseldorf,Cologne,train,15,29/12/2021
 Cologne,Antwerp,bus,25,30/12/2021
 Antwerp,Brussels,bus,10,30/12/2021
-Kyiv,Lviv,train,26,7/1/2021
+Kyiv,Lviv,train,26,1/7/2022
 Jerusalem,Eilat,bus,15,25/3/2022
 Eilat,Jerusalem,bus,15,26/3/2022
 Jerusalem,Amman,bus,77.93,6/4/2022
@@ -219,3 +225,16 @@ Ollantaytambo,Aguas Caliente,train,98.62,7/9/2025
 Aguas Caliente,Cusco,train,98.62,8/9/2025
 Lima,Ica,bus,28.2,15/9/2025
 Huacachina,Lima,bus,23.83,15/9/2025
+Jakarta,Bandung,train,23.5,19/10/2025
+Bandung,Jakarta,train,23.5,19/10/2025
+Bangkok,Vientiane,train,26,14/11/2025
+Vientiane,Luang Prabang,train,0,15/11/2025
+Luang Prabang,Vientiane,train,20.56,15/11/2025
+Wuhan,Nanyang,train,44.96,24/12/2025
+Nanyang,Xi'an,train,38.13,26/12/2025
+Xi'an,Lanzhou,train,38.60,31/12/2025
+Yogyakarta,Surakarta,train,3.2,8/2/2026
+Surakarta,Yogyakarta,train,3.2,8/2/2026
+Singapore,Penang,ferry,0,19/2/2026
+Penang,Phuket,ferry,0,19/2/2026
+Phuket,Singapore,ferry,0,20/2/2026
