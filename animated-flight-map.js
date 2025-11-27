@@ -907,7 +907,7 @@ class AnimatedFlightMap {
             'Brussels': 'Belgium', 'Antwerp': 'Belgium',
             
             // Europe - Czech Republic
-            'Prague': 'Czech Republic', 'Pilsen': 'Czech Republic',
+            'Prague': 'Czech Republic', 'Praha': 'Czech Republic', 'Pilsen': 'Czech Republic',
             
             // Europe - UK & Ireland
             'London': 'UK', 'Edinburgh': 'UK', 'Dublin': 'Ireland',
@@ -955,10 +955,10 @@ class AnimatedFlightMap {
             'Larnaca': 'Cyprus', 'Kyrenia': 'Cyprus',
             
             // Asia
-            'Seoul': 'South Korea', 'Busan': 'South Korea', 'Daegu': 'South Korea', 'Daejeon': 'South Korea',
+            'Seoul': 'South Korea', 'Busan': 'South Korea', 'Pusan': 'South Korea', 'Daegu': 'South Korea', 'Daejeon': 'South Korea',
             'Pyongyang': 'North Korea', 'Kaesong': 'North Korea', 'Nampo': 'North Korea', 'Sariwon': 'North Korea',
             'Dandong': 'China',
-            'Beijing': 'China', 'Tianjin': 'China', 'Shanghai': 'China', 'Wuhan': 'China', 
+            'Beijing': 'China', 'Peking': 'China', 'Tianjin': 'China', 'Shanghai': 'China', 'Wuhan': 'China', 
             'Nanyang': 'China', 'Xian': 'China', "Xi'an": 'China', 'Lanzhou': 'China', 'Haikou': 'China',
             'Hong Kong': 'Hong Kong', 'Taipei': 'Taiwan',
             'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
