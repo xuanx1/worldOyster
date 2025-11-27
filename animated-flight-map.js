@@ -27,7 +27,7 @@ class AnimatedFlightMap {
         this.linesVisible = true;
         
         // Follow dot control
-        this.followDot = false;
+        this.followDot = true;
         
         // Current animation tracking for pause functionality
         this.currentAnimationPath = null;
@@ -42,8 +42,16 @@ class AnimatedFlightMap {
             USD_TO_RMB: 7.2
         };
         
+        // Loading bar elements
+        this.loadingBarContainer = document.getElementById('loadingBarContainer');
+        this.loadingBar = document.getElementById('loadingBar');
+        this.loadingStatusText = document.getElementById('loadingStatusText');
+        
+        this.updateLoadingProgress(10, 'Initializing map...');
         this.initializeMap();
+        this.updateLoadingProgress(30, 'Loading flight data...');
         this.loadFlightData(); // Load from CSV instead of sample data
+        this.updateLoadingProgress(50, 'Fetching exchange rates...');
         this.fetchExchangeRates(); // Fetch live rates
         this.updateStatistics();
         this.initializeScrubber(); // Initialize scrubber functionality
@@ -52,6 +60,30 @@ class AnimatedFlightMap {
         setTimeout(() => {
             this.startAnimation();
         }, 3000);
+    }
+
+    updateLoadingProgress(percent, message) {
+        if (this.loadingBar) {
+            this.loadingBar.style.width = percent + '%';
+        }
+        if (this.loadingStatusText && message) {
+            this.loadingStatusText.textContent = message;
+        }
+    }
+
+    hideLoadingBar() {
+        if (this.loadingBarContainer) {
+            this.loadingBarContainer.classList.add('hidden');
+            setTimeout(() => {
+                this.loadingBarContainer.style.display = 'none';
+            }, 500);
+        }
+        if (this.loadingStatusText) {
+            this.loadingStatusText.classList.add('hidden');
+            setTimeout(() => {
+                this.loadingStatusText.style.display = 'none';
+            }, 500);
+        }
     }
 
     initializeMap() {
@@ -63,7 +95,7 @@ class AnimatedFlightMap {
 
         // Initialize map with minimal styling
         this.map = L.map('map', {
-            center: [25, 10],
+            center: [20, 100],
             zoom: 1.45,
             minZoom: 1.45,
             maxZoom: 6,
@@ -111,7 +143,7 @@ class AnimatedFlightMap {
                 console.log('Panning disabled - at minimum zoom level:', currentZoom);
             }
             // When at minimum zoom, always return to original centered view
-            this.map.setView([25, 10], minZoom);
+            this.map.setView([20, 100], minZoom);
         }
     }
 
@@ -182,7 +214,7 @@ class AnimatedFlightMap {
                 button.title = 'Reset View';
                 
                 button.onclick = () => {
-                    map.setView([25, 10], 1.4);
+                    map.setView([20, 100], 1.45);
                     // Update panning state after reset
                     this.updatePanningState();
                 };
@@ -328,16 +360,21 @@ class AnimatedFlightMap {
         new ReplayAnimationControl({ position: 'topright' }).addTo(this.map);
         new ToggleLinesControl({ position: 'topright' }).addTo(this.map);
         new FollowDotControl({ position: 'topright' }).addTo(this.map);
+        
+        // Set follow dot button to active state since it's enabled by default
+        this.updateFollowDotButton();
     }
 
 
 
     async loadFlightData() {
         try {
+            this.updateLoadingProgress(40, 'Loading CSV data...');
             // Create flight data manager and load both CSV and land journey data
             const flightDataManager = new FlightDataManager();
             const combinedData = await flightDataManager.loadData(); // Use loadData() instead of loadCSVData()
             
+            this.updateLoadingProgress(60, 'Processing journeys...');
             if (combinedData && combinedData.length > 0) {
                 console.log(`Loading ${combinedData.length} journeys (${flightDataManager.csvData.length} flights + ${flightDataManager.landJourneyData.length} land journeys)`);
                 
@@ -383,9 +420,11 @@ class AnimatedFlightMap {
                 const citySequence = this.convertFlightsToCities(combinedData);
                 
                 // Add cities to map
+                this.updateLoadingProgress(80, 'Adding cities to map...');
                 citySequence.forEach(city => this.addCity(city));
                 this.updateCityList();
                 
+                this.updateLoadingProgress(90, 'Finalizing...');
                 console.log(`Added ${this.cities.length} cities to map`);
                 
                 // Identify all disconnected cities
@@ -410,14 +449,21 @@ class AnimatedFlightMap {
                     this.updateCurrentTripYear(0);
                 }
                 
+                this.updateLoadingProgress(100, 'Ready!');
+                setTimeout(() => this.hideLoadingBar(), 800);
+                
             } else {
                 console.warn('No journey data loaded, using sample data');
+                this.updateLoadingProgress(100, 'Loading sample data...');
                 this.loadSampleCities();
+                setTimeout(() => this.hideLoadingBar(), 800);
             }
         } catch (error) {
             console.error('Error loading journey data:', error);
             console.warn('Falling back to sample data');
+            this.updateLoadingProgress(100, 'Error - using sample data');
             this.loadSampleCities();
+            setTimeout(() => this.hideLoadingBar(), 1000);
         }
     }
     

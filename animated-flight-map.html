@@ -772,6 +772,59 @@
             20%, 40% { transform: scale(1); }
         }
 
+        /* Loading bar under title */
+        .loading-bar-container {
+            width: 100%;
+            height: 3px;
+            background: rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            margin-top: 20px;
+        }
+
+        .loading-bar-container.hidden {
+            opacity: 0;
+        }
+
+        .loading-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700 0%, #FFC700 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .loading-bar-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                margin-top: 0;
+                z-index: 9999;
+            }
+        }
+
+        .loading-status-text {
+            color: #999;
+            font-size: 0.85em;
+            margin-top: 5px;
+            text-align: right;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-status-text.hidden {
+            opacity: 0;
+        }
+
+        @media (max-width: 768px) {
+            .loading-status-text {
+                display: none;
+            }
+        }
+
         /* Year display overlay */
         .year-overlay {
             display: none;
@@ -805,6 +858,10 @@
         <button class="export-button" id="exportButton">
             📊 Export Data
         </button>
+        <div class="loading-bar-container" id="loadingBarContainer">
+            <div class="loading-bar" id="loadingBar"></div>
+        </div>
+        <div class="loading-status-text" id="loadingStatusText">Initializing...</div>
     </div>
 
     <div class="card-container">
