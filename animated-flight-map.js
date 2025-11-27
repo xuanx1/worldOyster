@@ -5,10 +5,14 @@ class AnimatedFlightMap {
         this.currentCityIndex = 0;
         this.isAnimating = false;
         this.animationSpeed = 2000; // milliseconds per flight
+        this.speedMultiplier = 1; // 1x, 10x, or 20x speed
         this.flightDot = null;
         this.flightPath = null;
         this.visitedPaths = [];
         this.cityMarkers = [];
+        this.continuousPath = null; // Current continuous polyline segment
+        this.allPathCoordinates = []; // All coordinates for current continuous path segment
+        this.continuousPathSegments = []; // Array of all continuous path segments (for disconnected journeys)
         this.totalDistance = 0; // Track total distance traveled
         this.totalTime = 0; // Track total travel time in hours
         this.totalCO2 = 0; // Track total CO2 emissions in kg
@@ -21,6 +25,9 @@ class AnimatedFlightMap {
         
         // Lines visibility control
         this.linesVisible = true;
+        
+        // Follow dot control
+        this.followDot = false;
         
         // Current animation tracking for pause functionality
         this.currentAnimationPath = null;
@@ -236,11 +243,11 @@ class AnimatedFlightMap {
             }.bind(this)
         });
         
-        // Create toggle lines visibility control
-        const ToggleLinesControl = L.Control.extend({
+        // Create fast forward control
+        const FastForwardControl = L.Control.extend({
             onAdd: function(map) {
                 const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                button.innerHTML = '✈️';
+                button.innerHTML = '⏩';
                 button.style.backgroundColor = '#333';
                 button.style.color = '#fff';
                 button.style.width = '30px';
@@ -250,6 +257,33 @@ class AnimatedFlightMap {
                 button.style.justifyContent = 'center';
                 button.style.cursor = 'pointer';
                 button.style.fontSize = '14px';
+                button.title = 'Speed: 1x (click to cycle)';
+                button.style.marginTop = '2px';
+                
+                button.onclick = () => {
+                    this.cycleFastForward();
+                };
+                
+                this.fastForwardButton = button;
+                return button;
+            }.bind(this)
+        });
+        
+        // Create toggle lines visibility control
+        const ToggleLinesControl = L.Control.extend({
+            onAdd: function(map) {
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+                button.innerHTML = '━';
+                button.style.backgroundColor = '#333';
+                button.style.color = '#fff';
+                button.style.width = '30px';
+                button.style.height = '30px';
+                button.style.display = 'flex';
+                button.style.alignItems = 'center';
+                button.style.justifyContent = 'center';
+                button.style.cursor = 'pointer';
+                button.style.fontSize = '18px';
+                button.style.fontWeight = 'bold';
                 button.title = 'Hide Flight Lines';
                 button.style.marginTop = '2px';
                 
@@ -262,10 +296,38 @@ class AnimatedFlightMap {
             }.bind(this)
         });
         
+        // Create follow dot control
+        const FollowDotControl = L.Control.extend({
+            onAdd: function(map) {
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+                button.innerHTML = '🎯';
+                button.style.backgroundColor = '#333';
+                button.style.color = '#fff';
+                button.style.width = '30px';
+                button.style.height = '30px';
+                button.style.display = 'flex';
+                button.style.alignItems = 'center';
+                button.style.justifyContent = 'center';
+                button.style.cursor = 'pointer';
+                button.style.fontSize = '14px';
+                button.title = 'Follow Flying Dot';
+                button.style.marginTop = '2px';
+                
+                button.onclick = () => {
+                    this.toggleFollowDot();
+                };
+                
+                this.followDotButton = button;
+                return button;
+            }.bind(this)
+        });
+        
         new ResetViewControl({ position: 'topright' }).addTo(this.map);
         new PlayPauseAnimationControl({ position: 'topright' }).addTo(this.map);
+        new FastForwardControl({ position: 'topright' }).addTo(this.map);
         new ReplayAnimationControl({ position: 'topright' }).addTo(this.map);
         new ToggleLinesControl({ position: 'topright' }).addTo(this.map);
+        new FollowDotControl({ position: 'topright' }).addTo(this.map);
     }
 
 
@@ -325,6 +387,20 @@ class AnimatedFlightMap {
                 this.updateCityList();
                 
                 console.log(`Added ${this.cities.length} cities to map`);
+                
+                // Identify all disconnected cities
+                const disconnectedCities = this.cities.filter(city => city.isDisconnected);
+                console.log('========================================');
+                console.log('DISCONNECTED CITIES (New journey starting points):');
+                console.log('========================================');
+                disconnectedCities.forEach((city, index) => {
+                    const prevCity = this.cities[this.cities.indexOf(city) - 1];
+                    console.log(`${index + 1}. ${city.name} (${city.airportCode}) on ${city.flightDate}`);
+                    console.log(`   Previous city: ${prevCity ? prevCity.name + ' (' + prevCity.airportCode + ')' : 'N/A'}`);
+                    console.log(`   --> Journey breaks here, new trip starts at ${city.name}`);
+                });
+                console.log(`Total disconnected cities: ${disconnectedCities.length}`);
+                console.log('========================================');
                 console.log('Final cities array:', this.cities.map(c => ({ name: c.name, code: c.airportCode, flightDate: c.flightDate })));
                 
                 // TEST: Immediately try to update year with first city
@@ -357,18 +433,31 @@ class AnimatedFlightMap {
             console.log('Setting initial header year to:', firstYear);
             
             const headerTitle = document.querySelector('.header h1');
+            const yearOverlay = document.getElementById('yearOverlay');
             console.log('Header element found in updateHeaderYear:', headerTitle);
+            console.log('Year overlay found in updateHeaderYear:', yearOverlay);
             
-            if (headerTitle && !isNaN(firstYear)) {
-                headerTitle.textContent = firstYear.toString();
-                console.log('Initial header year set to:', headerTitle.textContent);
+            if ((headerTitle || yearOverlay) && !isNaN(firstYear)) {
+                if (headerTitle) {
+                    headerTitle.textContent = firstYear.toString();
+                    console.log('Initial header year set to:', headerTitle.textContent);
+                }
+                if (yearOverlay) {
+                    yearOverlay.textContent = firstYear.toString();
+                    console.log('Initial year overlay set to:', yearOverlay.textContent);
+                }
             } else {
                 // If header not found, try again after a short delay
                 setTimeout(() => {
                     const retryHeader = document.querySelector('.header h1');
+                    const retryOverlay = document.getElementById('yearOverlay');
                     if (retryHeader && !isNaN(firstYear)) {
                         retryHeader.textContent = firstYear.toString();
                         console.log('Header year set on retry:', retryHeader.textContent);
+                    }
+                    if (retryOverlay && !isNaN(firstYear)) {
+                        retryOverlay.textContent = firstYear.toString();
+                        console.log('Year overlay set on retry:', retryOverlay.textContent);
                     }
                 }, 100);
             }
@@ -380,10 +469,12 @@ class AnimatedFlightMap {
         console.log(`=== YEAR UPDATE: Updating year for city index ${cityIndex} ===`);
         
         const headerTitle = document.querySelector('.header h1');
+        const yearOverlay = document.getElementById('yearOverlay');
         console.log('=== YEAR UPDATE: Header element found:', headerTitle);
+        console.log('=== YEAR UPDATE: Year overlay found:', yearOverlay);
         console.log('=== YEAR UPDATE: Current header text:', headerTitle ? headerTitle.textContent : 'No header found');
         
-        if (headerTitle) {
+        if (headerTitle || yearOverlay) {
             if (this.cities && this.cities[cityIndex] && this.cities[cityIndex].flightDate) {
                 const currentFlightDate = new Date(this.cities[cityIndex].flightDate);
                 const currentYear = currentFlightDate.getFullYear();
@@ -391,12 +482,19 @@ class AnimatedFlightMap {
                 console.log(`=== YEAR UPDATE: City: ${this.cities[cityIndex].name}, Date: ${this.cities[cityIndex].flightDate}, Year: ${currentYear} ===`);
                 
                 if (!isNaN(currentYear)) {
-                    headerTitle.textContent = currentYear.toString();
-                    console.log(`=== YEAR UPDATE: Header updated to: ${currentYear} ===`);
-                    console.log('=== YEAR UPDATE: Header text after update:', headerTitle.textContent);
+                    if (headerTitle) {
+                        headerTitle.textContent = currentYear.toString();
+                        console.log(`=== YEAR UPDATE: Header updated to: ${currentYear} ===`);
+                    }
+                    if (yearOverlay) {
+                        yearOverlay.textContent = currentYear.toString();
+                        console.log(`=== YEAR UPDATE: Year overlay updated to: ${currentYear} ===`);
+                    }
+                    console.log('=== YEAR UPDATE: Header text after update:', headerTitle ? headerTitle.textContent : 'N/A');
                 } else {
                     console.log('=== YEAR UPDATE: Invalid year calculated:', currentYear);
-                    headerTitle.textContent = 'INVALID_YEAR';
+                    if (headerTitle) headerTitle.textContent = 'INVALID_YEAR';
+                    if (yearOverlay) yearOverlay.textContent = 'INVALID_YEAR';
                 }
             } else {
                 console.log(`=== YEAR UPDATE: No flight date found for city index ${cityIndex} ===`);
@@ -449,6 +547,9 @@ class AnimatedFlightMap {
                     console.log('journey.date value:', journey.date);
                     console.log('typeof journey.date:', typeof journey.date);
                     
+                    // Only mark as disconnected if this origin doesn't match the previous destination
+                    const isActuallyDisconnected = previousCity && previousCity.locationCode !== fromCode;
+                    
                     const city = {
                         name: this.extractLocationName(fromLocation, fromCode),
                         country: this.extractCountry(fromLocation),
@@ -459,7 +560,7 @@ class AnimatedFlightMap {
                         flightDate: journey.date,
                         flightIndex: this.flightSequence.length,
                         journeyType: 'flight', // Treat all as flights visually
-                        isDisconnected: index > 0 // Mark as disconnected if not the first city
+                        isDisconnected: isActuallyDisconnected // Only mark as disconnected if there's a gap
                     };
                     console.log('=== CREATED ORIGIN CITY ===');
                     console.log('city.flightDate:', city.flightDate);
@@ -1050,39 +1151,8 @@ class AnimatedFlightMap {
 
         this.updateCityList();
 
-        // Check if this is a disconnected city (new journey starting from a different location)
-        if (toCity.isDisconnected) {
-            // Don't draw a line - just show the marker and move on
-            console.log(`Skipping animation for disconnected city: ${toCity.name}`);
-            
-            if (this.cityMarkers[this.currentCityIndex]) {
-                this.cityMarkers[this.currentCityIndex].marker.addTo(this.map);
-            }
-            
-            // Update current trip year in header
-            this.updateCurrentTripYear(this.currentCityIndex);
-            
-            // Mark as current (starting point of new journey)
-            toCity.visited = true;
-            this.updateCityMarkerStyle(this.currentCityIndex, 'current');
-            this.currentCityIndex++;
-            this.updateProgress();
-            this.updateCityList();
-            this.updateStatistics();
-            
-            // Move to next city immediately
-            setTimeout(() => {
-                if (this.checkForPendingPause()) {
-                    return;
-                }
-                if (this.isAnimating) {
-                    this.animateToNextCity();
-                }
-            }, 500);
-            return;
-        }
-
-        // Create flight path for connected cities
+        // Always create flight path for all cities (including disconnected ones)
+        // This ensures continuous visual line throughout the journey
         this.animateFlightPath(fromCity, toCity, () => {
             // Animation complete callback - show and mark destination city when arrived
             if (this.cityMarkers[this.currentCityIndex]) {
@@ -1151,45 +1221,39 @@ class AnimatedFlightMap {
         this.showIncrement(distanceKm, timeHours, co2EmissionKg, costSGD, false);
         
         // Faster animation - reduced timing (min 500ms, max 2000ms)
-        const animationDuration = Math.max(500, Math.min(2000, distance * 100));
+        // Apply speed multiplier
+        const baseAnimationDuration = Math.max(500, Math.min(2000, distance * 100));
+        const animationDuration = baseAnimationDuration / this.speedMultiplier;
 
-        // Check if this is a date line crossing path
-        const isDateLineCrossing = Math.abs(toCity.lng - fromCity.lng) > 180;
+        // Initialize continuous path if it doesn't exist
+        if (!this.continuousPath) {
+            this.continuousPath = L.polyline([], {
+                color: '#4CAF50',
+                weight: 1,
+                opacity: 0.6
+            });
+            
+            if (this.linesVisible) {
+                this.continuousPath.addTo(this.map);
+            }
+            this.allPathCoordinates = [];
+        }
+
+        // Store segment info for date line handling
         const pathLines = [];
+        const isDateLineCrossing = Math.abs(toCity.lng - fromCity.lng) > 180;
 
         if (isDateLineCrossing) {
-            // Create multiple polylines for date line crossing
+            // For date line crossing, we still need separate visual segments
             const segments = this.splitPathAtDateLine(path);
             segments.forEach(segment => {
                 if (segment.length > 0) {
-                    const segmentLine = L.polyline([], {
-                        color: '#4CAF50',
-                        weight: 1,
-                        opacity: 0.8
-                    });
-                    
-                    if (this.linesVisible) {
-                        segmentLine.addTo(this.map);
-                    }
-                    pathLines.push({ line: segmentLine, points: segment });
+                    pathLines.push({ points: segment });
                 }
             });
         } else {
-            // Create single path line for regular routes
-            const pathLine = L.polyline([], {
-                color: '#4CAF50',
-                weight: 1,
-                opacity: 0.8
-            });
-
-            if (this.linesVisible) {
-                pathLine.addTo(this.map);
-            }
-            pathLines.push({ line: pathLine, points: path });
+            pathLines.push({ points: path });
         }
-
-        // Store all path lines for cleanup
-        pathLines.forEach(pathData => this.visitedPaths.push(pathData.line));
         
         // Store references for pause functionality
         this.currentAnimationPath = path;
@@ -1206,11 +1270,12 @@ class AnimatedFlightMap {
         const animate = (currentTime) => {
             if (!this.isAnimating) {
                 // Complete the path if animation was stopped (paused)
-                if (this.currentAnimationPath && this.currentPathLines) {
-                    pathLines.forEach(pathData => {
-                        pathData.line.setLatLngs(pathData.points);
-                        pathData.line.setStyle({ opacity: 0.6 });
-                    });
+                if (this.currentAnimationPath) {
+                    // Add remaining path to continuous line
+                    this.allPathCoordinates.push(...path);
+                    if (this.continuousPath && this.linesVisible) {
+                        this.continuousPath.setLatLngs(this.allPathCoordinates);
+                    }
                 }
                 
                 // Clear current animation references
@@ -1229,12 +1294,70 @@ class AnimatedFlightMap {
             const currentStep = Math.floor(easedProgress * (path.length - 1));
             
             if (progress >= 1) {
-                // Animation complete
+                // Animation complete - add full segment to continuous path
                 this.flightDot.setLatLng(path[path.length - 1]);
-                pathLines.forEach(pathData => {
-                    pathData.line.setLatLngs(pathData.points);
-                    pathData.line.setStyle({ opacity: 0.6 });
-                });
+                
+                // Check if this segment crosses the date line
+                const isDateLineCrossing = Math.abs(toCity.lng - fromCity.lng) > 180;
+                
+                if (isDateLineCrossing) {
+                    // For date line crossings, split the path into separate segments
+                    const segments = this.splitPathAtDateLine(path);
+                    
+                    // Finalize current path segment if it has points
+                    if (this.allPathCoordinates.length > 0 && this.continuousPath) {
+                        this.continuousPath.setLatLngs(this.allPathCoordinates);
+                        this.continuousPathSegments.push(this.continuousPath);
+                    }
+                    
+                    // Create separate polylines for each date line segment
+                    segments.forEach((segment, idx) => {
+                        const segmentPolyline = L.polyline(segment, {
+                            color: '#4CAF50',
+                            weight: 1,
+                            opacity: 0.6
+                        });
+                        
+                        if (this.linesVisible) {
+                            segmentPolyline.addTo(this.map);
+                        }
+                        
+                        this.continuousPathSegments.push(segmentPolyline);
+                    });
+                    
+                    // Start fresh with the last point of the last segment
+                    const lastSegment = segments[segments.length - 1];
+                    this.allPathCoordinates = [lastSegment[lastSegment.length - 1]];
+                    
+                    // Create new continuous path for next segments
+                    this.continuousPath = L.polyline(this.allPathCoordinates, {
+                        color: '#4CAF50',
+                        weight: 1,
+                        opacity: 0.6
+                    });
+                    
+                    if (this.linesVisible) {
+                        this.continuousPath.addTo(this.map);
+                    }
+                } else {
+                    // Normal path - add points to continuous path
+                    // Avoid duplicating the first point if it matches the last point already in the path
+                    let pointsToAdd = path;
+                    if (this.allPathCoordinates.length > 0) {
+                        const lastCoord = this.allPathCoordinates[this.allPathCoordinates.length - 1];
+                        const firstNewCoord = path[0];
+                        // Check if coordinates are the same (within tolerance)
+                        if (Math.abs(lastCoord[0] - firstNewCoord[0]) < 0.0001 && 
+                            Math.abs(lastCoord[1] - firstNewCoord[1]) < 0.0001) {
+                            pointsToAdd = path.slice(1); // Skip first point to avoid duplicate
+                        }
+                    }
+                    
+                    this.allPathCoordinates.push(...pointsToAdd);
+                    if (this.continuousPath && this.linesVisible) {
+                        this.continuousPath.setLatLngs(this.allPathCoordinates);
+                    }
+                }
                 
                 // Clear current animation references
                 this.currentAnimationPath = null;
@@ -1248,8 +1371,17 @@ class AnimatedFlightMap {
             if (currentStep < path.length) {
                 this.flightDot.setLatLng(path[currentStep]);
                 
-                // Update path lines progressively
-                this.updatePathLinesProgress(pathLines, path, currentStep);
+                // Follow the dot if enabled
+                if (this.followDot) {
+                    this.map.panTo(path[currentStep], { animate: false });
+                }
+                
+                // Update continuous path progressively
+                const currentSegment = path.slice(0, currentStep + 1);
+                const updatedPath = [...this.allPathCoordinates, ...currentSegment];
+                if (this.continuousPath && this.linesVisible) {
+                    this.continuousPath.setLatLngs(updatedPath);
+                }
             }
             
             requestAnimationFrame(animate);
@@ -1306,58 +1438,9 @@ class AnimatedFlightMap {
     }
 
     createDateLineCrossingPath(start, end, numPoints = 100) {
-        // For date line crossings, we need to create two separate path segments
-        const paths = [];
-        
-        // Determine which direction to cross (east or west)
-        let startLon = start[1];
-        let endLon = end[1];
-        
-        // Normalize longitudes to -180 to 180 range
-        while (startLon > 180) startLon -= 360;
-        while (startLon < -180) startLon += 360;
-        while (endLon > 180) endLon -= 360;
-        while (endLon < -180) endLon += 360;
-        
-        // Choose the shorter path direction
-        const directDiff = endLon - startLon;
-        const crossingEast = directDiff < -180 || (directDiff > 0 && directDiff < 180);
-        
-        if (crossingEast) {
-            // Going east across date line
-            const midPoint1 = [
-                start[0] + (end[0] - start[0]) * 0.5,
-                180
-            ];
-            const midPoint2 = [
-                start[0] + (end[0] - start[0]) * 0.5,
-                -180
-            ];
-            
-            // First segment: start to +180
-            const segment1 = this.createSingleGreatCirclePath(start, midPoint1, numPoints / 2);
-            // Second segment: -180 to end
-            const segment2 = this.createSingleGreatCirclePath(midPoint2, end, numPoints / 2);
-            
-            return [...segment1, ...segment2];
-        } else {
-            // Going west across date line
-            const midPoint1 = [
-                start[0] + (end[0] - start[0]) * 0.5,
-                -180
-            ];
-            const midPoint2 = [
-                start[0] + (end[0] - start[0]) * 0.5,
-                180
-            ];
-            
-            // First segment: start to -180
-            const segment1 = this.createSingleGreatCirclePath(start, midPoint1, numPoints / 2);
-            // Second segment: +180 to end
-            const segment2 = this.createSingleGreatCirclePath(midPoint2, end, numPoints / 2);
-            
-            return [...segment1, ...segment2];
-        }
+        // For date line crossings, create the path but it will need to be split visually
+        // We return a regular great circle path, but mark it for splitting
+        return this.createSingleGreatCirclePath(start, end, numPoints);
     }
 
     splitPathAtDateLine(path) {
@@ -1471,6 +1554,43 @@ class AnimatedFlightMap {
         }
     }
 
+    cycleFastForward() {
+        // Cycle through speeds: 1x -> 10x -> 20x -> 100x -> 1x
+        if (this.speedMultiplier === 1) {
+            this.speedMultiplier = 10;
+        } else if (this.speedMultiplier === 10) {
+            this.speedMultiplier = 20;
+        } else if (this.speedMultiplier === 20) {
+            this.speedMultiplier = 100;
+        } else {
+            this.speedMultiplier = 1;
+        }
+        
+        this.updateFastForwardButton();
+    }
+
+    updateFastForwardButton() {
+        if (this.fastForwardButton) {
+            if (this.speedMultiplier === 1) {
+                this.fastForwardButton.style.backgroundColor = '#333';
+                this.fastForwardButton.style.opacity = '1';
+                this.fastForwardButton.title = 'Speed: 1x (click to cycle)';
+            } else if (this.speedMultiplier === 10) {
+                this.fastForwardButton.style.backgroundColor = '#FF9800';
+                this.fastForwardButton.style.opacity = '1';
+                this.fastForwardButton.title = 'Speed: 10x (click to cycle)';
+            } else if (this.speedMultiplier === 20) {
+                this.fastForwardButton.style.backgroundColor = '#F44336';
+                this.fastForwardButton.style.opacity = '1';
+                this.fastForwardButton.title = 'Speed: 20x (click to cycle)';
+            } else if (this.speedMultiplier === 100) {
+                this.fastForwardButton.style.backgroundColor = '#9C27B0';
+                this.fastForwardButton.style.opacity = '1';
+                this.fastForwardButton.title = 'Speed: 100x (click to cycle)';
+            }
+        }
+    }
+
     pauseAnimation() {
         // Instead of immediately stopping, set a flag to pause after current flight
         this.pauseAfterCurrentFlight = true;
@@ -1556,6 +1676,18 @@ class AnimatedFlightMap {
         if (this.flightPath && !this.map.hasLayer(this.flightPath)) {
             this.map.addLayer(this.flightPath);
         }
+        
+        // Show all continuous path segments
+        this.continuousPathSegments.forEach(segment => {
+            if (segment && !this.map.hasLayer(segment)) {
+                segment.addTo(this.map);
+            }
+        });
+        
+        // Show current continuous path
+        if (this.continuousPath && !this.map.hasLayer(this.continuousPath)) {
+            this.continuousPath.addTo(this.map);
+        }
     }
 
     hideAllLines() {
@@ -1570,20 +1702,59 @@ class AnimatedFlightMap {
         if (this.flightPath && this.map.hasLayer(this.flightPath)) {
             this.map.removeLayer(this.flightPath);
         }
+        
+        // Hide all continuous path segments
+        this.continuousPathSegments.forEach(segment => {
+            if (segment && this.map.hasLayer(segment)) {
+                this.map.removeLayer(segment);
+            }
+        });
+        
+        // Hide current continuous path
+        if (this.continuousPath && this.map.hasLayer(this.continuousPath)) {
+            this.map.removeLayer(this.continuousPath);
+        }
     }
 
     updateToggleLinesButton() {
         if (this.toggleLinesButton) {
             if (this.linesVisible) {
-                this.toggleLinesButton.innerHTML = '✈️';
+                this.toggleLinesButton.innerHTML = '━';
                 this.toggleLinesButton.title = 'Hide Flight Lines';
                 this.toggleLinesButton.style.backgroundColor = '#333';
                 this.toggleLinesButton.style.opacity = '1';
             } else {
-                this.toggleLinesButton.innerHTML = '✈️';
+                this.toggleLinesButton.innerHTML = '•';
                 this.toggleLinesButton.title = 'Show Flight Lines';
                 this.toggleLinesButton.style.backgroundColor = '#666';
                 this.toggleLinesButton.style.opacity = '0.5';
+            }
+        }
+    }
+
+    toggleFollowDot() {
+        this.followDot = !this.followDot;
+        this.updateFollowDotButton();
+        
+        // If enabling follow mode and dot exists, pan to it
+        if (this.followDot && this.flightDot) {
+            const dotLatLng = this.flightDot.getLatLng();
+            this.map.setView(dotLatLng, this.map.getZoom(), { animate: true, duration: 0.5 });
+        }
+    }
+
+    updateFollowDotButton() {
+        if (this.followDotButton) {
+            if (this.followDot) {
+                this.followDotButton.innerHTML = '🎯';
+                this.followDotButton.title = 'Stop Following Dot';
+                this.followDotButton.style.backgroundColor = '#4CAF50';
+                this.followDotButton.style.opacity = '1';
+            } else {
+                this.followDotButton.innerHTML = '🎯';
+                this.followDotButton.title = 'Follow Flying Dot';
+                this.followDotButton.style.backgroundColor = '#333';
+                this.followDotButton.style.opacity = '1';
             }
         }
     }
@@ -1631,6 +1802,21 @@ class AnimatedFlightMap {
             }
         });
         this.visitedPaths = [];
+        
+        // Clear all continuous path segments
+        this.continuousPathSegments.forEach(segment => {
+            if (segment && this.map.hasLayer(segment)) {
+                this.map.removeLayer(segment);
+            }
+        });
+        this.continuousPathSegments = [];
+        
+        // Clear current continuous path
+        if (this.continuousPath && this.map.hasLayer(this.continuousPath)) {
+            this.map.removeLayer(this.continuousPath);
+        }
+        this.continuousPath = null;
+        this.allPathCoordinates = [];
         
         // Reset counters
         this.currentCityIndex = 0;
@@ -1912,7 +2098,20 @@ class AnimatedFlightMap {
     }
 
     drawVisitedPaths() {
-        // Clear existing paths
+        // Clear existing continuous path segments
+        this.continuousPathSegments.forEach(segment => {
+            if (segment && this.map.hasLayer(segment)) {
+                this.map.removeLayer(segment);
+            }
+        });
+        this.continuousPathSegments = [];
+        
+        // Clear current continuous path
+        if (this.continuousPath && this.map.hasLayer(this.continuousPath)) {
+            this.map.removeLayer(this.continuousPath);
+        }
+        
+        // Clear old visited paths
         this.visitedPaths.forEach(path => {
             if (path && this.map.hasLayer(path)) {
                 this.map.removeLayer(path);
@@ -1920,52 +2119,85 @@ class AnimatedFlightMap {
         });
         this.visitedPaths = [];
         
-        // Draw paths for visited cities
+        // Rebuild the continuous path up to current position
+        this.allPathCoordinates = [];
+        
         for (let i = 0; i < this.currentCityIndex; i++) {
             if (i + 1 < this.cities.length) {
                 const fromCity = this.cities[i];
                 const toCity = this.cities[i + 1];
                 
-                // Use the same great circle path logic as animation
-                const pathPoints = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng]);
-                
                 // Check if this is a date line crossing
                 const isDateLineCrossing = Math.abs(toCity.lng - fromCity.lng) > 180;
                 
+                // Use the same great circle path logic as animation
+                const pathPoints = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng]);
+                
                 if (isDateLineCrossing) {
-                    // Create multiple polylines for date line crossing
+                    // Split the path into separate segments for date line crossing
                     const segments = this.splitPathAtDateLine(pathPoints);
-                    segments.forEach(segment => {
-                        if (segment.length > 0) {
-                            const segmentPath = L.polyline(segment, {
-                                color: '#4CAF50',
-                                weight: 2,
-                                opacity: 0.7
-                            });
-                            
-                            // Only add to map if lines are visible
-                            if (this.linesVisible) {
-                                segmentPath.addTo(this.map);
-                            }
-                            
-                            this.visitedPaths.push(segmentPath);
-                        }
-                    });
-                } else {
-                    // Create single path for regular routes
-                    const path = L.polyline(pathPoints, {
-                        color: '#4CAF50',
-                        weight: 2,
-                        opacity: 0.7
-                    });
                     
-                    // Only add to map if lines are visible
-                    if (this.linesVisible) {
-                        path.addTo(this.map);
+                    // Finalize current segment if it has points
+                    if (this.allPathCoordinates.length > 0) {
+                        const segment = L.polyline(this.allPathCoordinates, {
+                            color: '#4CAF50',
+                            weight: 1,
+                            opacity: 0.6
+                        });
+                        
+                        if (this.linesVisible) {
+                            segment.addTo(this.map);
+                        }
+                        this.continuousPathSegments.push(segment);
                     }
                     
-                    this.visitedPaths.push(path);
+                    // Create separate polylines for each date line segment
+                    segments.forEach((seg, idx) => {
+                        const segmentPolyline = L.polyline(seg, {
+                            color: '#4CAF50',
+                            weight: 1,
+                            opacity: 0.6
+                        });
+                        
+                        if (this.linesVisible) {
+                            segmentPolyline.addTo(this.map);
+                        }
+                        
+                        this.continuousPathSegments.push(segmentPolyline);
+                    });
+                    
+                    // Start fresh with last point of last segment
+                    const lastSegment = segments[segments.length - 1];
+                    this.allPathCoordinates = [lastSegment[lastSegment.length - 1]];
+                } else {
+                    // Avoid duplicating the first point if it matches the last point already in the path
+                    let pointsToAdd = pathPoints;
+                    if (this.allPathCoordinates.length > 0) {
+                        const lastCoord = this.allPathCoordinates[this.allPathCoordinates.length - 1];
+                        const firstNewCoord = pathPoints[0];
+                        // Check if coordinates are the same (within tolerance)
+                        if (Math.abs(lastCoord[0] - firstNewCoord[0]) < 0.0001 && 
+                            Math.abs(lastCoord[1] - firstNewCoord[1]) < 0.0001) {
+                            pointsToAdd = pathPoints.slice(1); // Skip first point to avoid duplicate
+                        }
+                    }
+                    
+                    this.allPathCoordinates.push(...pointsToAdd);
                 }
+            }
+        }
+        
+        // Create the final continuous path with remaining accumulated coordinates
+        if (this.allPathCoordinates.length > 0) {
+            this.continuousPath = L.polyline(this.allPathCoordinates, {
+                color: '#4CAF50',
+                weight: 1,
+                opacity: 0.6
+            });
+            
+            // Only add to map if lines are visible
+            if (this.linesVisible) {
+                this.continuousPath.addTo(this.map);
             }
         }
         
@@ -2027,7 +2259,16 @@ class AnimatedFlightMap {
 
     updateCityList() {
         const cityListContainer = document.getElementById('cityList');
-        cityListContainer.innerHTML = '';
+        const cityListMobileContainer = document.getElementById('cityListMobile');
+        
+        // Wait for DOM to be ready if containers don't exist yet
+        if (!cityListContainer && !cityListMobileContainer) {
+            setTimeout(() => this.updateCityList(), 100);
+            return;
+        }
+        
+        if (cityListContainer) cityListContainer.innerHTML = '';
+        if (cityListMobileContainer) cityListMobileContainer.innerHTML = '';
 
         // Debug: Check the order of cities before sorting
         console.log('=== CITY ORDER DEBUG ===');
@@ -2089,12 +2330,9 @@ class AnimatedFlightMap {
         
         sortedUniqueCities.forEach(([cityKey, cityData], displayIndex) => {
                 const city = cityData.city;
-                const cityItem = document.createElement('div');
-                cityItem.className = 'city-item';
-                cityItem.setAttribute('data-city-key', cityKey);
-                cityItem.setAttribute('data-city-index', cityData.firstIndex);
                 
-                cityItem.innerHTML = `
+                // Create city item HTML
+                const cityItemHTML = `
                     <div class="city-status">${displayIndex + 1}</div>
                     <div class="city-info">
                         <div class="city-name">${city.name}</div>
@@ -2102,40 +2340,62 @@ class AnimatedFlightMap {
                     </div>
                 `;
 
-                cityListContainer.appendChild(cityItem);
-                cityElements.set(cityKey, cityItem);
+                // Add to desktop list
+                if (cityListContainer) {
+                    const cityItem = document.createElement('div');
+                    cityItem.className = 'city-item';
+                    cityItem.setAttribute('data-city-key', cityKey);
+                    cityItem.setAttribute('data-city-index', cityData.firstIndex);
+                    cityItem.innerHTML = cityItemHTML;
+                    cityListContainer.appendChild(cityItem);
+                }
+                
+                // Add to mobile list
+                if (cityListMobileContainer) {
+                    const cityItemMobile = document.createElement('div');
+                    cityItemMobile.className = 'city-item';
+                    cityItemMobile.setAttribute('data-city-key', cityKey);
+                    cityItemMobile.setAttribute('data-city-index', cityData.firstIndex);
+                    cityItemMobile.innerHTML = cityItemHTML;
+                    cityListMobileContainer.appendChild(cityItemMobile);
+                }
             });
 
         // Update status for all unique cities based on current position
         uniqueCities.forEach((cityData, cityKey) => {
-            const cityElement = cityElements.get(cityKey);
-            if (!cityElement) return;
+            // Get both desktop and mobile elements
+            const desktopElement = cityListContainer ? cityListContainer.querySelector(`[data-city-key="${cityKey}"]`) : null;
+            const mobileElement = cityListMobileContainer ? cityListMobileContainer.querySelector(`[data-city-key="${cityKey}"]`) : null;
             
-            const statusDiv = cityElement.querySelector('.city-status');
-            
-            // Reset classes
-            cityElement.className = 'city-item';
-            statusDiv.className = 'city-status';
-            
-            // Check if any instance of this city has been visited
-            const isVisited = this.cities.some((city, index) => 
-                `${city.name}-${city.country}` === cityKey && city.visited
-            );
-            
-            // Check if this city is currently active
-            const currentCity = this.cities[this.currentCityIndex];
-            const isCurrent = currentCity && `${currentCity.name}-${currentCity.country}` === cityKey;
-            
-            // Apply appropriate status
-            if (isCurrent) {
-                cityElement.classList.add('current');
-                statusDiv.classList.add('current');
-                // Update the data-city-index to current for scrolling
-                cityElement.setAttribute('data-city-index', this.currentCityIndex);
-            } else if (isVisited) {
-                cityElement.classList.add('visited');
-                statusDiv.classList.add('visited');
-            }
+            [desktopElement, mobileElement].forEach(cityElement => {
+                if (!cityElement) return;
+                
+                const statusDiv = cityElement.querySelector('.city-status');
+                
+                // Reset classes
+                cityElement.className = 'city-item';
+                statusDiv.className = 'city-status';
+                
+                // Check if any instance of this city has been visited
+                const isVisited = this.cities.some((city, index) => 
+                    `${city.name}-${city.country}` === cityKey && city.visited
+                );
+                
+                // Check if this city is currently active
+                const currentCity = this.cities[this.currentCityIndex];
+                const isCurrent = currentCity && `${currentCity.name}-${currentCity.country}` === cityKey;
+                
+                // Apply appropriate status
+                if (isCurrent) {
+                    cityElement.classList.add('current');
+                    statusDiv.classList.add('current');
+                    // Update the data-city-index to current for scrolling
+                    cityElement.setAttribute('data-city-index', this.currentCityIndex);
+                } else if (isVisited) {
+                    cityElement.classList.add('visited');
+                    statusDiv.classList.add('visited');
+                }
+            });
         });
         
         // Auto-scroll to current city
@@ -2144,26 +2404,40 @@ class AnimatedFlightMap {
     
     scrollToCurrentCity() {
         const cityListContainer = document.getElementById('cityList');
-        const currentCityElement = cityListContainer.querySelector(`[data-city-index="${this.currentCityIndex}"]`);
+        const cityListMobileContainer = document.getElementById('cityListMobile');
         
-        if (currentCityElement && cityListContainer) {
+        // Scroll desktop list
+        if (cityListContainer) {
+            this.scrollCityListContainer(cityListContainer);
+        }
+        
+        // Scroll mobile list
+        if (cityListMobileContainer) {
+            this.scrollCityListContainer(cityListMobileContainer);
+        }
+    }
+    
+    scrollCityListContainer(container) {
+        const currentCityElement = container.querySelector(`[data-city-index="${this.currentCityIndex}"]`);
+        
+        if (currentCityElement && container) {
             // Get the position of the current city element
-            const containerRect = cityListContainer.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
             const elementRect = currentCityElement.getBoundingClientRect();
             
             // Calculate if element is outside visible area (vertically)
-            const elementTop = elementRect.top - containerRect.top + cityListContainer.scrollTop;
+            const elementTop = elementRect.top - containerRect.top + container.scrollTop;
             const elementBottom = elementTop + elementRect.height;
-            const visibleTop = cityListContainer.scrollTop;
-            const visibleBottom = visibleTop + cityListContainer.clientHeight;
+            const visibleTop = container.scrollTop;
+            const visibleBottom = visibleTop + container.clientHeight;
             
             // Only scroll vertically if element is not fully visible
             if (elementTop < visibleTop || elementBottom > visibleBottom) {
                 // Calculate center position
-                const scrollTop = elementTop - (cityListContainer.clientHeight / 2) + (elementRect.height / 2);
+                const scrollTop = elementTop - (container.clientHeight / 2) + (elementRect.height / 2);
                 
                 // Smooth scroll only vertically
-                cityListContainer.scrollTo({
+                container.scrollTo({
                     top: Math.max(0, scrollTop),
                     behavior: 'smooth'
                 });
@@ -2381,10 +2655,12 @@ class AnimatedFlightMap {
 
     // Update statistics display
     updateStatistics() {
-        const totalJourneys = Math.max(0, this.cities.length - 1); // Number of journeys is cities - 1
+        // Calculate journeys and cities up to current index (not total)
+        const currentJourneys = Math.max(0, this.currentCityIndex); // Number of journeys completed
         
-        // Count unique cities by name (not airport code)
-        const uniqueCityNames = new Set(this.cities.map(city => city.name));
+        // Count unique cities visited up to current index
+        const visitedCities = this.cities.slice(0, this.currentCityIndex + 1);
+        const uniqueCityNames = new Set(visitedCities.map(city => city.name));
         const citiesVisited = uniqueCityNames.size;
         
         const currentJourneyIndex = this.currentCityIndex;
@@ -2399,7 +2675,7 @@ class AnimatedFlightMap {
         const totalCostSGDEl = document.getElementById('totalCostSGD');
         const currentFlightEl = document.getElementById('currentFlight');
         
-        if (totalFlightsEl) this.animateNumber(totalFlightsEl, totalJourneys, 600);
+        if (totalFlightsEl) this.animateNumber(totalFlightsEl, currentJourneys, 600);
         if (citiesVisitedEl) this.animateNumber(citiesVisitedEl, citiesVisited, 600);
         if (totalDistanceEl) {
             if (this.totalDistance > 0) {
@@ -2409,11 +2685,11 @@ class AnimatedFlightMap {
                 
                 let metaphor = '';
                 if (earthTimes >= 1) {
-                    metaphor = `<span style="font-size: 0.65em; font-weight: 700;">${earthTimes.toFixed(1)}x Around Earth</span>`;
+                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${earthTimes.toFixed(1)}x Around Earth</span>`;
                 } else if (earthTimes >= 0.5) {
-                    metaphor = `<span style="font-size: 0.65em; font-weight: 700;">${(earthTimes * 100).toFixed(0)}% Around Earth</span>`;
+                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${(earthTimes * 100).toFixed(0)}% Around Earth</span>`;
                 } else if (earthTimes >= 0.1) {
-                    metaphor = `<span style="font-size: 0.65em; font-weight: 700;">${(earthTimes * 100).toFixed(0)}% Around Earth</span>`;
+                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${(earthTimes * 100).toFixed(0)}% Around Earth</span>`;
                 }
                 
                 this.animateNumber(totalDistanceEl, distanceKm, 800, (val) => `${Math.round(val).toLocaleString()} km ${metaphor}`);
@@ -2430,9 +2706,9 @@ class AnimatedFlightMap {
                 
                 let timeMetaphor = '';
                 if (totalWeeks >= 1) {
-                    timeMetaphor = `<span style="font-size: 0.65em; font-weight: 900;">${totalWeeks.toFixed(1)} Weeks</span>`;
+                    timeMetaphor = `<br><span style="font-size: 0.65em; font-weight: 900; color: #4CAF50;">${totalWeeks.toFixed(1)} Weeks</span>`;
                 } else if (totalDays >= 1) {
-                    timeMetaphor = `<span style="font-size: 0.65em; font-weight: 900;">${totalDays.toFixed(1)} Days</span>`;
+                    timeMetaphor = `<br><span style="font-size: 0.65em; font-weight: 900; color: #4CAF50;">${totalDays.toFixed(1)} Days</span>`;
                 }
                 
                 this.animateNumber(totalTimeEl, totalMinutes, 700, (val) => {
