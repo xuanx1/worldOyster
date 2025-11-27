@@ -964,7 +964,7 @@ class AnimatedFlightMap {
             'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
             'Penang': 'Malaysia', 'Kota Kinabalu': 'Malaysia',
             'Moscow': 'Russia', 'St. Petersburg': 'Russia', 'Tallinn': 'Estonia',
-            'Da Nang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam',
+            'Da Nang': 'Vietnam', 'Danang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam',
             'Vientiane': 'Laos', 'Luang Prabang': 'Laos',
             'Bangkok': 'Thailand', 'Phuket': 'Thailand',
             'Yogyakarta': 'Indonesia', 'Surakarta': 'Indonesia', 'Jakarta': 'Indonesia', 'Bandung': 'Indonesia',

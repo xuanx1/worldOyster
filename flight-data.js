@@ -319,6 +319,7 @@ class FlightDataManager {
             'St. Petersburg': [59.9311, 30.3609],
             'Tallinn': [59.4370, 24.7536],
             'Da Nang': [16.0544, 108.2022],
+            'Danang': [16.0544, 108.2022],
             'Hoi An': [15.8801, 108.3380],
             'Bangkok': [13.7563, 100.5018],
             'Kuala Lumpur': [3.1390, 101.6869],
