@@ -699,7 +699,8 @@ class AnimatedFlightMap {
         if (!this.coordinateManager) {
             this.coordinateManager = new FlightDataManager();
         }
-        return this.coordinateManager.airportCoords.get(airportCode);
+        // Use the new method that maps airports to cities
+        return this.coordinateManager.getAirportCoordinates(airportCode);
     }
     
     extractLocationName(locationString, locationCode) {
@@ -1356,7 +1357,7 @@ class AnimatedFlightMap {
 
         // Use requestAnimationFrame for smoother animation
         const startTime = performance.now();
-        
+
         const animate = (currentTime) => {
             if (!this.isAnimating) {
                 // Complete the path if animation was stopped (paused)
@@ -1367,11 +1368,11 @@ class AnimatedFlightMap {
                         this.continuousPath.setLatLngs(this.allPathCoordinates);
                     }
                 }
-                
+
                 // Clear current animation references
                 this.currentAnimationPath = null;
                 this.currentPathLines = null;
-                
+
                 callback();
                 return;
             }
@@ -1379,27 +1380,27 @@ class AnimatedFlightMap {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / animationDuration, 1);
             const easedProgress = easeInOut(progress);
-            
+
             // Calculate current step based on eased progress
             const currentStep = Math.floor(easedProgress * (path.length - 1));
-            
+
             if (progress >= 1) {
                 // Animation complete - add full segment to continuous path
                 this.flightDot.setLatLng(path[path.length - 1]);
-                
+
                 // Check if this segment crosses the date line
                 const isDateLineCrossing = Math.abs(toCity.lng - fromCity.lng) > 180;
-                
+
                 if (isDateLineCrossing) {
                     // For date line crossings, split the path into separate segments
                     const segments = this.splitPathAtDateLine(path);
-                    
+
                     // Finalize current path segment if it has points
                     if (this.allPathCoordinates.length > 0 && this.continuousPath) {
                         this.continuousPath.setLatLngs(this.allPathCoordinates);
                         this.continuousPathSegments.push(this.continuousPath);
                     }
-                    
+
                     // Create separate polylines for each date line segment
                     segments.forEach((segment, idx) => {
                         const segmentPolyline = L.polyline(segment, {
@@ -1407,25 +1408,25 @@ class AnimatedFlightMap {
                             weight: 1,
                             opacity: 0.6
                         });
-                        
+
                         if (this.linesVisible) {
                             segmentPolyline.addTo(this.map);
                         }
-                        
+
                         this.continuousPathSegments.push(segmentPolyline);
                     });
-                    
+
                     // Start fresh with the last point of the last segment
                     const lastSegment = segments[segments.length - 1];
                     this.allPathCoordinates = [lastSegment[lastSegment.length - 1]];
-                    
+
                     // Create new continuous path for next segments
                     this.continuousPath = L.polyline(this.allPathCoordinates, {
                         color: '#4CAF50',
                         weight: 1,
                         opacity: 0.6
                     });
-                    
+
                     if (this.linesVisible) {
                         this.continuousPath.addTo(this.map);
                     }
@@ -1442,17 +1443,17 @@ class AnimatedFlightMap {
                             pointsToAdd = path.slice(1); // Skip first point to avoid duplicate
                         }
                     }
-                    
+
                     this.allPathCoordinates.push(...pointsToAdd);
                     if (this.continuousPath && this.linesVisible) {
                         this.continuousPath.setLatLngs(this.allPathCoordinates);
                     }
                 }
-                
+
                 // Clear current animation references
                 this.currentAnimationPath = null;
                 this.currentPathLines = null;
-                
+
                 callback();
                 return;
             }
@@ -1460,12 +1461,12 @@ class AnimatedFlightMap {
             // Update dot position with eased timing
             if (currentStep < path.length) {
                 this.flightDot.setLatLng(path[currentStep]);
-                
+
                 // Follow the dot if enabled
                 if (this.followDot) {
                     this.map.panTo(path[currentStep], { animate: false });
                 }
-                
+
                 // Update continuous path progressively
                 const currentSegment = path.slice(0, currentStep + 1);
                 const updatedPath = [...this.allPathCoordinates, ...currentSegment];
@@ -1473,11 +1474,14 @@ class AnimatedFlightMap {
                     this.continuousPath.setLatLngs(updatedPath);
                 }
             }
-            
-            requestAnimationFrame(animate);
+
+            // Track animation frame for cleanup
+            const frameId = requestAnimationFrame(animate);
+            if (this._activeAnimationFrames) this._activeAnimationFrames.push(frameId);
         };
 
-        requestAnimationFrame(animate);
+        const frameId = requestAnimationFrame(animate);
+        if (this._activeAnimationFrames) this._activeAnimationFrames.push(frameId);
     }
 
     createGreatCirclePath(start, end, numPoints = 100) {
@@ -2401,24 +2405,32 @@ class AnimatedFlightMap {
         const cityElements = new Map();
         let cityDisplayOrder = 1; // Independent numbering for displayed cities
 
+        // Helper to normalize city names for display (treat 'Danang' and 'Da Nang' as the same)
+        function normalizeCityDisplayName(name) {
+            if (!name) return name;
+            if (name.trim().toLowerCase() === 'danang' || name.trim() === 'Da Nang') return 'Da Nang';
+            return name;
+        }
+
         // First pass: identify unique cities with their earliest travel date
         sortedCities.forEach((city, index) => {
             // Normalize city name and create a unique key
-            const normalizedName = city.name.trim();
+            const normalizedName = normalizeCityDisplayName(city.name.trim());
             const normalizedCountry = city.country ? city.country.trim() : '';
             const cityKey = `${normalizedName}-${normalizedCountry}`;
             
             // If this city hasn't been seen before, record it
             if (!uniqueCities.has(cityKey)) {
                 const originalIndex = this.cities.findIndex(c => 
-                    c.name.trim() === normalizedName && 
+                    normalizeCityDisplayName(c.name.trim()) === normalizedName && 
                     (c.country ? c.country.trim() : '') === normalizedCountry && 
                     c.flightDate === city.flightDate
                 );
-                
+                // Force display name to 'Da Nang'
+                const cityForDisplay = { ...city, name: normalizedName };
                 uniqueCities.set(cityKey, { 
                     firstIndex: originalIndex,
-                    city: city,
+                    city: cityForDisplay,
                     displayOrder: cityDisplayOrder,
                     travelDate: city.flightDate
                 });

@@ -13,8 +13,10 @@ class FlightDataManager {
         };
         this.airportCoords = new Map();
         this.cityCoords = new Map();
+        this.airportToCityMap = new Map(); // Map airports to their main city
         this.initializeAirportCoordinates();
         this.initializeCityCoordinates();
+        this.initializeAirportToCityMapping();
     }
 
     // Initialize airport coordinates for mapping
@@ -312,6 +314,14 @@ class FlightDataManager {
             'Peking': [39.9042, 116.4074],
             'Tianjin': [39.3434, 117.3616],
             'Shanghai': [31.2304, 121.4737],
+            'Guangzhou': [23.1291, 113.2644],
+            'Shenzhen': [22.5431, 114.0579],
+            'Chengdu': [30.5728, 104.0668],
+            'Chongqing': [29.4316, 106.9123],
+            'Hangzhou': [30.2741, 120.1551],
+            'Nanjing': [32.0603, 118.7969],
+            'Kunming': [25.0389, 102.7183],
+            'Haikou': [20.0444, 110.1999],
             'Hong Kong': [22.3193, 114.1694],
             'Taipei': [25.0330, 121.5654],
             'Singapore': [1.3521, 103.8198],
@@ -322,7 +332,6 @@ class FlightDataManager {
             'St. Petersburg': [59.9311, 30.3609],
             'Tallinn': [59.4370, 24.7536],
             'Da Nang': [16.0544, 108.2022],
-            'Danang': [16.0544, 108.2022],
             'Hoi An': [15.8801, 108.3380],
             'Bangkok': [13.7563, 100.5018],
             'Kuala Lumpur': [3.1390, 101.6869],
@@ -350,6 +359,7 @@ class FlightDataManager {
             'Surakarta': [-7.5666, 110.8166],
             'Penang': [5.4141, 100.3288],
             'Phuket': [7.8804, 98.3923],
+            'Kota Kinabalu': [5.9804, 116.0735],
             
             // Middle East
             'Dubai': [25.2048, 55.2708],
@@ -433,6 +443,229 @@ class FlightDataManager {
         for (const [city, coords] of Object.entries(cities)) {
             this.cityCoords.set(city, coords);
         }
+    }
+
+    // Map airports to their main city for consistent visualization
+    initializeAirportToCityMapping() {
+        const airportToCity = {
+            // New York area airports -> New York
+            'JFK': 'New York',
+            'LGA': 'New York',
+            'EWR': 'New York',
+            
+            // Los Angeles area airports -> Los Angeles  
+            'LAX': 'Los Angeles',
+            'BUR': 'Los Angeles',
+            
+            // Miami area airports -> Miami
+            'MIA': 'Miami',
+            'FLL': 'Miami',
+            
+            // Paris area airports -> Paris
+            'CDG': 'Paris',
+            'ORY': 'Paris',
+            'BVA': 'Paris',
+            
+            // London area airports -> London
+            'LHR': 'London',
+            'LGW': 'London',
+            'STN': 'London',
+            'LTN': 'London',
+            
+            // Milan area airports -> Milan
+            'MXP': 'Milan',
+            'LIN': 'Milan',
+            'BGY': 'Milan',
+            
+            // Tokyo area airports -> Tokyo
+            'HND': 'Tokyo',
+            'NRT': 'Tokyo',
+            
+            // Osaka area airports -> Osaka
+            'KIX': 'Osaka',
+            'ITM': 'Osaka',
+            
+            // Seoul area airports -> Seoul
+            'ICN': 'Seoul',
+            'GMP': 'Seoul',
+            
+            // Beijing area airports -> Beijing
+            'PEK': 'Beijing',
+            'PKX': 'Beijing',
+            
+            // Shanghai area airports -> Shanghai
+            'PVG': 'Shanghai',
+            'SHA': 'Shanghai',
+            
+            // Istanbul area airports -> Istanbul
+            'IST': 'Istanbul',
+            'SAW': 'Istanbul',
+            
+            // Moscow area airports -> Moscow
+            'SVO': 'Moscow',
+            'VKO': 'Moscow',
+            'DME': 'Moscow',
+            
+            // Chicago area airports -> Chicago
+            'ORD': 'Chicago',
+            'MDW': 'Chicago',
+            
+            // Bangkok area airports -> Bangkok
+            'BKK': 'Bangkok',
+            'DMK': 'Bangkok',
+            
+            // Mexico City area airports -> Mexico City
+            'MEX': 'Mexico City',
+            'NLU': 'Mexico City',
+            
+            // Berlin area airports -> Berlin
+            'BER': 'Berlin',
+            'TXL': 'Berlin',
+            'SXF': 'Berlin',
+            
+            // Oslo area airports -> Oslo
+            'OSL': 'Oslo',
+            'TRF': 'Oslo',
+            
+            // Rome area airports -> Rome
+            'FCO': 'Rome',
+            'CIA': 'Rome',
+            
+            // Helsinki area airports -> Helsinki
+            'HEL': 'Helsinki',
+            
+            // Bucharest area airports -> Bucharest
+            'OTP': 'Bucharest',
+            
+            // Sapporo area airports -> Sapporo
+            'CTS': 'Sapporo',
+            
+            // Lanzhou area airports -> Lanzhou
+            'LHW': 'Lanzhou',
+            
+            // Guangzhou area airports -> Guangzhou
+            'CAN': 'Guangzhou',
+            
+            // Wuhan area airports -> Wuhan
+            'WUH': 'Wuhan',
+            
+            // Haikou area airports -> Haikou
+            'HAK': 'Haikou',
+            
+            // Jakarta area airports -> Jakarta
+            'CGK': 'Jakarta',
+            
+            // Yogyakarta area airports -> Yogyakarta
+            'YIA': 'Yogyakarta',
+            
+            // Kota Kinabalu area airports -> Kota Kinabalu
+            'BKI': 'Kota Kinabalu',
+            
+            // Beirut area airports -> Beirut
+            'BEY': 'Beirut',
+            
+            // Cairo area airports -> Cairo
+            'CAI': 'Cairo',
+            
+            // Antalya area airports -> Antalya
+            'AYT': 'Antalya',
+            
+            // Ankara area airports -> Ankara
+            'ESB': 'Ankara',
+            
+            // Podgorica area airports -> Podgorica
+            'TGD': 'Podgorica',
+            
+            // Sofia area airports -> Sofia
+            'SOF': 'Sofia',
+            
+            // Sarajevo area airports -> Sarajevo
+            'SJJ': 'Sarajevo',
+            
+            // Thessaloniki area airports -> Thessaloniki
+            'SKG': 'Thessaloniki',
+            
+            // Tunis area airports -> Tunis
+            'TUN': 'Tunis',
+            
+            // Palermo area airports -> Palermo
+            'PMO': 'Palermo',
+            
+            // Algiers area airports -> Algiers
+            'ALG': 'Algiers',
+            
+            // Marrakesh area airports -> Marrakesh
+            'RAK': 'Marrakesh',
+            
+            // Lisbon area airports -> Lisbon
+            'LIS': 'Lisbon',
+            
+            // Porto area airports -> Porto
+            'OPO': 'Porto',
+            
+            // Madrid area airports -> Madrid
+            'MAD': 'Madrid',
+            
+            // Zurich area airports -> Zurich
+            'ZRH': 'Zurich',
+            
+            // Prague area airports -> Prague
+            'PRG': 'Prague',
+            
+            // Budapest area airports -> Budapest
+            'BUD': 'Budapest',
+            
+            // Lviv area airports -> Lviv
+            'LWO': 'Lviv',
+            
+            // Kyiv area airports -> Kyiv
+            'KBP': 'Kyiv',
+            
+            // Warsaw area airports -> Warsaw
+            'WAW': 'Warsaw',
+            
+            // Stockholm area airports -> Stockholm
+            'ARN': 'Stockholm',
+            
+            // Hamburg area airports -> Hamburg
+            'HAM': 'Hamburg',
+            
+            // Brussels area airports -> Brussels
+            'BRU': 'Brussels',
+            
+            // Amsterdam area airports -> Amsterdam
+            'AMS': 'Amsterdam',
+            
+            // Seattle area airports -> Seattle
+            'SEA': 'Seattle',
+            
+            // La Paz area airports -> La Paz
+            'LPB': 'La Paz',
+            
+            // Lima area airports -> Lima
+            'LIM': 'Lima'
+        };
+
+        for (const [airport, city] of Object.entries(airportToCity)) {
+            this.airportToCityMap.set(airport, city);
+        }
+    }
+
+    // Get coordinates for an airport, mapping to city coordinates when appropriate
+    getAirportCoordinates(airportCode) {
+        if (!airportCode) return null;
+        
+        // Check if this airport should be mapped to a city
+        const mappedCity = this.airportToCityMap.get(airportCode);
+        if (mappedCity) {
+            const cityCoords = this.cityCoords.get(mappedCity);
+            if (cityCoords) {
+                return cityCoords;
+            }
+        }
+        
+        // Otherwise return the airport's own coordinates
+        return this.airportCoords.get(airportCode);
     }
 
     // Parse CSV data
@@ -664,8 +897,8 @@ class FlightDataManager {
     calculateDistance(fromCode, toCode) {
         if (!fromCode || !toCode) return null;
         
-        const fromCoords = this.airportCoords.get(fromCode);
-        const toCoords = this.airportCoords.get(toCode);
+        const fromCoords = this.getAirportCoordinates(fromCode);
+        const toCoords = this.getAirportCoordinates(toCode);
         
         if (!fromCoords || !toCoords) return null;
         
@@ -732,6 +965,16 @@ class FlightDataManager {
                     console.log(`Converted date from ${journey.date} to ${convertedDate}`);
                 }
             }
+
+            // Normalize city names: treat 'Danang' as 'Da Nang'
+            function normalizeCityName(name) {
+                if (!name) return name;
+                if (name.trim().toLowerCase() === 'danang') return 'Da Nang';
+                return name;
+            }
+
+            const normalizedOrigin = normalizeCityName(journey.origin);
+            const normalizedDestination = normalizeCityName(journey.destination);
             
             // Extract actual cost from CSV (cost_sgd field)
             const actualCostSGD = journey['cost_sgd'] || journey.cost_sgd;
@@ -739,8 +982,8 @@ class FlightDataManager {
             
             const processedJourney = {
                 date: convertedDate,  // Use converted date
-                origin: journey.origin,
-                destination: journey.destination,
+                origin: normalizedOrigin,
+                destination: normalizedDestination,
                 mode: journey.mode,
                 actualCostSGD: hasActualCost ? parseFloat(actualCostSGD) : null,
                 costSGD: hasActualCost ? parseFloat(actualCostSGD) : this.estimateLandJourneyCost(journey),
