@@ -692,6 +692,26 @@ class FlightDataManager {
         return degrees * (Math.PI / 180);
     }
 
+    /**
+     * Format duration from hours to a readable string
+     * @param {number} hours - Duration in hours
+     * @returns {string} Formatted duration (e.g., "3h 45m")
+     */
+    formatDuration(hours) {
+        if (!hours || hours <= 0) return '0m';
+        
+        const wholeHours = Math.floor(hours);
+        const minutes = Math.round((hours - wholeHours) * 60);
+        
+        if (wholeHours === 0) {
+            return `${minutes}m`;
+        } else if (minutes === 0) {
+            return `${wholeHours}h`;
+        } else {
+            return `${wholeHours}h ${minutes}m`;
+        }
+    }
+
     // Process and standardize land journey data
     processLandJourneyData(journey) {
         try {
@@ -741,6 +761,10 @@ class FlightDataManager {
                 processedJourney.distance = this.haversineDistance(originCoords, destinationCoords);
                 processedJourney.originCoords = originCoords;
                 processedJourney.destinationCoords = destinationCoords;
+                
+                // Calculate duration for land journey
+                processedJourney.duration = this.calculateLandTripDuration(processedJourney.distance, processedJourney.mode);
+                processedJourney.durationFormatted = this.formatDuration(processedJourney.duration);
             } else {
                 console.warn(`Missing coordinates for land journey: ${processedJourney.origin} -> ${processedJourney.destination}`);
             }
@@ -788,6 +812,103 @@ class FlightDataManager {
         baseCost *= (0.8 + Math.random() * 0.4);
         
         return Math.round(baseCost);
+    }
+
+    /**
+     * Calculate duration of land trips based on distance and mode of transport
+     * @param {number} distance - Distance in kilometers
+     * @param {string} mode - Mode of transport (train, bus, car, ferry, etc.)
+     * @returns {number} Duration in hours
+     */
+    calculateLandTripDuration(distance, mode = '') {
+        if (!distance || distance <= 0) {
+            console.warn('Invalid distance provided for duration calculation');
+            return 0;
+        }
+        
+        const modeStr = mode.toLowerCase();
+        let averageSpeed; // km/h
+        let minimumDuration; // hours
+        
+        // Determine average speed and minimum duration based on mode of transport
+        if (modeStr.includes('train') || modeStr.includes('rail')) {
+            // For short distances (<50km), trains spend time at stations, boarding, etc.
+            if (distance < 50) {
+                averageSpeed = 60; // Slower average for short regional trains with stops
+                minimumDuration = 0.5; // At least 30 minutes (boarding, waiting, etc.)
+            } else if (distance < 200) {
+                averageSpeed = 80; // Medium speed for regional trains
+                minimumDuration = 0.75; // At least 45 minutes
+            } else {
+                averageSpeed = 100; // High-speed/intercity trains
+                minimumDuration = 1; // At least 1 hour
+            }
+        } else if (modeStr.includes('bus')) {
+            // Buses are slower in cities and with traffic
+            if (distance < 50) {
+                averageSpeed = 40; // City/regional buses with stops and traffic
+                minimumDuration = 0.5; // At least 30 minutes
+            } else {
+                averageSpeed = 70; // Long-distance buses on highways
+                minimumDuration = 0.75; // At least 45 minutes
+            }
+        } else if (modeStr.includes('car') || modeStr.includes('taxi')) {
+            // Cars vary greatly based on distance
+            if (distance < 50) {
+                averageSpeed = 50; // City driving with traffic
+                minimumDuration = 0.33; // At least 20 minutes
+            } else {
+                averageSpeed = 90; // Highway driving
+                minimumDuration = 0.5; // At least 30 minutes
+            }
+        } else if (modeStr.includes('ferry') || modeStr.includes('boat')) {
+            // Ferries include boarding/departure time
+            averageSpeed = 40;
+            minimumDuration = 0.5; // At least 30 minutes (boarding, etc.)
+        } else {
+            // Default for unknown mode
+            averageSpeed = 60;
+            minimumDuration = 0.33; // At least 20 minutes
+        }
+        
+        // Calculate duration in hours
+        let durationHours = distance / averageSpeed;
+        
+        // Apply minimum duration (accounts for boarding, waiting, city traffic, etc.)
+        durationHours = Math.max(durationHours, minimumDuration);
+        
+        // Round to 2 decimal places
+        return Math.round(durationHours * 100) / 100;
+    }
+
+    /**
+     * Calculate duration for a land journey object
+     * @param {Object} journey - Land journey object with origin, destination, and mode
+     * @returns {number} Duration in hours, or null if coordinates not found
+     */
+    calculateLandJourneyDuration(journey) {
+        if (!journey || !journey.origin || !journey.destination) {
+            console.warn('Invalid journey object provided for duration calculation');
+            return null;
+        }
+        
+        // Try to use pre-calculated distance if available
+        let distance = journey.distance;
+        
+        // If distance not provided, calculate it
+        if (!distance) {
+            const originCoords = this.cityCoords.get(journey.origin);
+            const destinationCoords = this.cityCoords.get(journey.destination);
+            
+            if (!originCoords || !destinationCoords) {
+                console.warn(`Missing coordinates for journey: ${journey.origin} -> ${journey.destination}`);
+                return null;
+            }
+            
+            distance = this.haversineDistance(originCoords, destinationCoords);
+        }
+        
+        return this.calculateLandTripDuration(distance, journey.mode || '');
     }
 
 

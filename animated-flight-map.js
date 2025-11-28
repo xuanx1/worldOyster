@@ -34,6 +34,9 @@ class AnimatedFlightMap {
         this.currentPathLines = null;
         this.pauseAfterCurrentFlight = false;
         
+        // Increment display timeout
+        this.incrementTimeout = null;
+        
         // Initialize exchange rates with fallback values
         this.exchangeRates = {
             USD_TO_SGD: 1.35, // Fallback values
@@ -1097,9 +1100,38 @@ class AnimatedFlightMap {
             iconAnchor: [2, 2]
         });
 
-        const marker = L.marker([city.lat, city.lng], { icon: markerIcon })
-            .bindPopup(`<strong>${city.name}</strong><br>${city.country}<br>Order: ${city.order}`);
-            // Don't add to map initially - will be added when flight reaches city
+        const marker = L.marker([city.lat, city.lng], { icon: markerIcon });
+        
+        // Create popup content with journey information
+        let popupContent = `<strong>${city.name}</strong><br>${city.country}<br>Order: ${city.order}`;
+        
+        // Add journey details if available
+        if (city.originalFlight) {
+            const journey = city.originalFlight;
+            if (journey.type === 'land') {
+                popupContent += `<br><br>🚂 Land Journey`;
+                if (journey.mode) {
+                    popupContent += `<br>Mode: ${journey.mode.charAt(0).toUpperCase() + journey.mode.slice(1)}`;
+                }
+                if (journey.distance) {
+                    popupContent += `<br>Distance: ${journey.distance} km`;
+                }
+                if (journey.durationFormatted) {
+                    popupContent += `<br>Duration: ${journey.durationFormatted}`;
+                }
+            } else {
+                popupContent += `<br><br>✈️ Flight`;
+                if (journey.distance) {
+                    popupContent += `<br>Distance: ${journey.distance} km`;
+                }
+            }
+            if (journey.date) {
+                popupContent += `<br>Date: ${journey.date}`;
+            }
+        }
+        
+        marker.bindPopup(popupContent);
+        // Don't add to map initially - will be added when flight reaches city
 
         this.cityMarkers.push({ city: city, marker: marker });
     }
@@ -1247,7 +1279,18 @@ class AnimatedFlightMap {
         
         // Use journey-specific calculations
         const journeyData = toCity.originalFlight;
-        const timeHours = distanceKm / 900;      // Flight speed for all (could be enhanced later)
+        
+        // Calculate time based on journey type
+        let timeHours;
+        if (journeyData && journeyData.type === 'land' && journeyData.duration) {
+            // Use calculated land journey duration
+            timeHours = journeyData.duration;
+            console.log(`Using calculated land journey duration: ${timeHours.toFixed(2)} hours (${journeyData.durationFormatted})`);
+        } else {
+            // Default flight speed calculation
+            timeHours = distanceKm / 900;
+        }
+        
         const co2EmissionKg = this.calculateEmissions(distanceKm, journeyData); // Use new emission calculation
         
         // Use actual cost from CSV only (no estimates)
@@ -1263,8 +1306,9 @@ class AnimatedFlightMap {
         this.totalCO2 += co2EmissionKg;
         this.totalCostSGD += costSGD;
         
-        // Show increment box
-        this.showIncrement(distanceKm, timeHours, co2EmissionKg, costSGD, false);
+        // Show increment box - pass journey type for proper display
+        const isLandJourney = journeyData && journeyData.type === 'land';
+        this.showIncrement(distanceKm, timeHours, co2EmissionKg, costSGD, isLandJourney);
         
         // Faster animation - reduced timing (min 500ms, max 2000ms)
         // Apply speed multiplier
@@ -2085,7 +2129,15 @@ class AnimatedFlightMap {
                 
                 // Calculate time, emissions, and cost using same logic as animation
                 const journeyData = toCity.originalFlight;
-                const timeHours = distanceKm / 900;
+                
+                // Use land journey duration if available
+                let timeHours;
+                if (journeyData && journeyData.type === 'land' && journeyData.duration) {
+                    timeHours = journeyData.duration;
+                } else {
+                    timeHours = distanceKm / 900;
+                }
+                
                 const co2EmissionKg = this.calculateEmissions(distanceKm, journeyData);
                 
                 let costSGD = 0;
@@ -2134,7 +2186,16 @@ class AnimatedFlightMap {
             } else if (this.currentCityIndex > 0) {
                 const fromCity = this.cities[this.currentCityIndex - 1];
                 const toCity = this.cities[this.currentCityIndex];
-                currentFlightElement.textContent = `${fromCity.name} → ${toCity.name}`;
+                
+                // Check if this is a land journey and add mode info
+                const journeyData = toCity.originalFlight;
+                if (journeyData && journeyData.type === 'land' && journeyData.mode) {
+                    const mode = journeyData.mode.charAt(0).toUpperCase() + journeyData.mode.slice(1);
+                    const durationText = journeyData.durationFormatted ? ` (${journeyData.durationFormatted})` : '';
+                    currentFlightElement.textContent = `${fromCity.name} → ${toCity.name} [${mode}${durationText}]`;
+                } else {
+                    currentFlightElement.textContent = `${fromCity.name} → ${toCity.name}`;
+                }
             } else if (this.currentCityIndex === 0 && this.cities.length > 0) {
                 currentFlightElement.textContent = `Starting at ${this.cities[0].name}`;
             } else {
@@ -2851,7 +2912,12 @@ class AnimatedFlightMap {
 
     // Animate number counting
     animateNumber(element, targetValue, duration = 800, formatter = null) {
-        const startValue = parseFloat(element.textContent.replace(/[^0-9.-]/g, '')) || 0;
+        // Get start value from data attribute if it exists, otherwise parse from text
+        let startValue = parseFloat(element.getAttribute('data-value'));
+        if (isNaN(startValue)) {
+            startValue = parseFloat(element.textContent.replace(/[^0-9.-]/g, '')) || 0;
+        }
+        
         const startTime = performance.now();
         
         element.classList.add('counting', 'updating');
@@ -2889,6 +2955,8 @@ class AnimatedFlightMap {
                 } else {
                     element.textContent = targetValue;
                 }
+                // Store final value in data attribute for next animation
+                element.setAttribute('data-value', targetValue);
                 element.classList.remove('counting', 'updating');
             }
         };
@@ -2927,53 +2995,72 @@ class AnimatedFlightMap {
         const incCostUSD = document.getElementById('incCostUSD');
         const incCostSGD = document.getElementById('incCostSGD');
         
-        // Update and show distance increment
-        if (incDistance) {
-            incDistance.textContent = `+${Math.round(distance)} km`;
-            incDistance.classList.add('show');
+        // Clear any existing increment timeout
+        if (this.incrementTimeout) {
+            clearTimeout(this.incrementTimeout);
         }
         
-        // Update and show time increment
-        if (incTime) {
-            const hours = Math.floor(time);
-            const minutes = Math.round((time - hours) * 60);
-            if (hours > 0) {
-                incTime.textContent = `+${hours}h ${minutes}m`;
-            } else {
-                incTime.textContent = `+${minutes}m`;
+        // Remove 'show' class from all increments first to reset any existing display
+        [incDistance, incTime, incCO2, incCostUSD, incCostSGD].forEach(el => {
+            if (el) el.classList.remove('show');
+        });
+        
+        // Small delay to allow class removal to take effect, then show new values
+        requestAnimationFrame(() => {
+            // Update and show distance increment
+            if (incDistance) {
+                incDistance.textContent = `+${Math.round(distance)} km`;
+                incDistance.classList.add('show');
             }
-            incTime.classList.add('show');
-        }
-        
-        // Update and show CO2 increment
-        if (incCO2) {
-            if (co2 >= 1000) {
-                incCO2.textContent = `+${(co2 / 1000).toFixed(1)}t`;
-            } else {
-                incCO2.textContent = `+${Math.round(co2)}kg`;
+            
+            // Update and show time increment
+            if (incTime) {
+                const hours = Math.floor(time);
+                const minutes = Math.round((time - hours) * 60);
+                if (hours > 0) {
+                    incTime.textContent = `+${hours}h ${minutes}m`;
+                } else {
+                    incTime.textContent = `+${minutes}m`;
+                }
+                incTime.classList.add('show');
             }
-            incCO2.classList.add('show');
-        }
+            
+            // Update and show CO2 increment
+            if (incCO2) {
+                if (co2 >= 1000) {
+                    incCO2.textContent = `+${(co2 / 1000).toFixed(1)}t`;
+                } else {
+                    incCO2.textContent = `+${Math.round(co2)}kg`;
+                }
+                incCO2.classList.add('show');
+            }
+            
+            // Update and show USD cost increment (convert from SGD)
+            if (incCostUSD) {
+                const costUSD = costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
+                incCostUSD.textContent = `+US$${Math.round(costUSD)}`;
+                incCostUSD.classList.add('show');
+            }
+            
+            // Update and show SGD cost increment
+            if (incCostSGD) {
+                incCostSGD.textContent = `+S$${Math.round(costSGD)}`;
+                incCostSGD.classList.add('show');
+            }
+        });
         
-        // Update and show USD cost increment (convert from SGD)
-        if (incCostUSD) {
-            const costUSD = costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
-            incCostUSD.textContent = `+US$${Math.round(costUSD)}`;
-            incCostUSD.classList.add('show');
-        }
+        // Calculate display duration based on animation speed
+        // At 1x speed: show for 3 seconds
+        // At faster speeds: reduce proportionally but minimum 500ms
+        const baseDuration = 3000; // 3 seconds at 1x speed
+        const displayDuration = Math.max(500, baseDuration / this.speedMultiplier);
         
-        // Update and show SGD cost increment
-        if (incCostSGD) {
-            incCostSGD.textContent = `+S$${Math.round(costSGD)}`;
-            incCostSGD.classList.add('show');
-        }
-        
-        // Hide all increments after 6 seconds
-        setTimeout(() => {
+        // Hide all increments after calculated duration
+        this.incrementTimeout = setTimeout(() => {
             [incDistance, incTime, incCO2, incCostUSD, incCostSGD].forEach(el => {
                 if (el) el.classList.remove('show');
             });
-        }, 6000);
+        }, displayDuration);
     }
 }
 
