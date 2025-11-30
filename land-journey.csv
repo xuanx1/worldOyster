@@ -14,7 +14,7 @@ Sariwon,Pyongyang,bus,18,31/12/2019
 Pyongyang,Dandong,train,32,2/1/2020
 Dandong,Beijing,train,32,2/1/2020
 Beijing,Tianjin,train,35,3/1/2020
-Tianjin,Beijing,train,35,5/1/2020
+Tianjin,Beijing,train,35,4/1/2020
 Da Nang,Hoi An,bus,2,8/3/2020
 Hoi An,Da Nang,train,11,8/3/2020
 Milan,Verona,train,7,14/2/2021
@@ -43,7 +43,7 @@ Amsterdam,Dusseldorf,bus,15,29/12/2021
 Dusseldorf,Cologne,train,15,29/12/2021
 Cologne,Antwerp,bus,25,30/12/2021
 Antwerp,Brussels,bus,10,30/12/2021
-Kyiv,Lviv,train,26,1/7/2022
+Kyiv,Lviv,train,26,7/1/2022
 Jerusalem,Eilat,bus,15,25/3/2022
 Eilat,Jerusalem,bus,15,26/3/2022
 Jerusalem,Amman,bus,77.93,6/4/2022

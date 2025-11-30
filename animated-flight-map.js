@@ -54,7 +54,7 @@ class AnimatedFlightMap {
         this.initializeMap();
         this.updateLoadingProgress(30, 'Loading flight data...');
         this.loadFlightData(); // Load from CSV instead of sample data
-        this.updateLoadingProgress(50, 'Fetching exchange rates...');
+        this.updateLoadingProgress(50, 'Fetching forex rates...');
         this.fetchExchangeRates(); // Fetch live rates
         this.updateStatistics();
         this.initializeScrubber(); // Initialize scrubber functionality
@@ -138,14 +138,11 @@ class AnimatedFlightMap {
         if (currentZoom > minZoom) {
             if (!this.map.dragging.enabled()) {
                 this.map.dragging.enable();
-                console.log('Panning enabled - zoom level:', currentZoom);
             }
         } else {
             if (this.map.dragging.enabled()) {
                 this.map.dragging.disable();
-                console.log('Panning disabled - at minimum zoom level:', currentZoom);
             }
-            // When at minimum zoom, always return to original centered view
             this.map.setView([20, 100], minZoom);
         }
     }
@@ -159,18 +156,14 @@ class AnimatedFlightMap {
                 const usdToSgd = data.rates.SGD || 1.35;
                 this.exchangeRates = {
                     USD_TO_SGD: usdToSgd,
-                    SGD_TO_USD: 1 / usdToSgd, // Calculate inverse
+                    SGD_TO_USD: 1 / usdToSgd,
                     USD_TO_EUR: data.rates.EUR || 0.9,
                     USD_TO_RMB: data.rates.CNY || 7.2
                 };
-                console.log('Live exchange rates loaded:', this.exchangeRates);
-                // Update statistics with new rates
                 this.updateStatistics();
-            } else {
-                console.warn('Failed to fetch live exchange rates, using fallback values');
             }
         } catch (error) {
-            console.warn('Error fetching exchange rates:', error, 'Using fallback values');
+            // Use fallback exchange rates
         }
     }
 
@@ -375,47 +368,10 @@ class AnimatedFlightMap {
             this.updateLoadingProgress(40, 'Loading CSV data...');
             // Create flight data manager and load both CSV and land journey data
             const flightDataManager = new FlightDataManager();
-            const combinedData = await flightDataManager.loadData(); // Use loadData() instead of loadCSVData()
+            const combinedData = await flightDataManager.loadData();
             
             this.updateLoadingProgress(60, 'Processing journeys...');
             if (combinedData && combinedData.length > 0) {
-                console.log(`Loading ${combinedData.length} journeys (${flightDataManager.csvData.length} flights + ${flightDataManager.landJourneyData.length} land journeys)`);
-                
-                // DEBUG: Check if combined data is properly sorted
-                console.log('=== COMBINED DATA SORTING DEBUG ===');
-                console.log('First 20 combined journeys by date:');
-                combinedData.slice(0, 20).forEach((journey, i) => {
-                    console.log(`${i+1}. ${journey.date} - ${journey.type} - ${journey.from || journey.origin} -> ${journey.to || journey.destination}`);
-                });
-                
-                console.log('Last 20 combined journeys by date:');
-                combinedData.slice(-20).forEach((journey, i) => {
-                    const index = combinedData.length - 20 + i;
-                    console.log(`${index+1}. ${journey.date} - ${journey.type} - ${journey.from || journey.origin} -> ${journey.to || journey.destination}`);
-                });
-                
-                console.log('First few journeys:', combinedData.slice(0, 3).map(j => ({
-                    date: j.date,
-                    from: j.from,
-                    to: j.to,
-                    fromCode: j.fromCode,
-                    toCode: j.toCode,
-                    source: j.source,
-                    type: j.type,
-                    origin: j.origin,
-                    destination: j.destination
-                })));
-                
-                // DEBUG: Check for suspicious land journeys
-                const suspiciousLandJourneys = combinedData.filter(j => 
-                    j.type === 'land' && 
-                    (j.origin === 'Singapore' || j.destination === 'Singapore') &&
-                    (j.destination === 'Beijing' || j.destination === 'Busan' || j.origin === 'Beijing' || j.origin === 'Busan')
-                );
-                if (suspiciousLandJourneys.length > 0) {
-                    console.error('FOUND SUSPICIOUS LAND JOURNEYS:', suspiciousLandJourneys);
-                }
-                
                 // Calculate year range from combined journey dates
                 this.updateHeaderYear(combinedData);
                 
@@ -424,31 +380,17 @@ class AnimatedFlightMap {
                 
                 // Add cities to map
                 this.updateLoadingProgress(80, 'Adding cities to map...');
+                
+                // Start animating city list population BEFORE cities are fully added
+                this.updateLoadingProgress(85, 'Populating city list...');
+                this.animateCityListPopulation(citySequence);
+                
+                // Continue adding cities to map while animation runs
                 citySequence.forEach(city => this.addCity(city));
-                this.updateCityList();
                 
                 this.updateLoadingProgress(90, 'Finalizing...');
-                console.log(`Added ${this.cities.length} cities to map`);
                 
-                // Identify all disconnected cities
-                const disconnectedCities = this.cities.filter(city => city.isDisconnected);
-                console.log('========================================');
-                console.log('DISCONNECTED CITIES (New journey starting points):');
-                console.log('========================================');
-                disconnectedCities.forEach((city, index) => {
-                    const prevCity = this.cities[this.cities.indexOf(city) - 1];
-                    console.log(`${index + 1}. ${city.name} (${city.airportCode}) on ${city.flightDate}`);
-                    console.log(`   Previous city: ${prevCity ? prevCity.name + ' (' + prevCity.airportCode + ')' : 'N/A'}`);
-                    console.log(`   --> Journey breaks here, new trip starts at ${city.name}`);
-                });
-                console.log(`Total disconnected cities: ${disconnectedCities.length}`);
-                console.log('========================================');
-                console.log('Final cities array:', this.cities.map(c => ({ name: c.name, code: c.airportCode, flightDate: c.flightDate })));
-                
-                // TEST: Immediately try to update year with first city
-                console.log('=== TESTING IMMEDIATE YEAR UPDATE ===');
                 if (this.cities.length > 0) {
-                    console.log('First city data:', this.cities[0]);
                     this.updateCurrentTripYear(0);
                 }
                 
@@ -479,34 +421,25 @@ class AnimatedFlightMap {
             const firstJourneyDate = new Date(journeys[0].date || journeys[0].departureDate);
             const firstYear = firstJourneyDate.getFullYear();
             
-            console.log('Setting initial header year to:', firstYear);
-            
             const headerTitle = document.querySelector('.header h1');
             const yearOverlay = document.getElementById('yearOverlay');
-            console.log('Header element found in updateHeaderYear:', headerTitle);
-            console.log('Year overlay found in updateHeaderYear:', yearOverlay);
             
             if ((headerTitle || yearOverlay) && !isNaN(firstYear)) {
                 if (headerTitle) {
                     headerTitle.textContent = firstYear.toString();
-                    console.log('Initial header year set to:', headerTitle.textContent);
                 }
                 if (yearOverlay) {
                     yearOverlay.textContent = firstYear.toString();
-                    console.log('Initial year overlay set to:', yearOverlay.textContent);
                 }
             } else {
-                // If header not found, try again after a short delay
                 setTimeout(() => {
                     const retryHeader = document.querySelector('.header h1');
                     const retryOverlay = document.getElementById('yearOverlay');
                     if (retryHeader && !isNaN(firstYear)) {
                         retryHeader.textContent = firstYear.toString();
-                        console.log('Header year set on retry:', retryHeader.textContent);
                     }
                     if (retryOverlay && !isNaN(firstYear)) {
                         retryOverlay.textContent = firstYear.toString();
-                        console.log('Year overlay set on retry:', retryOverlay.textContent);
                     }
                 }, 100);
             }
@@ -514,57 +447,29 @@ class AnimatedFlightMap {
     }
 
     updateCurrentTripYear(cityIndex) {
-        // Update header year based on current city's flight date
-        console.log(`=== YEAR UPDATE: Updating year for city index ${cityIndex} ===`);
-        
         const headerTitle = document.querySelector('.header h1');
         const yearOverlay = document.getElementById('yearOverlay');
-        console.log('=== YEAR UPDATE: Header element found:', headerTitle);
-        console.log('=== YEAR UPDATE: Year overlay found:', yearOverlay);
-        console.log('=== YEAR UPDATE: Current header text:', headerTitle ? headerTitle.textContent : 'No header found');
         
         if (headerTitle || yearOverlay) {
             if (this.cities && this.cities[cityIndex] && this.cities[cityIndex].flightDate) {
                 const currentFlightDate = new Date(this.cities[cityIndex].flightDate);
                 const currentYear = currentFlightDate.getFullYear();
                 
-                console.log(`=== YEAR UPDATE: City: ${this.cities[cityIndex].name}, Date: ${this.cities[cityIndex].flightDate}, Year: ${currentYear} ===`);
-                
                 if (!isNaN(currentYear)) {
                     if (headerTitle) {
                         headerTitle.textContent = currentYear.toString();
-                        console.log(`=== YEAR UPDATE: Header updated to: ${currentYear} ===`);
                     }
                     if (yearOverlay) {
                         yearOverlay.textContent = currentYear.toString();
-                        console.log(`=== YEAR UPDATE: Year overlay updated to: ${currentYear} ===`);
                     }
-                    console.log('=== YEAR UPDATE: Header text after update:', headerTitle ? headerTitle.textContent : 'N/A');
-                } else {
-                    console.log('=== YEAR UPDATE: Invalid year calculated:', currentYear);
-                    if (headerTitle) headerTitle.textContent = 'INVALID_YEAR';
-                    if (yearOverlay) yearOverlay.textContent = 'INVALID_YEAR';
                 }
-            } else {
-                console.log(`=== YEAR UPDATE: No flight date found for city index ${cityIndex} ===`);
-                if (this.cities && this.cities[cityIndex]) {
-                    console.log(`=== YEAR UPDATE: City data:`, this.cities[cityIndex]);
-                } else {
-                    console.log(`=== YEAR UPDATE: No city found at index ${cityIndex}, total cities: ${this.cities ? this.cities.length : 'no cities array'}`);
-                }
-                headerTitle.textContent = 'NO_DATE';
             }
-        } else {
-            console.log('=== YEAR UPDATE: Header element not found!');
         }
     }
 
     convertFlightsToCities(journeys) {
-        console.log('Converting journeys to cities, input journeys:', journeys.length);
-        console.log('Sample journey data:', journeys[0]);
-        
         const citySequence = [];
-        const addedCities = new Set(); // Track cities we've already added
+        const addedCities = new Set();
         
         // Sort journeys by date
         journeys.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -642,16 +547,12 @@ class AnimatedFlightMap {
                         journeyType: 'flight' // Treat all as flights visually
                     };
                     console.log('=== CREATED DESTINATION CITY ===');
-                    console.log('city.flightDate:', city.flightDate);
-                    console.log('Adding destination city:', city);
                     citySequence.push(city);
                     this.flightSequence.push(journey);
                 }
             }
         });
         
-        console.log('Journey route sequence (chronological):', citySequence.map(c => `${c.name} (${c.locationCode}) - ${c.flightDate} [${c.journeyType}]`));
-        console.log(`Total cities in sequence: ${citySequence.length}`);
         return citySequence;
     }
     
@@ -1061,9 +962,18 @@ class AnimatedFlightMap {
     }
 
     addCity(cityData) {
+        // Normalize city name for display (handle spelling variations)
+        let displayName = cityData.name;
+        const normalized = this.normalizeCityName(displayName);
+        
+        // Map normalized names back to preferred display names
+        if (normalized === 'marrakesh') {
+            displayName = 'Marrakesh';
+        }
+        
         const city = {
             id: this.cities.length + 1,
-            name: cityData.name,
+            name: displayName,
             country: cityData.country,
             lat: cityData.lat,
             lng: cityData.lng,
@@ -1073,6 +983,7 @@ class AnimatedFlightMap {
             ...cityData,
             // Override with the computed values
             id: this.cities.length + 1,
+            name: displayName,
             visited: false,
             order: this.cities.length + 1
         };
@@ -1103,35 +1014,12 @@ class AnimatedFlightMap {
 
         const marker = L.marker([city.lat, city.lng], { icon: markerIcon });
         
-        // Create popup content with journey information
-        let popupContent = `<strong>${city.name}</strong><br>${city.country}<br>Order: ${city.order}`;
-        
-        // Add journey details if available
-        if (city.originalFlight) {
-            const journey = city.originalFlight;
-            if (journey.type === 'land') {
-                popupContent += `<br><br>🚂 Land Journey`;
-                if (journey.mode) {
-                    popupContent += `<br>Mode: ${journey.mode.charAt(0).toUpperCase() + journey.mode.slice(1)}`;
-                }
-                if (journey.distance) {
-                    popupContent += `<br>Distance: ${journey.distance} km`;
-                }
-                if (journey.durationFormatted) {
-                    popupContent += `<br>Duration: ${journey.durationFormatted}`;
-                }
-            } else {
-                popupContent += `<br><br>✈️ Flight`;
-                if (journey.distance) {
-                    popupContent += `<br>Distance: ${journey.distance} km`;
-                }
-            }
-            if (journey.date) {
-                popupContent += `<br>Date: ${journey.date}`;
-            }
-        }
-        
-        marker.bindPopup(popupContent);
+        // Bind tooltip that shows only city name on hover
+        marker.bindTooltip(city.name, {
+            permanent: false,
+            direction: 'top',
+            className: 'city-tooltip'
+        });
         // Don't add to map initially - will be added when flight reaches city
 
         this.cityMarkers.push({ city: city, marker: marker });
@@ -2045,13 +1933,11 @@ class AnimatedFlightMap {
             this.isAnimating = true;
             this.updatePlayPauseButton(); // Update button state
             
-            // Continue animation from next city position
-            // Increment currentCityIndex to move to next city for animation
+            // Continue animation from current position without incrementing
             if (this.currentCityIndex < this.cities.length - 1) {
-                this.currentCityIndex++; // Move to next city for animation
                 setTimeout(() => {
                     this.animateToNextCity();
-                }, 800); // Small delay to allow user to see the position
+                }, 100); // Small delay for smooth transition
             }
         }
     }
@@ -2182,26 +2068,70 @@ class AnimatedFlightMap {
     }
 
     // Update the current flight display based on current position
+    // Normalize city names to handle variations (Da Nang/Danang, Busan/Pusan, etc.)
+    normalizeCityName(name) {
+        if (!name) return '';
+        // Convert to lowercase and remove spaces, hyphens, apostrophes
+        let normalized = name.toLowerCase().replace(/[\s\-\']/g, '');
+        
+        // Handle spelling variations
+        if (normalized === 'marrakech') normalized = 'marrakesh';
+        
+        return normalized;
+    }
+
     updateCurrentFlightDisplay() {
         const currentFlightElement = document.getElementById('currentFlight');
         if (currentFlightElement) {
-            if (this.currentCityIndex >= this.cities.length) {
-                currentFlightElement.textContent = 'Journey Complete!';
-            } else if (this.currentCityIndex > 0) {
-                const fromCity = this.cities[this.currentCityIndex - 1];
-                const toCity = this.cities[this.currentCityIndex];
+            // Show current journey for any position, including the last city
+            if (this.currentCityIndex > 0 && this.currentCityIndex < this.cities.length) {
+                // Find the nearest journey with different city names
+                let displayIndex = this.currentCityIndex;
+                let fromCity = this.cities[displayIndex - 1];
+                let toCity = this.cities[displayIndex];
                 
-                // Check if this is a land journey and add mode info
-                const journeyData = toCity.originalFlight;
-                if (journeyData && journeyData.type === 'land' && journeyData.mode) {
-                    const mode = journeyData.mode.charAt(0).toUpperCase() + journeyData.mode.slice(1);
-                    const durationText = journeyData.durationFormatted ? ` (${journeyData.durationFormatted})` : '';
-                    currentFlightElement.textContent = `${fromCity.name} → ${toCity.name} [${mode}${durationText}]`;
-                } else {
-                    currentFlightElement.textContent = `${fromCity.name} → ${toCity.name}`;
+                // Search forward for a journey with different city names
+                while (displayIndex < this.cities.length && this.normalizeCityName(fromCity.name) === this.normalizeCityName(toCity.name)) {
+                    displayIndex++;
+                    if (displayIndex < this.cities.length) {
+                        fromCity = this.cities[displayIndex - 1];
+                        toCity = this.cities[displayIndex];
+                    }
                 }
+                
+                // If not found forward, search backward
+                if (displayIndex >= this.cities.length || this.normalizeCityName(fromCity.name) === this.normalizeCityName(toCity.name)) {
+                    displayIndex = this.currentCityIndex;
+                    while (displayIndex > 0 && this.normalizeCityName(fromCity.name) === this.normalizeCityName(toCity.name)) {
+                        displayIndex--;
+                        if (displayIndex > 0) {
+                            fromCity = this.cities[displayIndex - 1];
+                            toCity = this.cities[displayIndex];
+                        }
+                    }
+                }
+                
+                // Display if we found a valid journey with different cities
+                if (displayIndex > 0 && displayIndex < this.cities.length && this.normalizeCityName(fromCity.name) !== this.normalizeCityName(toCity.name)) {
+                    // Check if this is a land journey and add mode info
+                    const journeyData = toCity.originalFlight;
+                    if (journeyData && journeyData.type === 'land' && journeyData.mode) {
+                        const mode = journeyData.mode.charAt(0).toUpperCase() + journeyData.mode.slice(1);
+                        const durationText = journeyData.durationFormatted ? ` (${journeyData.durationFormatted})` : '';
+                        currentFlightElement.textContent = `${fromCity.name} → ${toCity.name} [${mode}${durationText}]`;
+                    } else {
+                        currentFlightElement.textContent = `${fromCity.name} → ${toCity.name}`;
+                    }
+                    return;
+                }
+                
+                // If no valid journey found, show nothing
+                currentFlightElement.textContent = '';
             } else if (this.currentCityIndex === 0 && this.cities.length > 0) {
                 currentFlightElement.textContent = `Starting at ${this.cities[0].name}`;
+            } else if (this.currentCityIndex >= this.cities.length && this.cities.length > 0) {
+                // Only show "Journey Complete!" when currentCityIndex has gone beyond all cities (animation completed)
+                currentFlightElement.textContent = 'Journey Complete!';
             } else {
                 currentFlightElement.textContent = 'Ready to begin journey';
             }
@@ -2368,6 +2298,97 @@ class AnimatedFlightMap {
         });
     }
 
+    // Animate city list population during initial load
+    animateCityListPopulation(citySequence) {
+        const cityListContainer = document.getElementById('cityList');
+        const cityListMobileContainer = document.getElementById('cityListMobile');
+        
+        if (!cityListContainer && !cityListMobileContainer) return;
+        
+        // Clear existing content
+        if (cityListContainer) cityListContainer.innerHTML = '';
+        if (cityListMobileContainer) cityListMobileContainer.innerHTML = '';
+        
+        // Normalize city names and get unique cities in chronological order
+        function normalizeCityDisplayName(name) {
+            if (!name) return name;
+            const trimmed = name.trim();
+            const lower = trimmed.toLowerCase();
+            if (lower === 'danang' || trimmed === 'Da Nang') return 'Da Nang';
+            if (lower === 'pusan' || trimmed === 'Busan') return 'Busan';
+            return name;
+        }
+        
+        const sortedCities = [...citySequence].sort((a, b) => {
+            const dateA = new Date(a.flightDate);
+            const dateB = new Date(b.flightDate);
+            return dateA - dateB;
+        });
+        
+        const uniqueCities = new Map();
+        sortedCities.forEach(city => {
+            const normalizedName = normalizeCityDisplayName(city.name.trim());
+            const normalizedCountry = city.country ? city.country.trim() : '';
+            const cityKey = `${normalizedName}-${normalizedCountry}`;
+            
+            if (!uniqueCities.has(cityKey)) {
+                uniqueCities.set(cityKey, { ...city, name: normalizedName });
+            }
+        });
+        
+        const uniqueCityArray = Array.from(uniqueCities.values());
+        const totalCities = uniqueCityArray.length;
+        const animationDuration = 2000; // 2 seconds total
+        const delayPerCity = animationDuration / totalCities;
+        
+        // Animate each city appearing
+        uniqueCityArray.forEach((city, index) => {
+            setTimeout(() => {
+                const cityItemHTML = `
+                    <div class="city-status">${index + 1}</div>
+                    <div class="city-info">
+                        <div class="city-name">${city.name}</div>
+                        <div class="city-country">${city.country}</div>
+                    </div>
+                `;
+                
+                // Add to desktop list
+                if (cityListContainer) {
+                    const cityItem = document.createElement('div');
+                    cityItem.className = 'city-item';
+                    cityItem.innerHTML = cityItemHTML;
+                    cityItem.style.opacity = '0';
+                    cityItem.style.transform = 'translateY(10px)';
+                    cityListContainer.appendChild(cityItem);
+                    
+                    // Trigger animation
+                    setTimeout(() => {
+                        cityItem.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        cityItem.style.opacity = '1';
+                        cityItem.style.transform = 'translateY(0)';
+                    }, 10);
+                }
+                
+                // Add to mobile list
+                if (cityListMobileContainer) {
+                    const cityItemMobile = document.createElement('div');
+                    cityItemMobile.className = 'city-item';
+                    cityItemMobile.innerHTML = cityItemHTML;
+                    cityItemMobile.style.opacity = '0';
+                    cityItemMobile.style.transform = 'translateY(10px)';
+                    cityListMobileContainer.appendChild(cityItemMobile);
+                    
+                    // Trigger animation
+                    setTimeout(() => {
+                        cityItemMobile.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        cityItemMobile.style.opacity = '1';
+                        cityItemMobile.style.transform = 'translateY(0)';
+                    }, 10);
+                }
+            }, index * delayPerCity);
+        });
+    }
+
     updateCityList() {
         const cityListContainer = document.getElementById('cityList');
         const cityListMobileContainer = document.getElementById('cityListMobile');
@@ -2381,13 +2402,6 @@ class AnimatedFlightMap {
         if (cityListContainer) cityListContainer.innerHTML = '';
         if (cityListMobileContainer) cityListMobileContainer.innerHTML = '';
 
-        // Debug: Check the order of cities before sorting
-        console.log('=== CITY ORDER DEBUG ===');
-        console.log('Original cities order (first 10):');
-        this.cities.slice(0, 10).forEach((city, i) => {
-            console.log(`${i+1}. ${city.name} - ${city.flightDate} (${new Date(city.flightDate).toISOString()})`);
-        });
-
         // Sort cities by flight date to ensure chronological order
         const sortedCities = [...this.cities].sort((a, b) => {
             const dateA = new Date(a.flightDate);
@@ -2395,20 +2409,18 @@ class AnimatedFlightMap {
             return dateA - dateB;
         });
 
-        console.log('Sorted cities order (first 10):');
-        sortedCities.slice(0, 10).forEach((city, i) => {
-            console.log(`${i+1}. ${city.name} - ${city.flightDate} (${new Date(city.flightDate).toISOString()})`);
-        });
-
         // Create a map to track unique cities and their first travel date
         const uniqueCities = new Map();
         const cityElements = new Map();
         let cityDisplayOrder = 1; // Independent numbering for displayed cities
 
-        // Helper to normalize city names for display (treat 'Danang' and 'Da Nang' as the same)
+        // Helper to normalize city names for display (treat 'Danang' and 'Da Nang' as the same, 'Pusan' and 'Busan' as the same)
         function normalizeCityDisplayName(name) {
             if (!name) return name;
-            if (name.trim().toLowerCase() === 'danang' || name.trim() === 'Da Nang') return 'Da Nang';
+            const trimmed = name.trim();
+            const lower = trimmed.toLowerCase();
+            if (lower === 'danang' || trimmed === 'Da Nang') return 'Da Nang';
+            if (lower === 'pusan' || trimmed === 'Busan') return 'Busan';
             return name;
         }
 
@@ -2442,11 +2454,6 @@ class AnimatedFlightMap {
         const sortedUniqueCities = Array.from(uniqueCities.entries())
             .sort((a, b) => new Date(a[1].travelDate) - new Date(b[1].travelDate));
             
-        console.log('Final unique cities order (first 10):');
-        sortedUniqueCities.slice(0, 10).forEach(([cityKey, cityData], i) => {
-            console.log(`${i+1}. ${cityData.city.name} - ${cityData.travelDate} (${new Date(cityData.travelDate).toISOString()})`);
-        });
-        
         sortedUniqueCities.forEach(([cityKey, cityData], displayIndex) => {
                 const city = cityData.city;
                 
@@ -2800,13 +2807,17 @@ class AnimatedFlightMap {
             if (this.totalDistance > 0) {
                 const distanceKm = Math.round(this.totalDistance);
                 const earthCircumference = 40075; // Earth's circumference in km
+                const moonDistance = 384400; // Average distance to moon in km
                 const earthTimes = (distanceKm / earthCircumference);
+                const moonTimes = (distanceKm / moonDistance);
                 
                 let metaphor = '';
-                if (earthTimes >= 1) {
+                if (moonTimes >= 1) {
+                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${moonTimes.toFixed(2)}x To the Moon</span>`;
+                } else if (moonTimes >= 0.1) {
+                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${(moonTimes * 100).toFixed(0)}% To the Moon</span>`;
+                } else if (earthTimes >= 1) {
                     metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${earthTimes.toFixed(1)}x Around Earth</span>`;
-                } else if (earthTimes >= 0.5) {
-                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${(earthTimes * 100).toFixed(0)}% Around Earth</span>`;
                 } else if (earthTimes >= 0.1) {
                     metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${(earthTimes * 100).toFixed(0)}% Around Earth</span>`;
                 }
@@ -2846,11 +2857,56 @@ class AnimatedFlightMap {
         }
         if (co2EmissionEl) {
             if (this.totalCO2 > 0) {
-                this.animateNumber(co2EmissionEl, this.totalCO2, 750, (val) => {
+                const co2Kg = this.totalCO2;
+                const co2Tons = co2Kg / 1000;
+                
+                // CO2 comparisons (in tons)
+                // Laptop production: ~0.3 tons CO2
+                // Motorcycle year: ~2.5 tons CO2
+                // Average person emits: ~4 tons CO2 per year globally
+                // Average car emits: ~4.6 tons CO2 per year
+                // Average home emits: ~7.5 tons CO2 per year
+                // Small town (10,000 people): ~40,000 tons CO2 per year
+                const laptopsEquivalent = co2Tons / 0.3;
+                const motorcyclesEquivalent = co2Tons / 2.5;
+                const personYears = co2Tons / 4;
+                const carsEquivalent = co2Tons / 4.6;
+                const homesEquivalent = co2Tons / 7.5;
+                const smallTownYears = co2Tons / 40000;
+                
+                let co2Metaphor = '';
+                
+                // Tiered comparisons - each shows ~2x to ~10x range
+                if (smallTownYears >= 0.00225) {
+                    // 90+ tons: Small town
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${(smallTownYears * 100).toFixed(2)}% Town Emissions / Year</span>`;
+                }
+                else if (homesEquivalent >= 3) {
+                    // 22.5+ tons: Home (3x → 12x at 90)
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${homesEquivalent.toFixed(1)}x Household Emissions / Year</span>`;
+                }
+                else if (carsEquivalent >= 3) {
+                    // 13.8+ tons: Car (3x → 4.9x at 22.5)
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${carsEquivalent.toFixed(1)}x Car Emissions / Year</span>`;
+                }
+                else if (personYears >= 2) {
+                    // 8+ tons: Per capita (2x → 3.45x at 13.8)
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${personYears.toFixed(1)}x Annual Per Capita Emissions</span>`;
+                }
+                else if (motorcyclesEquivalent >= 2) {
+                    // 5+ tons: Motorcycle (2x → 3.2x at 8)
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${motorcyclesEquivalent.toFixed(1)}x Motorcycle Emissions / Year</span>`;
+                }
+                else if (laptopsEquivalent >= 2) {
+                    // 0.6+ tons: Laptops (2x → 16.7x at 5)
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${laptopsEquivalent.toFixed(0)} Laptop${laptopsEquivalent >= 2 ? 's' : ''} Production Emissions</span>`;
+                }
+                
+                this.animateNumber(co2EmissionEl, co2Kg, 750, (val) => {
                     if (val >= 1000) {
-                        return `${(val / 1000).toFixed(1)} tons CO₂`;
+                        return `${(val / 1000).toFixed(1)} tons CO₂ ${co2Metaphor}`;
                     } else {
-                        return `${Math.round(val)} kg CO₂`;
+                        return `${Math.round(val)} kg CO₂ ${co2Metaphor}`;
                     }
                 });
             } else {
@@ -2876,14 +2932,43 @@ class AnimatedFlightMap {
             }
         }
         if (currentFlightEl) {
-            if (this.isAnimating && currentJourneyIndex > 0 && currentJourneyIndex < this.cities.length) {
-                const fromCity = this.cities[currentJourneyIndex - 1];
-                const toCity = this.cities[currentJourneyIndex];
-                this.animateTextTransition(currentFlightEl, `${fromCity.name} → ${toCity.name}`);
-            } else if (!this.isAnimating && this.cities.length > 0) {
+            if (currentJourneyIndex >= this.cities.length) {
                 this.animateTextTransition(currentFlightEl, 'Complete');
+            } else if (currentJourneyIndex > 0 && currentJourneyIndex < this.cities.length) {
+                // Find the nearest journey with different city names
+                let displayIndex = currentJourneyIndex;
+                let fromCity = this.cities[displayIndex - 1];
+                let toCity = this.cities[displayIndex];
+                
+                // Search forward for a journey with different city names
+                while (displayIndex < this.cities.length && this.normalizeCityName(fromCity.name) === this.normalizeCityName(toCity.name)) {
+                    displayIndex++;
+                    if (displayIndex < this.cities.length) {
+                        fromCity = this.cities[displayIndex - 1];
+                        toCity = this.cities[displayIndex];
+                    }
+                }
+                
+                // If not found forward, search backward
+                if (displayIndex >= this.cities.length || this.normalizeCityName(fromCity.name) === this.normalizeCityName(toCity.name)) {
+                    displayIndex = currentJourneyIndex;
+                    while (displayIndex > 0 && this.normalizeCityName(fromCity.name) === this.normalizeCityName(toCity.name)) {
+                        displayIndex--;
+                        if (displayIndex > 0) {
+                            fromCity = this.cities[displayIndex - 1];
+                            toCity = this.cities[displayIndex];
+                        }
+                    }
+                }
+                
+                // Display if we found a valid journey with different cities
+                if (displayIndex > 0 && displayIndex < this.cities.length && this.normalizeCityName(fromCity.name) !== this.normalizeCityName(toCity.name)) {
+                    this.animateTextTransition(currentFlightEl, `${fromCity.name} → ${toCity.name}`);
+                } else {
+                    currentFlightEl.textContent = '';
+                }
             } else {
-                currentFlightEl.textContent = '-';
+                currentFlightEl.textContent = '';
             }
         }
     }

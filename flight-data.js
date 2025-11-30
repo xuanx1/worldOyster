@@ -87,9 +87,9 @@ class FlightDataManager {
             'FCO': [41.8002, 12.2389],  // Rome Fiumicino
             'BCN': [41.2971, 2.0784],   // Barcelona
             'OPO': [41.2481, -8.6814],  // Porto
-            'RAK': [31.6069, -8.0363],  // Marrakech
+            'RAK': [31.6295, -7.9811],  // Marrakech (city center)
             'SKG': [40.5197, 22.9709],  // Thessaloniki
-            'MRS': [43.4393, 5.2214],   // Marseille
+            'MRS': [43.2965, 5.3698],   // Marseille (city center)
             'WAW': [52.1657, 20.9671],  // Warsaw
             'HAM': [53.6304, 9.9882],   // Hamburg
             
@@ -110,7 +110,7 @@ class FlightDataManager {
             'SHJ': [25.3286, 55.5172],  // Sharjah
             'DOH': [25.2854, 51.6085],  // Doha
             'TLV': [32.0114, 34.8866],  // Tel Aviv
-            'LCA': [34.8751, 33.6249],  // Larnaca
+            'LCA': [34.9176, 33.6291],  // Larnaca (city center)
             'CAI': [30.1219, 31.4056],  // Cairo
             'AMM': [31.7226, 35.9932],  // Amman
             'BEY': [33.8209, 35.4883],  // Beirut
@@ -119,7 +119,7 @@ class FlightDataManager {
             
             // Africa
             'ALG': [36.6910, 3.2155],   // Algiers
-                        'Tunis': [36.8065, 10.1815],
+            'Tunis': [36.8065, 10.1815],
             'Bizerte': [37.2746, 9.8739],
             'Tangier': [35.7595, -5.8340],
             'Chefchaouen': [35.1688, -5.2636],
@@ -674,14 +674,8 @@ class FlightDataManager {
             const response = await fetch('./flightdiary_2025_09_15_05_15.csv');
             const csvText = await response.text();
             
-            const lines = csvText.split('\n').filter(line => line.trim()); // Filter out empty lines
-            const headers = this.parseCSVLine(lines[0]); // First non-empty line is headers
-            
-            console.log('=== CSV PARSING DEBUG ===');
-            console.log('Total lines after filtering:', lines.length);
-            console.log('First line (headers):', lines[0]);
-            console.log('CSV Headers:', headers);
-            console.log('Second line (first data):', lines[1]);
+            const lines = csvText.split('\n').filter(line => line.trim());
+            const headers = this.parseCSVLine(lines[0]);
             
             this.csvData = [];
             for (let i = 1; i < lines.length; i++) {
@@ -692,24 +686,13 @@ class FlightDataManager {
                         flight[header] = values[index] || '';
                     });
                     
-                    console.log(`=== RAW FLIGHT PARSING ROW ${i} ===`);
-                    console.log('Raw values array:', values);
-                    console.log('Headers length:', headers.length, 'Values length:', values.length);
-                    console.log('Raw flight object:', flight);
-                    console.log('flight["Date"]:', flight["Date"]);
-                    console.log('flight.Date:', flight.Date);
-                    
-                    // Process and enrich flight data
                     const processedFlight = this.processFlightData(flight, 'csv');
                     if (processedFlight) {
-                        console.log(`Processed flight:`, processedFlight);
                         this.csvData.push(processedFlight);
                     }
                 }
             }
             
-            console.log('=== FLIGHT DATA PROCESSING COMPLETED ===');
-            console.log(`Total flights processed: ${this.csvData.length}`);
             console.log(`Loaded ${this.csvData.length} flights from CSV`);
             return this.csvData;
         } catch (error) {
@@ -721,23 +704,15 @@ class FlightDataManager {
     // Load land journey data from CSV
     async loadLandJourneyData() {
         try {
-            console.log('=== ATTEMPTING TO LOAD LAND JOURNEY CSV ===');
             const response = await fetch('./land-journey.csv');
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            console.log('Land journey CSV response OK, reading text...');
             const csvText = await response.text();
-            console.log('Land journey CSV text length:', csvText.length);
-            console.log('First 200 chars:', csvText.substring(0, 200));
-            
-            const lines = csvText.split('\n').filter(line => line.trim()); // Filter out empty lines
-            const headers = this.parseCSVLine(lines[0]); // First non-empty line is headers
-            
-            console.log('Land journey headers:', headers);
-            console.log(`Processing ${lines.length - 1} land journey records`);
+            const lines = csvText.split('\n').filter(line => line.trim());
+            const headers = this.parseCSVLine(lines[0]);
             
             for (let i = 1; i < lines.length; i++) {
                 if (lines[i].trim()) {
@@ -747,29 +722,17 @@ class FlightDataManager {
                         journey[header] = values[index] || '';
                     });
                     
-                    // Process and enrich land journey data
                     const processedJourney = this.processLandJourneyData(journey);
                     if (processedJourney) {
-                        // DEBUG: Check for impossible routes
-                        if ((processedJourney.origin === 'Singapore' && processedJourney.destination === 'Helsinki') ||
-                            (processedJourney.origin === 'Helsinki' && processedJourney.destination === 'Singapore') ||
-                            (processedJourney.origin === 'Singapore' && processedJourney.destination === 'Beijing') ||
-                            (processedJourney.origin === 'Beijing' && processedJourney.destination === 'Singapore')) {
-                            console.error('IMPOSSIBLE LAND JOURNEY DETECTED IN PROCESSING:', processedJourney);
-                            console.error('Raw journey data:', journey);
-                            console.error('This should NOT happen - land journey CSV should not contain these routes');
-                        }
                         this.landJourneyData.push(processedJourney);
                     }
                 }
             }
             
-            console.log(`Loaded ${this.landJourneyData.length} land journeys from CSV`);
+            console.log(`Loaded ${this.landJourneyData.length} land journeys`);
             return this.landJourneyData;
         } catch (error) {
-            console.error('Error loading land journey data:', error);
-            console.error('Error details:', error.message);
-            console.error('Error stack:', error.stack);
+            console.error('Error loading land journey data:', error.message);
             return [];
         }
     }
@@ -799,11 +762,6 @@ class FlightDataManager {
     // Process and standardize flight data
     processFlightData(flight, source) {
         try {
-            console.log('=== PROCESSING FLIGHT DATA ===');
-            console.log('Raw flight object:', flight);
-            console.log('flight.Date:', flight.Date);
-            console.log('flight.date:', flight.date);
-            
             // Extract actual cost from CSV (Cost_sgd field)
             const actualCostSGD = flight['Cost_sgd'] || flight.Cost_sgd;
             const hasActualCost = actualCostSGD && !isNaN(parseFloat(actualCostSGD)) && parseFloat(actualCostSGD) > 0;
@@ -830,10 +788,6 @@ class FlightDataManager {
                 costSGD: hasActualCost ? parseFloat(actualCostSGD) : this.estimateFlightCost(flight),
                 estimatedCost: flight.estimatedCost || this.estimateFlightCost(flight)
             };
-
-            console.log('=== PROCESSED FLIGHT TYPE CHECK ===');
-            console.log('processedFlight.type:', processedFlight.type);
-            console.log('processedFlight.source:', processedFlight.source);
             
             // Extract airport codes
             processedFlight.fromCode = this.extractAirportCode(processedFlight.from);
@@ -844,10 +798,6 @@ class FlightDataManager {
                 processedFlight.fromCode, 
                 processedFlight.toCode
             );
-
-            console.log('=== FINAL PROCESSED FLIGHT ===');
-            console.log('processedFlight.date:', processedFlight.date);
-            console.log('Full processed flight:', processedFlight);
 
             return processedFlight;
         } catch (error) {
@@ -948,10 +898,6 @@ class FlightDataManager {
     // Process and standardize land journey data
     processLandJourneyData(journey) {
         try {
-            console.log('=== PROCESSING LAND JOURNEY DATA ===');
-            console.log('Raw journey object:', journey);
-            console.log('Raw date value:', journey.date);
-            
             // Convert DD/MM/YYYY format to standard date format
             let convertedDate = journey.date;
             if (journey.date && journey.date.includes('/')) {
@@ -962,14 +908,15 @@ class FlightDataManager {
                     const month = dateParts[1].padStart(2, '0');
                     const year = dateParts[2];
                     convertedDate = `${year}-${month}-${day}`;
-                    console.log(`Converted date from ${journey.date} to ${convertedDate}`);
                 }
             }
 
-            // Normalize city names: treat 'Danang' as 'Da Nang'
+            // Normalize city names: treat 'Danang' as 'Da Nang' and 'Pusan' as 'Busan'
             function normalizeCityName(name) {
                 if (!name) return name;
-                if (name.trim().toLowerCase() === 'danang') return 'Da Nang';
+                const trimmed = name.trim();
+                if (trimmed.toLowerCase() === 'danang') return 'Da Nang';
+                if (trimmed.toLowerCase() === 'pusan') return 'Busan';
                 return name;
             }
 
@@ -988,13 +935,9 @@ class FlightDataManager {
                 actualCostSGD: hasActualCost ? parseFloat(actualCostSGD) : null,
                 costSGD: hasActualCost ? parseFloat(actualCostSGD) : this.estimateLandJourneyCost(journey),
                 estimatedCost: this.estimateLandJourneyCost(journey),
-                source: 'land-journey',  // Force source to be land-journey
-                type: 'land'             // Force type to be land
+                source: 'land-journey',
+                type: 'land'
             };
-            
-            console.log('=== PROCESSED LAND JOURNEY TYPE CHECK ===');
-            console.log('processedJourney.type:', processedJourney.type);
-            console.log('processedJourney.source:', processedJourney.source);
 
             // Get coordinates for origin and destination cities
             const originCoords = this.cityCoords.get(processedJourney.origin);
@@ -1008,13 +951,7 @@ class FlightDataManager {
                 // Calculate duration for land journey
                 processedJourney.duration = this.calculateLandTripDuration(processedJourney.distance, processedJourney.mode);
                 processedJourney.durationFormatted = this.formatDuration(processedJourney.duration);
-            } else {
-                console.warn(`Missing coordinates for land journey: ${processedJourney.origin} -> ${processedJourney.destination}`);
             }
-
-            console.log('=== FINAL PROCESSED LAND JOURNEY ===');
-            console.log('processedJourney.date:', processedJourney.date);
-            console.log('Full processed journey:', processedJourney);
 
             return processedJourney;
         } catch (error) {
@@ -1158,69 +1095,112 @@ class FlightDataManager {
     // Main data loading method - loads both flights and land journeys
     async loadData() {
         try {
-            console.log('=== STARTING loadData() ===');
-            
-            // Load flight data
-            console.log('Loading flight data...');
             const flightDataResult = await this.loadCSVData();
-            console.log('=== FLIGHT DATA LOAD RESULT ===');
-            console.log(`Flight data loaded: ${this.csvData.length} records`);
-            console.log('Flight data result:', flightDataResult ? flightDataResult.length : 'null/undefined');
-            
-            // Load land journey data
-            console.log('=== ABOUT TO LOAD LAND JOURNEY DATA ===');
-            console.log('Loading land journey data...');
             const landJourneyResult = await this.loadLandJourneyData();
-            console.log('=== LAND JOURNEY DATA LOAD RESULT ===');
-            console.log(`Land journey data loaded: ${this.landJourneyData.length} records`);
-            console.log('Land journey result:', landJourneyResult ? landJourneyResult.length : 'null/undefined');
             
-            // Combine and sort all data by date
-            this.combinedData = [...this.csvData, ...this.landJourneyData]
+            // First, filter out journeys with same origin and destination, then do a simple date sort
+            const dateSorted = [...this.csvData, ...this.landJourneyData]
+                .filter(journey => {
+                    const origin = this.normalizeCityForComparison(this.getOrigin(journey));
+                    const destination = this.normalizeCityForComparison(this.getDestination(journey));
+                    return origin !== destination; // Skip if same city (after normalization)
+                })
                 .sort((a, b) => new Date(a.date) - new Date(b.date));
-                
-            console.log('=== DATA TYPE VERIFICATION ===');
-            console.log(`Flight data types: ${this.csvData.map(f => f.type).slice(0, 5)}`);
-            console.log(`Land journey types: ${this.landJourneyData.map(l => l.type).slice(0, 5)}`);
-            console.log(`Combined data types: ${this.combinedData.map(c => c.type).slice(0, 10)}`);
             
-            // DEBUG: Check date ranges
-            console.log('=== DATE RANGE ANALYSIS ===');
-            if (this.csvData.length > 0) {
-                const flightDates = this.csvData.map(f => new Date(f.date)).sort((a, b) => a - b);
-                console.log(`Flight date range: ${flightDates[0].toISOString().split('T')[0]} to ${flightDates[flightDates.length-1].toISOString().split('T')[0]}`);
-            }
-            if (this.landJourneyData.length > 0) {
-                const landDates = this.landJourneyData.map(l => new Date(l.date)).sort((a, b) => a - b);
-                console.log(`Land journey date range: ${landDates[0].toISOString().split('T')[0]} to ${landDates[landDates.length-1].toISOString().split('T')[0]}`);
-            }
-            if (this.combinedData.length > 0) {
-                const combinedDates = this.combinedData.map(c => new Date(c.date)).sort((a, b) => a - b);
-                console.log(`Combined date range: ${combinedDates[0].toISOString().split('T')[0]} to ${combinedDates[combinedDates.length-1].toISOString().split('T')[0]}`);
-            }
+            // Then intelligently order same-day journeys by checking connections
+            this.combinedData = [];
+            let i = 0;
+            while (i < dateSorted.length) {
+                const currentDate = new Date(dateSorted[i].date).toDateString();
+                const sameDayJourneys = [];
                 
-            console.log('Data loading complete:', {
-                flights: this.csvData.length,
-                landJourneys: this.landJourneyData.length,
-                combined: this.combinedData.length
-            });
-            
-            // Show first few records with their types
-            console.log('First 5 combined records:');
-            this.combinedData.slice(0, 5).forEach((record, i) => {
-                console.log(`${i+1}. Type: ${record.type}, Source: ${record.source}, Date: ${record.date}`);
-                if (record.type === 'land') {
-                    console.log(`   Land: ${record.origin} -> ${record.destination} (${record.mode})`);
-                } else {
-                    console.log(`   Flight: ${record.fromCode} -> ${record.toCode}`);
+                // Collect all journeys on the same day
+                while (i < dateSorted.length && new Date(dateSorted[i].date).toDateString() === currentDate) {
+                    sameDayJourneys.push(dateSorted[i]);
+                    i++;
                 }
-            });
+                
+                // If only one journey this day, just add it
+                if (sameDayJourneys.length === 1) {
+                    this.combinedData.push(sameDayJourneys[0]);
+                    continue;
+                }
+                
+                // Sort same-day journeys by connection logic
+                const ordered = [];
+                const remaining = [...sameDayJourneys];
+                
+                // Start with the journey that connects from previous day
+                const prevDest = this.combinedData.length > 0 
+                    ? this.getDestination(this.combinedData[this.combinedData.length - 1])
+                    : null;
+                
+                if (prevDest) {
+                    // Find journey that starts from previous destination
+                    const connectedIdx = remaining.findIndex(j => this.getOrigin(j) === prevDest);
+                    if (connectedIdx >= 0) {
+                        ordered.push(remaining.splice(connectedIdx, 1)[0]);
+                    }
+                }
+                
+                // Add remaining journeys, trying to chain them
+                while (remaining.length > 0) {
+                    const lastDest = ordered.length > 0 ? this.getDestination(ordered[ordered.length - 1]) : null;
+                    
+                    if (lastDest) {
+                        const nextIdx = remaining.findIndex(j => this.getOrigin(j) === lastDest);
+                        if (nextIdx >= 0) {
+                            ordered.push(remaining.splice(nextIdx, 1)[0]);
+                            continue;
+                        }
+                    }
+                    
+                    // No connection found, just add the first remaining
+                    ordered.push(remaining.shift());
+                }
+                
+                this.combinedData.push(...ordered);
+            }
+                
+            console.log(`Data loaded: ${this.csvData.length} flights, ${this.landJourneyData.length} land journeys`);
             
             return this.combinedData;
         } catch (error) {
-            console.error('Error loading data:', error);
+            console.error('Error loading data:', error.message);
             throw error;
         }
+    }
+
+    // Helper to get origin from a journey (flight or land)
+    getOrigin(journey) {
+        if (journey.type === 'land') {
+            return journey.origin;
+        }
+        // For flights, extract city name (before the parentheses)
+        const cityMatch = journey.from.match(/^([^(]+)/);
+        return cityMatch ? cityMatch[1].trim() : journey.from;
+    }
+
+    // Helper to get destination from a journey (flight or land)
+    getDestination(journey) {
+        if (journey.type === 'land') {
+            return journey.destination;
+        }
+        // For flights, extract city name (before the parentheses)
+        const cityMatch = journey.to.match(/^([^(]+)/);
+        return cityMatch ? cityMatch[1].trim() : journey.to;
+    }
+
+    // Normalize city name for comparison (handle spelling variations)
+    normalizeCityForComparison(name) {
+        if (!name) return '';
+        // Convert to lowercase and remove spaces, hyphens, apostrophes
+        let normalized = name.toLowerCase().replace(/[\s\-\']/g, '');
+        
+        // Handle spelling variations
+        if (normalized === 'marrakech') normalized = 'marrakesh';
+        
+        return normalized;
     }
 
     // Filter data by date range
@@ -1238,24 +1218,16 @@ const flightDataManager = new FlightDataManager();
 
 // Initialize data loading when page loads
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Loading all travel data...');
-    
     try {
         await flightDataManager.loadData();
-        
-        // Update last updated timestamp
         document.getElementById('last-updated').textContent = new Date().toLocaleString();
         
-        // Wait a bit for DOM to be fully ready, then initialize visualization
         setTimeout(() => {
             if (typeof initializeVisualization === 'function') {
-                console.log('Initializing visualization...');
                 initializeVisualization();
             }
-        }, 500);
-        
-        console.log('Flight data loaded successfully');
+        }, 100);
     } catch (error) {
-        console.error('Error loading flight data:', error);
+        console.error('Error loading flight data:', error.message);
     }
 });

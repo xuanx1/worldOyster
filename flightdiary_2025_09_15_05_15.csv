@@ -93,9 +93,9 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 6/29/2023,EJU3928,Marrakech / Menara (RAK/GMMX),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,3:07:00, (/), (),,,0,0,0,,2474,1983,0,0,43.29
 5/11/2023,FR4774,Bergamo / Orio Al Serio (BGY/LIME),Thessaloniki / Makedonia (SKG/LGTS),0:00:00,0:00:00,1:53:00, (/), (),,,0,0,0,,293,2696,0,0,35.87
 5/15/2023,FR4775,Thessaloniki / Makedonia (SKG/LGTS),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:53:00, (/), (),,,0,0,0,,2696,293,0,0,35.87
-4/17/2023,FR1852,Marseille / Marseille Provence (MRS/LFML),Bergamo / Orio Al Serio (BGY/LIME),14:40:00,15:50:00,1:10:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,1928,293,668,231,24.35
+4/18/2023,FR1852,Marseille / Marseille Provence (MRS/LFML),Bergamo / Orio Al Serio (BGY/LIME),14:40:00,15:50:00,1:10:00,Ryanair (FR/RYR),Boeing 737-800 (B738),,,0,0,0,,1928,293,668,231,24.35
 4/6/2023,W6 1432,Bergamo / Orio Al Serio (BGY/LIME),Warsaw / Chopin (Okecie) (WAW/EPWA),0:00:00,0:00:00,1:43:00, (/), (),,,0,0,0,,293,3142,0,0,51.7
-4/11/2023,FR3550,Hamburg / Fuhlsbuttel (HAM/EDDH),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:26:00, (/), (),,,0,0,0,,1093,293,0,0,71.35
+4/12/2023,FR3550,Hamburg / Fuhlsbuttel (HAM/EDDH),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:26:00, (/), (),,,0,0,0,,1093,293,0,0,71.35
 3/18/2023,FR9959,Milan / Malpensa (MXP/LIMC),Malta / Luqa (MLA/LMML),0:00:00,0:00:00,1:51:00, (/), (),,,0,0,0,,1983,1863,0,0,28.97
 3/20/2023,FR3606,Malta / Luqa (MLA/LMML),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:49:00, (/), (),,,0,0,0,,1863,293,0,0,28.97
 3/9/2023,FR4235,Bergamo / Orio Al Serio (BGY/LIME),Beauvais / Beauvais Tille (BVA/LFOB),0:00:00,0:00:00,1:12:00, (/), (),,,0,0,0,,293,440,0,0,25.6
@@ -119,8 +119,8 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 5/12/2022,W64605,Larnaca / Larnaca (LCA/LCLK),Tel Aviv / Ben Gurion (TLV/LLBG),16:00:00,17:05:00,1:05:00,Wizz Air (W6/WZZ),Airbus A321-200 (A321),,,0,0,0,,1572,2962,859,2076,32.21
 1/3/2022,,Bergamo / Orio Al Serio (BGY/LIME),Kyiv / Boryspil International Airport (KBP/UKBB),0:00:00,0:00:00,2:29:00, (/), (),,,0,0,0,,293,1388,0,0,52.74
 1/11/2022,FR7857,Lviv / Danylo Halytskyi International (LWO/UKLL),Bergamo / Orio Al Serio (BGY/LIME),0:00:00,0:00:00,1:48:00, (/), (),,,0,0,0,,1720,293,0,0,337.82
-7/17/2021,,Palermo / Punta Raisi (PMO/LICJ),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,1:28:00, (/), (),,,0,0,0,,2350,1983,0,0,68.81
-7/15/2021,,Naples / Capodichino (NAP/LIRN),Catania / Fontanarossa (CTA/LICC),0:00:00,0:00:00,0:46:00, (/), (),,,0,0,0,,2016,625,0,0,33.69
+7/18/2021,,Palermo / Punta Raisi (PMO/LICJ),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,1:28:00, (/), (),,,0,0,0,,2350,1983,0,0,68.81
+7/16/2021,,Naples / Capodichino (NAP/LIRN),Catania / Fontanarossa (CTA/LICC),0:00:00,0:00:00,0:46:00, (/), (),,,0,0,0,,2016,625,0,0,33.69
 5/31/2019,TR734,Singapore / Changi (SIN/WSSS),Berlin / Tegel (TXL/EDDT),0:00:00,0:00:00,13:40:00, (/), (),,,0,0,0,,2672,3055,0,0,375
 5/31/2019,UT706,Berlin / Tegel (TXL/EDDT),Moscow / Vnukovo (VKO/UUWW),0:00:00,0:00:00,2:24:00, (/), (),,,0,0,0,,3055,3190,0,0,375
 6/9/2019,AY131,Helsinki / Vantaa (HEL/EFHK),Singapore / Changi (SIN/WSSS),0:25:00,18:25:00,13:00:00,Finnair (AY/FIN),Airbus A350-900 (A359),,,0,0,0,,1110,2672,304,2110,460
