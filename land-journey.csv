@@ -17,6 +17,8 @@ Beijing,Tianjin,train,35,3/1/2020
 Tianjin,Beijing,train,35,4/1/2020
 Da Nang,Hoi An,bus,2,8/3/2020
 Hoi An,Da Nang,train,11,8/3/2020
+Da Nang,Hue,car,5,9/3/2020
+Hue,Da Nang,car,10,9/3/2020
 Milan,Verona,train,7,14/2/2021
 Verona,Venice,train,12,14/2/2021
 Venice,Verona,train,12,17/2/2021
@@ -192,6 +194,8 @@ Lisbon,Porto,bus,7.5,14/5/2024
 Porto,Lisbon,bus,7.5,14/5/2024
 New York,Washington DC,train,38.87,31/10/2024
 Washington DC,New York,train,38.87,1/11/2024
+New Delhi,Agra,car,8.5,14/11/2024
+Agra,New Delhi,car,11.5,14/11/2024
 New York,Montreal,bus,113.19,27/11/2024
 Montreal,Ottawa,train,56.27,28/11/2024
 Ottawa,Toronto,train,72.66,29/11/2024

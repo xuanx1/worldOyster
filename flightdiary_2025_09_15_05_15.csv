@@ -182,3 +182,7 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 11/28/2023,W45620,Prague / Praha-Ruzyne (PRG/LKPR),Milan / Malpensa (MXP/LIMC),0:00:00,0:00:00,1:07:00, (/), (),,,0,0,0,,2398,1983,0,0,30.41
 2/16/2022,,Milan / Malpensa (MXP/LIMC),Athens / Eleftherios Venizelos (ATH/LGAV),0:00:00,0:00:00,2:18:00, (/), (),,,0,0,0,,1983,3583,0,0,91.24
 2/16/2022,,Athens / Eleftherios Venizelos (ATH/LGAV),Tel Aviv / Ben Gurion (TLV/LLBG),0:00:00,0:00:00,1:51:00, (/), (),,,0,0,0,,3583,2962,0,0,91.24
+3/6/2026,TR28,"Singapore / Changi (SIN/WSSS)","Perth / Perth (PER/YPPH)",23:00:00,04:15:00,05:15:00,"Scoot (TR/TGW)","Boeing 787-9 (B789)",,,0,0,0,,2672,2295,2695,2088,156.3
+3/8/2026,TR9,"Perth / Perth (PER/YPPH)","Singapore / Changi (SIN/WSSS)",17:45:00,22:55:00,05:10:00,"Scoot (TR/TGW)","Boeing 787-9 (B789)",,,0,0,0,,2295,2672,2695,2088,156.3
+1/9/2026,EK348,"Singapore / Changi (SIN/WSSS)","Phnom Penh / Phnom Penh Techo International Airport (KTI/VDTI)",15:30:00,16:35:00,01:45:00,"Emirates (EK/UAE)","Boeing 777-300ER (B77W)",,,0,0,0,,2672,10181,807,2023,120.9
+1/11/2026,EK349,"Phnom Penh / Phnom Penh Techo International Airport (KTI/VDTI)","Singapore / Changi (SIN/WSSS)",21:40:00,00:40:00,01:45:00,"Emirates (EK/UAE)","Boeing 777-300ER (B77W)",,,0,0,0,,10181,2672,807,2023,120.9

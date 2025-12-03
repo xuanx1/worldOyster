@@ -651,6 +651,9 @@ class AnimatedFlightMap {
         if (cityName === 'El ALto' || airportString.includes('LPB')) {
             cityName = 'La Paz';
         }
+        if (cityName === 'Calcutta' || airportString.includes('Calcutta')) {
+            cityName = 'Kolkata';
+        }
         
         return cityName;
     }
@@ -779,7 +782,13 @@ class AnimatedFlightMap {
                 'BKK': 'Thailand', 'DMK': 'Thailand', 'CNX': 'Thailand',
                 
                 // Asia - Vietnam
-                'SGN': 'Vietnam', 'DAD': 'Vietnam', 'VTE': 'Laos',
+                'SGN': 'Vietnam', 'DAD': 'Vietnam',
+                
+                // Asia - Laos
+                'VTE': 'Laos',
+                
+                // Asia - Cambodia
+                'KTI': 'Cambodia',
                 
                 // Asia - Philippines
                 'MNL': 'Philippines',
@@ -816,7 +825,8 @@ class AnimatedFlightMap {
                 
                 // Oceania
                 'SYD': 'Australia', 'MEL': 'Australia', 'BNE': 'Australia',
-                'PER': 'Australia', 'AKL': 'New Zealand', 'WLG': 'New Zealand',
+                'AKL': 'New Zealand', 'WLG': 'New Zealand',
+                'PER': 'Australia',
                 
                 // Canada
                 'YYZ': 'Canada', 'YVR': 'Canada', 'YUL': 'Canada', 'YYC': 'Canada',
@@ -915,9 +925,14 @@ class AnimatedFlightMap {
             'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
             'Penang': 'Malaysia', 'Kota Kinabalu': 'Malaysia',
             'Moscow': 'Russia', 'St. Petersburg': 'Russia', 'Tallinn': 'Estonia',
-            'Da Nang': 'Vietnam', 'Danang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam',
+            'Da Nang': 'Vietnam', 'Danang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam', 'Hue': 'Vietnam',
             'Vientiane': 'Laos', 'Luang Prabang': 'Laos',
-            'Bangkok': 'Thailand', 'Phuket': 'Thailand',
+            'Phnom Penh': 'Cambodia', 'Siem Reap': 'Cambodia',
+            'Manila': 'Philippines', 'Cebu': 'Philippines',
+            'New Delhi': 'India', 'Delhi': 'India', 'Agra': 'India', 'Jaipur': 'India', 
+            'Mumbai': 'India', 'Kolkata': 'India', 'Calcutta': 'India', 'Chennai': 'India',
+            'Dhaka': 'Bangladesh',
+            'Chiang Mai': 'Thailand','Bangkok': 'Thailand', 'Phuket': 'Thailand',
             'Yogyakarta': 'Indonesia', 'Surakarta': 'Indonesia', 'Jakarta': 'Indonesia', 'Bandung': 'Indonesia',
             
             // North America
@@ -930,7 +945,11 @@ class AnimatedFlightMap {
             // South America
             'La Paz': 'Bolivia', 'Uyuni': 'Bolivia', 'Puno': 'Peru', 'Cusco': 'Peru', 'Cuzco': 'Peru',
             'Ollantaytambo': 'Peru', 'Aguas Calientes': 'Peru', 'Aguas Caliente': 'Peru',
-            'Lima': 'Peru', 'Ica': 'Peru', 'Huacachina': 'Peru'
+            'Lima': 'Peru', 'Ica': 'Peru', 'Huacachina': 'Peru',
+
+            //Oceania
+            'Sydney': 'Australia', 'Melbourne': 'Australia', 'Brisbane': 'Australia', 'Perth': 'Australia',
+            'Auckland': 'New Zealand', 'Wellington': 'New Zealand'
         };
         
         const country = cityToCountry[cityName];
@@ -2076,7 +2095,12 @@ class AnimatedFlightMap {
         
         // Handle spelling variations
         if (normalized === 'marrakech') normalized = 'marrakesh';
-        
+        if (normalized === 'danang') normalized = 'danang';
+        if (normalized === 'pusan') normalized = 'busan';
+        if (normalized === 'phnompenh') normalized = 'phnompenh';
+        if (normalized === 'hue') normalized = 'hue';
+        if (normalized === 'calcutta') normalized = 'kolkata';
+        if (normalized === 'perth') normalized = 'perth';
         return normalized;
     }
 
@@ -2314,8 +2338,12 @@ class AnimatedFlightMap {
             if (!name) return name;
             const trimmed = name.trim();
             const lower = trimmed.toLowerCase();
-            if (lower === 'danang' || trimmed === 'Da Nang') return 'Da Nang';
-            if (lower === 'pusan' || trimmed === 'Busan') return 'Busan';
+            if (lower === 'danang' || trimmed === 'da nang') return 'Da Nang';
+            if (lower === 'pusan' || trimmed === 'busan') return 'Busan';
+            if (lower === 'calcutta') return 'Kolkata';
+            if (lower === 'phnompenh' || trimmed === 'phnom penh') return 'Phnom Penh';
+            if (lower === 'hue') return 'Hue';
+            if (lower === 'perth') return 'Perth';
             return name;
         }
         
@@ -2421,6 +2449,10 @@ class AnimatedFlightMap {
             const lower = trimmed.toLowerCase();
             if (lower === 'danang' || trimmed === 'Da Nang') return 'Da Nang';
             if (lower === 'pusan' || trimmed === 'Busan') return 'Busan';
+            if (lower === 'calcutta') return 'Kolkata';
+            if (lower === 'phnompenh' || trimmed === 'Phnom Penh') return 'Phnom Penh';
+            if (lower === 'hue') return 'Hue';
+            if (lower === 'perth') return 'Perth';
             return name;
         }
 

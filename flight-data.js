@@ -92,6 +92,9 @@ class FlightDataManager {
             'MRS': [43.2965, 5.3698],   // Marseille (city center)
             'WAW': [52.1657, 20.9671],  // Warsaw
             'HAM': [53.6304, 9.9882],   // Hamburg
+            'VKO': [55.5915, 37.2615],  // Moscow Vnukovo
+            'KBP': [50.3450, 30.8947],  // Kiev Boryspil
+            'LWO': [49.8125, 23.9561],  // Lviv
             
             // Turkey & Caucasus
             'SAW': [40.9059, 29.3092],  // Istanbul Sabiha
@@ -103,7 +106,6 @@ class FlightDataManager {
             'EVN': [40.1474, 44.3959],  // Yerevan
             
             // Middle East
-            'SIN': [1.3644, 103.9915],  // Singapore
             'JED': [21.6796, 39.1564],  // Jeddah
             'MCT': [23.5933, 58.2844],  // Muscat
             'AUH': [24.4331, 54.6511],  // Abu Dhabi
@@ -156,18 +158,11 @@ class FlightDataManager {
             'WUH': [30.7838, 114.2081], // Wuhan Tianhe
             'HAK': [19.9349, 110.4591], // Haikou Meilan
             'LHW': [36.5152, 103.6203], // Lanzhou Zhongchuan
-                        
-            // Southeast Asia
+            'SIN': [1.3644, 103.9915],  // Singapore
             'VTE': [17.9883, 102.5633], // Vientiane Wattay
             'YIA': [-7.9006, 110.0568], // Yogyakarta International
             'BKI': [5.9372, 116.0517],  // Kota Kinabalu
                         
-            // Russia
-            'VKO': [55.5915, 37.2615],  // Moscow Vnukovo
-            
-            // Ukraine
-            'KBP': [50.3450, 30.8947],  // Kiev Boryspil
-            'LWO': [49.8125, 23.9561],  // Lviv
         };
 
         for (const [code, coords] of Object.entries(airports)) {
@@ -344,6 +339,9 @@ class FlightDataManager {
             'Hanoi': [21.0285, 105.8542],
             'Mumbai': [19.0760, 72.8777],
             'Delhi': [28.7041, 77.1025],
+            'Agra': [27.1767, 78.0081],
+            'Kolkata': [22.6549, 88.4469],
+            'Calcutta': [22.6549, 88.4469],
             'Bangalore': [12.9716, 77.5946],
             'Jakarta': [-6.2088, 106.8456],
             'Bandung': [-6.9175, 107.6191],
@@ -360,6 +358,8 @@ class FlightDataManager {
             'Penang': [5.4141, 100.3288],
             'Phuket': [7.8804, 98.3923],
             'Kota Kinabalu': [5.9804, 116.0735],
+            'Phnom Penh': [11.5564, 104.9282],
+            'Hue': [16.4637, 107.5909],
             
             // Middle East
             'Dubai': [25.2048, 55.2708],
@@ -643,7 +643,29 @@ class FlightDataManager {
             'LPB': 'La Paz',
             
             // Lima area airports -> Lima
-            'LIM': 'Lima'
+            'LIM': 'Lima',
+            
+            // Perth area airports -> Perth
+            'PER': 'Perth',
+            
+            // Phnom Penh area airports -> Phnom Penh
+            'KTI': 'Phnom Penh',
+            
+            // Hue area airports (if any) -> Hue
+            'HUI': 'Hue',
+
+            // Belgrade area airports -> Belgrade
+            'BEG': 'Belgrade',
+
+            // Amman area airports -> Amman
+            'AMM': 'Amman',
+
+            // Tbilisi area airports -> Tbilisi
+            'TBS': 'Tbilisi',
+
+            // Yerevan area airports -> Yerevan
+            'EVN': 'Yerevan',
+
         };
 
         for (const [airport, city] of Object.entries(airportToCity)) {
@@ -911,12 +933,17 @@ class FlightDataManager {
                 }
             }
 
-            // Normalize city names: treat 'Danang' as 'Da Nang' and 'Pusan' as 'Busan'
+            // Normalize city names: treat 'Danang' as 'Da Nang', 'Pusan' as 'Busan', etc.
             function normalizeCityName(name) {
                 if (!name) return name;
                 const trimmed = name.trim();
-                if (trimmed.toLowerCase() === 'danang') return 'Da Nang';
-                if (trimmed.toLowerCase() === 'pusan') return 'Busan';
+                const lower = trimmed.toLowerCase();
+                if (lower === 'danang') return 'Da Nang';
+                if (lower === 'pusan') return 'Busan';
+                if (lower === 'calcutta') return 'Kolkata';
+                if (lower === 'phnompenh' || lower === 'phnom penh') return 'Phnom Penh';
+                if (lower === 'hue') return 'Hue';
+                if (lower === 'perth') return 'Perth';
                 return name;
             }
 
@@ -1199,6 +1226,12 @@ class FlightDataManager {
         
         // Handle spelling variations
         if (normalized === 'marrakech') normalized = 'marrakesh';
+        if (normalized === 'danang') normalized = 'danang';
+        if (normalized === 'pusan') normalized = 'busan';
+        if (normalized === 'phnompenh') normalized = 'phnompenh';
+        if (normalized === 'hue') normalized = 'hue';
+        if (normalized === 'perth') normalized = 'perth';
+        if (normalized === 'calcutta') normalized = 'kolkata';
         
         return normalized;
     }
