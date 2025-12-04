@@ -696,7 +696,7 @@ class FlightDataManager {
     // Parse CSV data
     async loadCSVData() {
         try {
-            const response = await fetch('./flightdiary_2025_09_15_05_15.csv');
+            const response = await fetch('./flightdiary.csv');
             const csvText = await response.text();
             
             const lines = csvText.split('\n').filter(line => line.trim());
