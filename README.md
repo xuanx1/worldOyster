@@ -32,25 +32,13 @@ An animated journey map visualizing my travel history and its environmental impa
 - **Country recognition**: Comprehensive mapping of cities and airport codes to countries
 - **Data validation**: Prevents spurious connections between unrelated locations
 
-### Data Format
-Place your travel data in CSV format:
-- `flightdiary_2025_09_15_05_15.csv` - Flight data
-- `land-journey.csv` - Ground transportation data
-
-## 🛠️ Technical Stack
-- **Mapping**: Leaflet.js v1.9.4
-- **Styling**: Custom CSS with glow effects and transitions
-- **Animation**: JavaScript requestAnimationFrame for smooth 60fps animation
-- **Data Processing**: Custom CSV parser with chronological sorting
-- **Country Mapping**: Comprehensive city and airport code databases
-
 ## 📁 File Structure
 ```
 worldOyster/
-├── animated-flight-map.html     # Main application interface
-├── animated-flight-map.js       # Core animation and mapping logic
+├── animated-flight-map.html    # Main application interface
+├── animated-flight-map.js      # Core animation and mapping logic
 ├── flight-data.js              # CSV data processing utilities
-├── flightdiary_*.csv           # Flight journey data
+├── flightdiary.csv             # Flight journey data
 ├── land-journey.csv            # Ground travel data
 └── README.md                   # This file
 ```
