@@ -228,6 +228,7 @@
             transition: all 0.3s ease;
             z-index: 1001;
             opacity: 0.9;
+            transform: translateX(-50%);
         }
 
         /* Larger invisible clickable area */
@@ -249,8 +250,7 @@
             height: 16px;
             border-radius: 50%;
             top: -7px;
-            left: -4px;
-            transform: scale(1);
+            transform: translateX(-50%);
         }
 
         .progress-scrubber.dragging {
@@ -259,8 +259,7 @@
             height: 16px;
             border-radius: 50%;
             top: -7px;
-            left: -4px;
-            transform: scale(1);
+            transform: translateX(-50%);
         }
 
         .progress-bar:hover .progress-scrubber {
@@ -417,24 +416,26 @@
         }
 
         .city-status {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             background: #666;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7em;
+            font-size: 0.6em;
             font-weight: 600;
             color: #fff;
             margin-bottom: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         @media (max-width: 768px) {
             .city-status {
-                width: 16px;
-                height: 16px;
-                font-size: 0.6em;
+                width: 18px;
+                height: 18px;
+                font-size: 0.55em;
             }
         }
 
@@ -456,6 +457,7 @@
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         @media (max-width: 768px) {

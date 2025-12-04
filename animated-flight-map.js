@@ -925,7 +925,7 @@ class AnimatedFlightMap {
             'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
             'Penang': 'Malaysia', 'Kota Kinabalu': 'Malaysia',
             'Moscow': 'Russia', 'St. Petersburg': 'Russia', 'Tallinn': 'Estonia',
-            'Da Nang': 'Vietnam', 'Danang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam', 'Hue': 'Vietnam',
+            'Da Nang': 'Vietnam', 'Danang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh City (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam', 'Hue': 'Vietnam',
             'Vientiane': 'Laos', 'Luang Prabang': 'Laos',
             'Phnom Penh': 'Cambodia', 'Siem Reap': 'Cambodia',
             'Manila': 'Philippines', 'Cebu': 'Philippines',
@@ -1899,16 +1899,28 @@ class AnimatedFlightMap {
     }
 
     updateScrubberPosition(progressPercentage) {
-        if (!this.scrubberElement) return;
+        if (!this.scrubberElement || !this.progressBarElement) return;
         
         // Clamp the position between 0 and 100%
         const clampedProgress = Math.max(0, Math.min(100, progressPercentage));
-        this.scrubberElement.style.left = clampedProgress + '%';
+        
+        // Position the scrubber relative to the progress bar width
+        // Using percentage of the bar's width rather than viewport width
+        const barRect = this.progressBarElement.getBoundingClientRect();
+        const scrubberWidth = this.scrubberElement.offsetWidth || 8;
+        
+        // Calculate the position ensuring the scrubber stays within bounds
+        // The scrubber is centered on the progress point (due to transform: translateX(-50%))
+        // so we need to account for its width
+        const maxProgress = 100;
+        const adjustedProgress = clampedProgress;
+        
+        this.scrubberElement.style.left = adjustedProgress + '%';
         
         // Also update the progress fill to follow the scrubber
         const progressFill = document.getElementById('progressFill');
         if (progressFill) {
-            progressFill.style.width = clampedProgress + '%';
+            progressFill.style.width = adjustedProgress + '%';
         }
     }
 
@@ -1929,6 +1941,8 @@ class AnimatedFlightMap {
         
         const rect = this.progressBarElement.getBoundingClientRect();
         const x = e.clientX - rect.left;
+        
+        // Calculate progress as a percentage of the progress bar's actual width
         const progressPercentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
         
         // Update scrubber and progress fill position
@@ -1966,6 +1980,8 @@ class AnimatedFlightMap {
         
         const rect = this.progressBarElement.getBoundingClientRect();
         const x = e.clientX - rect.left;
+        
+        // Calculate progress as a percentage of the progress bar's actual width
         const progressPercentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
         
         // Update scrubber and progress fill position
@@ -2453,6 +2469,7 @@ class AnimatedFlightMap {
             if (lower === 'phnompenh' || trimmed === 'Phnom Penh') return 'Phnom Penh';
             if (lower === 'hue') return 'Hue';
             if (lower === 'perth') return 'Perth';
+            if (lower === 'ho chi minh (saigon)') return 'Ho Chi Minh City';
             return name;
         }
 
@@ -2535,13 +2552,22 @@ class AnimatedFlightMap {
                 statusDiv.className = 'city-status';
                 
                 // Check if any instance of this city has been visited
-                const isVisited = this.cities.some((city, index) => 
-                    `${city.name}-${city.country}` === cityKey && city.visited
-                );
+                const isVisited = this.cities.some((city, index) => {
+                    const normalizedName = normalizeCityDisplayName(city.name.trim());
+                    const normalizedCountry = city.country ? city.country.trim() : '';
+                    const cityKeyToCheck = `${normalizedName}-${normalizedCountry}`;
+                    return cityKeyToCheck === cityKey && city.visited;
+                });
                 
                 // Check if this city is currently active
                 const currentCity = this.cities[this.currentCityIndex];
-                const isCurrent = currentCity && `${currentCity.name}-${currentCity.country}` === cityKey;
+                let isCurrent = false;
+                if (currentCity) {
+                    const normalizedCurrentName = normalizeCityDisplayName(currentCity.name.trim());
+                    const normalizedCurrentCountry = currentCity.country ? currentCity.country.trim() : '';
+                    const currentCityKey = `${normalizedCurrentName}-${normalizedCurrentCountry}`;
+                    isCurrent = currentCityKey === cityKey;
+                }
                 
                 // Apply appropriate status
                 if (isCurrent) {

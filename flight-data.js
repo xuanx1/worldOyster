@@ -333,7 +333,7 @@ class FlightDataManager {
             'Singapore': [1.3521, 103.8198],
             'Manila': [14.5995, 120.9842],
             'Ho Chi Minh City': [10.8231, 106.6297],
-            'Ho Chi Minh (Saigon)': [10.8231, 106.6297],
+            'Ho Chi Minh City (Saigon)': [10.8231, 106.6297],
             'Saigon': [10.8231, 106.6297],
             'Hochiminh': [10.8231, 106.6297],
             'Hanoi': [21.0285, 105.8542],
@@ -665,6 +665,9 @@ class FlightDataManager {
 
             // Yerevan area airports -> Yerevan
             'EVN': 'Yerevan',
+
+            // Singapore area airports -> Singapore
+            'SIN': 'Singapore',
 
         };
 
@@ -1205,7 +1208,14 @@ class FlightDataManager {
         }
         // For flights, extract city name (before the parentheses)
         const cityMatch = journey.from.match(/^([^(]+)/);
-        return cityMatch ? cityMatch[1].trim() : journey.from;
+        let city = cityMatch ? cityMatch[1].trim() : journey.from;
+        
+        // Normalize Ho Chi Minh (Saigon) to Ho Chi Minh City (Saigon)
+        if (city === 'Ho Chi Minh (Saigon)') {
+            city = 'Ho Chi Minh City (Saigon)';
+        }
+        
+        return city;
     }
 
     // Helper to get destination from a journey (flight or land)
@@ -1215,7 +1225,14 @@ class FlightDataManager {
         }
         // For flights, extract city name (before the parentheses)
         const cityMatch = journey.to.match(/^([^(]+)/);
-        return cityMatch ? cityMatch[1].trim() : journey.to;
+        let city = cityMatch ? cityMatch[1].trim() : journey.to;
+        
+        // Normalize Ho Chi Minh (Saigon) to Ho Chi Minh City (Saigon)
+        if (city === 'Ho Chi Minh (Saigon)') {
+            city = 'Ho Chi Minh City (Saigon)';
+        }
+        
+        return city;
     }
 
     // Normalize city name for comparison (handle spelling variations)
