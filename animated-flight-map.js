@@ -692,7 +692,7 @@ class AnimatedFlightMap {
                 'MEX': 'Mexico', 'NLU': 'Mexico', 'OAX': 'Mexico',
                 
                 // Europe - Italy
-                'MXP': 'Italy', 'FCO': 'Italy', 'CIA': 'Italy', 'BGY': 'Italy', 'LIN': 'Italy', 'PMO': 'Italy',
+                'MXP': 'Italy', 'FCO': 'Italy', 'CIA': 'Italy', 'BGY': 'Italy', 'LIN': 'Italy', 'PMO': 'Italy', 'NAP': 'Italy', 'CTA': 'Italy',
                 
                 // Europe - France  
                 'BVA': 'France', 'CDG': 'France', 'ORY': 'France', 'MRS': 'France',
@@ -771,7 +771,7 @@ class AnimatedFlightMap {
                 'ICN': 'South Korea', 'GMP': 'South Korea', 'PUS': 'South Korea', 'CJU': 'South Korea',
                 
                 // Asia - China
-                'PVG': 'China', 'PEK': 'China', 'CAN': 'China', 'PKX': 'China',
+                'PVG': 'China', 'PEK': 'China', 'CAN': 'China', 'PKX': 'China', 'XIY': 'China',
                 'WUH': 'China', 'HAK': 'China', 'LHW': 'China',
                 
                 // Asia - North Korea
@@ -823,6 +823,7 @@ class AnimatedFlightMap {
                 'BEY': 'Lebanon',
                 'TLV': 'Israel',
                 'AMM': 'Jordan',
+                'REP': 'Cambodia',
                 
                 // Caucasus & Central Asia
                 'TBS': 'Georgia', 'BUS': 'Georgia',
@@ -894,7 +895,7 @@ class AnimatedFlightMap {
             
             // Europe - Italy
             'Rome': 'Italy', 'Florence': 'Italy', 'Venice': 'Italy', 'Milan': 'Italy', 'Verona': 'Italy',
-            'Turin': 'Italy', 'Brescia': 'Italy', 'Brecia': 'Italy', 'Naples': 'Italy', 'Pompeii': 'Italy',
+            'Turin': 'Italy', 'Brescia': 'Italy', 'Naples': 'Italy', 'Pompeii': 'Italy',
             'Salerno': 'Italy', 'Amalfi': 'Italy', 'Catania': 'Italy', 'Palermo': 'Italy', 'Modena': 'Italy',
             'San Marino': 'San Marino', 'Bozen': 'Italy', 'Trieste': 'Italy', 'Novara': 'Italy', 'Pisa': 'Italy',
             
@@ -2135,6 +2136,21 @@ class AnimatedFlightMap {
         return normalized;
     }
 
+    // Normalize/display name for city list and statistics de-duplication
+    normalizeCityDisplayName(name) {
+        if (!name) return name;
+        const trimmed = name.trim();
+        const lower = trimmed.toLowerCase();
+        if (lower === 'danang' || trimmed === 'Da Nang') return 'Da Nang';
+        if (lower === 'pusan' || trimmed === 'Busan') return 'Busan';
+        if (lower === 'calcutta') return 'Kolkata';
+        if (lower === 'phnompenh' || trimmed === 'Phnom Penh') return 'Phnom Penh';
+        if (lower === 'hue') return 'Hue';
+        if (lower === 'perth') return 'Perth';
+        if (lower === 'ho chi minh (saigon)') return 'Ho Chi Minh City';
+        return name;
+    }
+
     updateCurrentFlightDisplay() {
         const currentFlightElement = document.getElementById('currentFlight');
         if (currentFlightElement) {
@@ -2857,10 +2873,16 @@ class AnimatedFlightMap {
         // Calculate journeys and cities up to current index (not total)
         const currentJourneys = Math.max(0, this.currentCityIndex); // Number of journeys completed
         
-        // Count unique cities visited up to current index
-        const visitedCities = this.cities.slice(0, this.currentCityIndex + 1);
-        const uniqueCityNames = new Set(visitedCities.map(city => city.name));
-        const citiesVisited = uniqueCityNames.size;
+        // Count unique cities visited up to current index using same normalization and country deduping as city list
+        const visitedCities = this.cities.slice(0, Math.min(this.currentCityIndex + 1, this.cities.length));
+        const uniqueCityKeys = new Set();
+        visitedCities.forEach(city => {
+            const normalizedName = this.normalizeCityDisplayName(city.name ? city.name.trim() : city.name);
+            const normalizedCountry = city.country ? city.country.trim() : '';
+            const cityKey = `${normalizedName}-${normalizedCountry}`;
+            uniqueCityKeys.add(cityKey);
+        });
+        const citiesVisited = uniqueCityKeys.size;
         
         const currentJourneyIndex = this.currentCityIndex;
         

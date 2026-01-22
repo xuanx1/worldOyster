@@ -240,7 +240,6 @@ class FlightDataManager {
             'Verona': [45.4384, 10.9916],
             'Turin': [45.0703, 7.6869],
             'Brescia': [45.5416, 10.2118],
-            'Brecia': [45.5416, 10.2118],
             'Naples': [40.8518, 14.2681],
             'Pompeii': [40.7489, 14.4989],
             'Salerno': [40.6824, 14.7681],
@@ -365,6 +364,7 @@ class FlightDataManager {
             'Phuket': [7.8804, 98.3923],
             'Kota Kinabalu': [5.9804, 116.0735],
             'Phnom Penh': [11.5564, 104.9282],
+            'Siem Reap': [13.3633, 103.8600],
             'Hue': [16.4637, 107.5909],
             
             // Middle East
@@ -655,8 +655,9 @@ class FlightDataManager {
             // Perth area airports -> Perth
             'PER': 'Perth',
             
-            // Phnom Penh area airports -> Phnom Penh
+            // Phnom Penh & Siem Reap area airports -> Phnom Penh / Siem Reap
             'KTI': 'Phnom Penh',
+            'REP': 'Siem Reap',
             
             // Hue area airports (if any) -> Hue
             'HUI': 'Hue',

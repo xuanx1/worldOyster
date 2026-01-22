@@ -26,8 +26,8 @@ Verona,Milan,train,7,17/2/2021
 Milan,Turin,train,5,21/5/2021
 Turin,Milan,train,5,21/5/2021
 Milan,Verona,train,15,7/5/2021
-Verona,Brecia,bus,10,9/5/2021
-Brecia,Milan,bus,5,9/5/2021
+Verona,Brescia,bus,10,9/5/2021
+Brescia,Milan,bus,5,9/5/2021
 Milan,Florence,train,21,9/7/2021
 Florence,Rome,train,27,12/7/2021
 Rome,Naples,train,26,14/7/2021
@@ -217,7 +217,7 @@ Niagara,New York,bus,70.42,11/5/2025
 Niagara,Toronto,bus,12.66,11/5/2025
 Toronto,Niagara,bus,7.66,11/5/2025
 Los Angeles,Tijuana,bus,80.24,24/5/2025
-Tijuana,Los Angles,bus,80.24,24/5/2025
+Tijuana,Los Angeles,bus,80.24,24/5/2025
 Seattle,Vancouver,bus,56.53,2/8/2025
 Vancouver,Seattle,bus,56.53,4/8/2025
 La Paz,Uyuni,bus,14.3,2/9/2025
