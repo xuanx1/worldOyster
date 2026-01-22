@@ -935,7 +935,7 @@ class AnimatedFlightMap {
             'Dandong': 'China',
             'Beijing': 'China', 'Peking': 'China', 'Tianjin': 'China', 'Shanghai': 'China', 'Wuhan': 'China', 
             'Nanyang': 'China', 'Xian': 'China', "Xi'an": 'China', 'Lanzhou': 'China', 'Haikou': 'China',
-            'Hong Kong': 'Hong Kong', 'Taipei': 'Taiwan',
+            'Hong Kong': 'Hong Kong', 'Taipei': 'Taiwan', 'Kuala Lumpur': 'Malaysia',
             'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
             'Penang': 'Malaysia', 'Kota Kinabalu': 'Malaysia',
             'Moscow': 'Russia', 'St. Petersburg': 'Russia', 'Tallinn': 'Estonia',
