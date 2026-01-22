@@ -194,3 +194,5 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2017-07-10,AY991,"Helsinki / Vantaa (HEL/EFHK)","Keflavik / Keflavik (KEF/BIKF)",07:20:00,09:15:00,03:55:00,"Finnair (AY/FIN)","Airbus A320-200 (A320)",,,0,0,0,,1110,1400,304,2059,150
 2017-07-17,AY992,"Keflavik / Keflavik (KEF/BIKF)","Helsinki / Vantaa (HEL/EFHK)",10:00:00,15:25:00,03:25:00,"Finnair (AY/FIN)","Airbus A320-200 (A320)",,,0,0,0,,1400,1110,304,2059,450
 2017-07-18,AY131,"Helsinki / Vantaa (HEL/EFHK)","Singapore / Changi (SIN/WSSS)",23:55:00,18:40:00,12:45:00,"Finnair (AY/FIN)","Airbus A350-900 (A359)",,,0,0,0,,1110,2672,304,2110,150
+2024-03-15,AH6234,"Algiers / Houari Boumediene (ALG/DAAG)","Tamanrasset / Aguenar (TMR/DAAT)",22:00:00,00:25:00,02:25:00,"Air Algerie (AH/DAH)","Boeing 737-800 (B738)",,,0,0,0,,104,2971,222,231,110
+2024-03-17,AH6289,"Tamanrasset / Aguenar (TMR/DAAT)","Algiers / Houari Boumediene (ALG/DAAG)",09:40:00,12:10:00,02:30:00,"Air Algerie (AH/DAH)","Boeing 737-600 (B736)",,,0,0,0,,2971,104,222,229,110

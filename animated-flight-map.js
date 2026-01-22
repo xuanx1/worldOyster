@@ -847,7 +847,7 @@ class AnimatedFlightMap {
                 
                 // Russia & Former Soviet Union
                 'VKO': 'Russia',
-                'KBP': 'Ukraine', 'LWO': 'Ukraine'
+                'KBP': 'Ukraine', 'LWO': 'Ukraine', 'TMR': 'Algeria'
             };
             
             const country = airportToCountry[airportCode];
@@ -960,6 +960,7 @@ class AnimatedFlightMap {
             'La Paz': 'Bolivia', 'Uyuni': 'Bolivia', 'Puno': 'Peru', 'Cusco': 'Peru', 'Cuzco': 'Peru',
             'Ollantaytambo': 'Peru', 'Aguas Calientes': 'Peru', 'Aguas Caliente': 'Peru',
             'Lima': 'Peru', 'Ica': 'Peru', 'Huacachina': 'Peru',
+            'Tamanrasset': 'Algeria',
 
             //Oceania
             'Sydney': 'Australia', 'Melbourne': 'Australia', 'Brisbane': 'Australia', 'Perth': 'Australia',

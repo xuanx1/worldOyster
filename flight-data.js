@@ -129,6 +129,8 @@ class FlightDataManager {
             'Marrakesh': [31.6295, -7.9811],
             'Algiers': [36.7538, 3.0588],
             'Oran': [35.6969, -0.6331],
+            'Tamanrasset': [22.7858, 5.5228],
+            'TMR': [22.7858, 5.5228], // Tamanrasset / Aguenar
             'Constantine': [36.3650, 6.6147],   // Constantine
             'SPX': [30.1167, 31.1500],  // Giza Sphinx
             
@@ -597,6 +599,7 @@ class FlightDataManager {
             
             // Algiers area airports -> Algiers
             'ALG': 'Algiers',
+            'TMR': 'Tamanrasset',
             
             // Marrakesh area airports -> Marrakesh
             'RAK': 'Marrakesh',
