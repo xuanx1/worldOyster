@@ -186,3 +186,11 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 3/8/2026,TR9,"Perth / Perth (PER/YPPH)","Singapore / Changi (SIN/WSSS)",17:45:00,22:55:00,05:10:00,"Scoot (TR/TGW)","Boeing 787-9 (B789)",,,0,0,0,,2295,2672,2695,2088,156.3
 1/9/2026,EK348,"Singapore / Changi (SIN/WSSS)","Phnom Penh / Phnom Penh Techo International Airport (KTI/VDTI)",15:30:00,16:35:00,01:45:00,"Emirates (EK/UAE)","Boeing 777-300ER (B77W)",,,0,0,0,,2672,10181,807,2023,120.9
 1/11/2026,EK349,"Phnom Penh / Phnom Penh Techo International Airport (KTI/VDTI)","Singapore / Changi (SIN/WSSS)",21:40:00,00:40:00,01:45:00,"Emirates (EK/UAE)","Boeing 777-300ER (B77W)",,,0,0,0,,10181,2672,807,2023,120.9
+2017-01-28,TR874,"Singapore / Changi (SIN/WSSS)","Taipei / Taoyuan (TPE/RCTP)",08:10:00,12:45:00,04:35:00,"Scoot (TR/TGW)","Boeing 787-8 (B788)",,,0,0,0,,2672,2996,2695,2087,100
+2017-01-31,TR899,"Taipei / Taoyuan (TPE/RCTP)","Singapore / Changi (SIN/WSSS)",16:40:00,21:30:00,04:50:00,"Scoot (TR/TGW)","Boeing 787-9 (B789)",,,0,0,0,,2996,2672,2695,2088,100
+2017-01-02,EK150,"Amsterdam / Schiphol (AMS/EHAM)","Dubai / Dubai International (DXB/OMDB)",21:45:00,07:30:00,06:45:00,"Emirates (EK/UAE)"," ()",,,0,0,0,,122,768,807,0,800
+2017-01-03,EK352,"Dubai / Dubai International (DXB/OMDB)","Singapore / Changi (SIN/WSSS)",10:15:00,21:45:00,07:30:00,"Emirates (EK/UAE)"," ()",,,0,0,0,,768,2672,807,0,400
+2017-07-10,AY132,"Singapore / Changi (SIN/WSSS)","Helsinki / Vantaa (HEL/EFHK)",22:05:00,05:45:00,13:40:00,"Finnair (AY/FIN)","Airbus A350-900 (A359)",,,0,0,0,,2672,1110,304,2110,450
+2017-07-10,AY991,"Helsinki / Vantaa (HEL/EFHK)","Keflavik / Keflavik (KEF/BIKF)",07:20:00,09:15:00,03:55:00,"Finnair (AY/FIN)","Airbus A320-200 (A320)",,,0,0,0,,1110,1400,304,2059,150
+2017-07-17,AY992,"Keflavik / Keflavik (KEF/BIKF)","Helsinki / Vantaa (HEL/EFHK)",10:00:00,15:25:00,03:25:00,"Finnair (AY/FIN)","Airbus A320-200 (A320)",,,0,0,0,,1400,1110,304,2059,450
+2017-07-18,AY131,"Helsinki / Vantaa (HEL/EFHK)","Singapore / Changi (SIN/WSSS)",23:55:00,18:40:00,12:45:00,"Finnair (AY/FIN)","Airbus A350-900 (A359)",,,0,0,0,,1110,2672,304,2110,150

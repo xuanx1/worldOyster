@@ -609,10 +609,24 @@ class AnimatedFlightMap {
         if (!locationString) {
             return locationCode;
         }
+
+        // Prefer airport-to-city mapping when an airport code is present
+        const airportCode = this.extractAirportCode(locationString);
+        if (airportCode) {
+            if (!this.coordinateManager) this.coordinateManager = new FlightDataManager();
+            const mappedCity = this.coordinateManager.airportToCityMap.get(airportCode);
+            if (mappedCity) {
+                return mappedCity;
+            }
+        }
         
         // For flights, extract city name from "City Name / Airport Name (CODE/ICAO)" format
         if (locationString.includes(' / ')) {
-            return this.extractCityName(locationString);
+            // If no airport mapping found, fall back to parsed city name
+            let city = this.extractCityName(locationString);
+            // Additional fallback for common case
+            if (city === 'Keflavik') city = 'Reykjavik';
+            return city;
         }
         
         // For land journeys, use the location string directly (it's just the city name)
@@ -729,7 +743,7 @@ class AnimatedFlightMap {
                 'TIA': 'Albania',
                 
                 // Europe - Nordics
-                'ARN': 'Sweden', 'CPH': 'Denmark', 'OSL': 'Norway', 'TRF': 'Norway',
+                'ARN': 'Sweden', 'CPH': 'Denmark', 'OSL': 'Norway', 'TRF': 'Norway', 'KEF': 'Iceland',
                 'HEL': 'Finland',
                 
                 // Europe - Greece
@@ -886,7 +900,7 @@ class AnimatedFlightMap {
             
             // Europe - Nordic
             'Stockholm': 'Sweden', 'Gothenburg': 'Sweden', 'Malmö': 'Sweden', 'Malmo': 'Sweden',
-            'Copenhagen': 'Denmark', 'Oslo': 'Norway', 'Helsinki': 'Finland',
+            'Copenhagen': 'Denmark', 'Oslo': 'Norway', 'Reykjavik': 'Iceland', 'Helsinki': 'Finland',
             
             // Europe - Eastern Europe
             'Warsaw': 'Poland', 'Krakow': 'Poland', 'Poznan': 'Poland',

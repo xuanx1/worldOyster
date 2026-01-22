@@ -162,6 +162,9 @@ class FlightDataManager {
             'VTE': [17.9883, 102.5633], // Vientiane Wattay
             'YIA': [-7.9006, 110.0568], // Yogyakarta International
             'BKI': [5.9372, 116.0517],  // Kota Kinabalu
+            'TPE': [25.0777, 121.2320], // Taipei Taoyuan
+            'DXB': [25.2532, 55.3657],  // Dubai International
+            'KEF': [63.9850, -22.6059], // Keflavik International
                         
         };
 
@@ -293,6 +296,7 @@ class FlightDataManager {
             'Tripoli': [34.4333, 35.8500],
             'Lisbon': [38.7223, -9.1393],
             'Porto': [41.1579, -8.6291],
+            'Reykjavik': [64.1466, -21.9426],
             
             // Asia
             'Seoul': [37.5665, 126.9780],
@@ -668,6 +672,9 @@ class FlightDataManager {
 
             // Singapore area airports -> Singapore
             'SIN': 'Singapore',
+            'TPE': 'Taipei',
+            'DXB': 'Dubai',
+            'KEF': 'Reykjavik',
 
         };
 
