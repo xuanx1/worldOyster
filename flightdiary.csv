@@ -74,7 +74,7 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 4/8/2024,PC 311,Batumi / Batumi (BUS/UGSB),Istanbul / Sabiha Gokcen (SAW/LTFJ),0:00:00,0:00:00,1:38:00, Pegasus, (),,,0,0,0,,3910,3659,0,0,71.58
 4/8/2024,PC 2672,Istanbul / Sabiha Gokcen (SAW/LTFJ),Ankara / Esenboga (ESB/LTAC),0:00:00,0:00:00,0:41:00, Pegasus, (),,,0,0,0,,3659,833,0,0,71.58
 3/28/2024,PC 1824,Antalya / Antalya (AYT/LTAI),Beirut / Beirut (BEY/OLBA),0:00:00,0:00:00,0:59:00, Pegasus, (),,,0,0,0,,207,272,0,0,66.58
-3/31/2024,PC 1825,Beirut / Beirut (BEY/OLBA),Antalya / Antalya (AYT/LTAI),0:00:00,0:00:00,0:59:00, Pegasus), (),,,0,0,0,,272,207,0,0,66.58
+3/31/2024,PC 1825,Beirut / Beirut (BEY/OLBA),Antalya / Antalya (AYT/LTAI),0:00:00,0:00:00,0:59:00, Pegasus, (),,,0,0,0,,272,207,0,0,66.58
 3/13/2024,W46315,Milan / Malpensa (MXP/LIMC),Barcelona / El Prat (BCN/LEBL),10:35:00,12:15:00,1:40:00,Aero Services Executive (W4/BES),Airbus A321LR (A21N),,,0,0,0,,1983,239,126,2181,22
 3/14/2024,VY7280,Barcelona / El Prat (BCN/LEBL),Algiers / Houari Boumediene (ALG/DAAG),0:00:00,0:00:00,0:57:00, Vueling, (),,,0,0,0,,239,104,0,0,58.68
 3/21/2024,AH6257,Constantine / Mohammed Boudiaf (CZL/DABC),Algiers / Houari Boumediene (ALG/DAAG),16:40:00,17:50:00,1:10:00,Air Algerie (AH/DAH),ATR 72-200 (AT72),,,0,0,0,,665,104,222,153,37.5

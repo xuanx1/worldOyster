@@ -113,7 +113,7 @@ class AnimatedFlightMap {
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
             attribution: '',
             subdomains: 'abcd',
-            maxZoom: 6
+            maxZoom: 9
         }).addTo(this.map);
 
         // Add zoom event listeners to control panning
@@ -154,7 +154,7 @@ class AnimatedFlightMap {
             const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
             if (response.ok) {
                 const data = await response.json();
-                const usdToSgd = data.rates.SGD || 1.35;
+                const usdToSgd = data.rates.SGD || 1.30;
                 this.exchangeRates = {
                     USD_TO_SGD: usdToSgd,
                     SGD_TO_USD: 1 / usdToSgd,
@@ -2514,7 +2514,7 @@ class AnimatedFlightMap {
                         activateEndpoint(meta.fromIndex, fromCity, 'from');
                         activateEndpoint(meta.toIndex, toCity, 'to');
 
-                        if (hit._path) hit._path.style.cursor = 'pointer';
+                        if (hit._path) hit._path.style.cursor = 'default';
                     } catch (err) {}
 
                     // Attach defensive mousemove listener to guarantee hover cleanup if 'mouseout' is missed
@@ -2539,51 +2539,9 @@ class AnimatedFlightMap {
 
                 hit.on('mouseout', () => this._clearRouteHover(meta));
 
-                // Click to pin a dismissable popup (keep highlight until popup is closed)
-                hit.on('click', (e) => {
-                    const content = this._buildRoutePopupContent(fromCity, toCity);
-                    const pinned = L.popup({ className: 'route-popup', closeButton: true, offset: [0, -10] })
-                        .setLatLng(e.latlng)
-                        .setContent(content)
-                        .openOn(this.map);
+                // Click-to-pin popup disabled — routes use hover-only popups now.
+                // Click behavior removed to avoid pinned popups; hover still shows transient tooltip.
 
-                    // Keep a pinned highlight so the route remains emphasized while popup is open
-                    try {
-                        if (!meta._pinnedHighlight) {
-                            meta._pinnedHighlight = L.polyline(seg, {
-                                color: '#4CAF50',
-                                weight: 3,
-                                opacity: 0.95,
-                                interactive: false,
-                                className: 'route-highlight'
-                            }).addTo(this.map);
-                        }
-                    } catch (err) { /* ignore */ }
-
-                    meta._pinnedPopup = pinned;
-                    // Remove pinned highlight and any active endpoint states when popup is closed
-                    try {
-                        pinned.on('remove', () => {
-                            try {
-                                if (meta._pinnedHighlight && this.map.hasLayer(meta._pinnedHighlight)) this.map.removeLayer(meta._pinnedHighlight);
-                            } catch (err) {}
-                            meta._pinnedHighlight = null;
-                            meta._pinnedPopup = null;
-
-                            // ensure endpoint markers are not left active
-                            ['from', 'to'].forEach(k => {
-                                try {
-                                    if (meta[`_${k}MarkerActivated`]) {
-                                        const idx = k === 'from' ? meta.fromIndex : meta.toIndex;
-                                        const mm = (this.cityMarkers && this.cityMarkers[idx] && this.cityMarkers[idx].marker) || null;
-                                        if (mm && mm.getElement && mm.getElement()) mm.getElement().classList.remove('active');
-                                        meta[`_${k}MarkerActivated`] = false;
-                                    }
-                                } catch (err) {}
-                            });
-                        });
-                    } catch (err) {}
-                });
 
                 this.routeInteractivePolylines.push(meta);
             });
@@ -2644,11 +2602,11 @@ class AnimatedFlightMap {
     _buildRoutePopupContent(fromCity, toCity) {
         // Use the same inner markup classes as city tooltips so design matches exactly
         const journey = (toCity && toCity.originalFlight) || {};
-        const modeRaw = (journey.mode || journey.type || 'flight').toString();
+        const modeRaw = (journey.mode || journey.type || 'Train').toString();
         const mode = modeRaw.charAt(0).toUpperCase() + modeRaw.slice(1);
 
         // Top line mirrors `.city-name` (same size/weight as city tooltip)
-        const title = `${fromCity.name} → ${toCity.name}`;
+        const title = `${fromCity.name} ⇌ ${toCity.name}`;
 
         // Second line mirrors `.city-country` (smaller, muted)
         const details = [];
@@ -2659,10 +2617,10 @@ class AnimatedFlightMap {
             const flightNum = journey.flightNumber || journey.flight || '';
             const airline = journey.airline || '';
             const desc = [flightNum, airline].filter(Boolean).join(' — ');
-            details.push(desc || 'Flight');
+            details.push(desc || 'Bus/Train');
         }
-        if (journey.costSGD) details.push(`S$${Math.round(journey.costSGD)}`);
-        //if (journey.date) details.push(new Date(journey.date).toLocaleDateString());
+        if (journey.costSGD) details.push(`S$${Math.round(journey.costSGD)}, One Way`);
+        if (journey.date) details.push(new Date(journey.date).getFullYear().toString());
 
         const detailsText = details.filter(Boolean).join(' · ');
 
