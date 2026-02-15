@@ -401,7 +401,7 @@
             }
         }
 
-        /* Styled tooltip for city markers — matches city-list typography (city on top, country below) */
+        /* Styled tooltip for city markers */
         .leaflet-tooltip.city-tooltip {
             background: linear-gradient(180deg, rgba(44,44,44,0.98), rgba(32,32,32,0.98));
             border-radius: 8px;
@@ -432,9 +432,10 @@
             font-size: 0.6em;
             text-transform: uppercase;
             letter-spacing: 0.2em;
+            margin-top: 4px;
         }
 
-        .city-tooltip-inner { display:flex; flex-direction:column; gap:2px; align-items:center; justify-content:center; }
+        .city-tooltip-inner { display:flex; flex-direction:column; gap:4px; align-items:center; justify-content:center; }
 
         /* Ensure tooltip arrow matches new background */
         .leaflet-tooltip.city-tooltip.leaflet-tooltip-top:before,
@@ -443,6 +444,64 @@
         .leaflet-tooltip.city-tooltip.leaflet-tooltip-right:before {
             border-top-color: rgba(32,32,32,0.98) !important;
         }
+
+        /* Invisible hit-area for route hover (keeps visuals unchanged but makes hover easy) */
+        .route-hit { stroke-opacity: 0 !important; }
+
+        /* Visual highlight shown on route hover to mirror city hover affordance */
+        .route-highlight {
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 6px 16px rgba(76,175,80,0.24));
+        }
+        /* Temporary hover-dot used when endpoint city markers are not on the map */
+        .route-hover-dot {
+            stroke: #4CAF50 !important;
+            fill: #4CAF50 !important;
+            opacity: 1 !important;
+            filter: drop-shadow(0 0 14px rgba(76,175,80,0.35));
+        }
+
+        /* Popup for routes — visually identical to the city marker tooltip (hover popup will be non-interactive via `.ghost`) */
+        .leaflet-popup-content-wrapper.route-popup {
+            background: linear-gradient(180deg, rgba(44,44,44,0.98), rgba(32,32,32,0.98));
+            border-radius: 8px;
+            padding: 8px 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.04);
+            /* pinned popups should still accept pointer events; hover popups will use `.ghost` */
+            pointer-events: auto;
+            min-width: 120px;
+            text-align: center;
+            line-height: 1.1;
+            color: inherit; /* allow inner elements (.city-name/.city-country) to control their own styles */
+        }
+
+        /* Hover-only (ghost) route popup should not capture pointer events (prevents sticky tooltips) */
+        .leaflet-popup-content-wrapper.route-popup.ghost { pointer-events: none; }
+
+        /* Make popup inner markup use the exact same typography as city tooltips */
+        .leaflet-popup-content-wrapper.route-popup .city-name {
+            font-weight: 600;
+            font-size: 1.2em;
+            line-height: 1.3;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #4CAF50;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+        .leaflet-popup-content-wrapper.route-popup .city-country {
+            color: #ffffff;
+            font-size: 0.6em;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-top: 4px;
+        }
+        /* Ensure popup arrow matches popup background */
+        .leaflet-popup-content-wrapper.route-popup + .leaflet-popup-tip { border-top-color: rgba(32,32,32,0.98) !important; }
 
         /* Increase marker hit area (visual dot remains small) and show pointer on hover */
         .city-marker { cursor: pointer; background: transparent; }

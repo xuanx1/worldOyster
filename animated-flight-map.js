@@ -10,6 +10,7 @@ class AnimatedFlightMap {
         this.flightPath = null;
         this.visitedPaths = [];
         this.cityMarkers = [];
+        this.routeInteractivePolylines = []; // invisible, interactive polylines for hover
         this.continuousPath = null; // Current continuous polyline segment
         this.allPathCoordinates = []; // All coordinates for current continuous path segment
         this.continuousPathSegments = []; // Array of all continuous path segments (for disconnected journeys)
@@ -101,7 +102,7 @@ class AnimatedFlightMap {
             center: [20, 100],
             zoom: 1.45,
             minZoom: 1.45,
-            maxZoom: 6,
+            maxZoom: 9,
             zoomControl: false,
             dragging: false,
             maxBounds: worldBounds,
@@ -416,6 +417,9 @@ class AnimatedFlightMap {
                     this.updateCityMarkerStyle(0, 'current');
                     this.updateCurrentTripYear(0);
                     this.updateStatistics();
+
+                    // Build interactive route hit areas so lines are hoverable immediately
+                    this._createRouteInteractivity();
                 }
 
                 this.updateLoadingProgress(90, 'Finalizing...');
@@ -1220,6 +1224,10 @@ class AnimatedFlightMap {
 
         this.updateCityList();
 
+        // Ensure interactive hover targets exist for already-shown hops (including the current in-flight hop)
+        // so users can hover routes while the animation is running.
+        try { this._createRouteInteractivity(); } catch (err) { /* ignore */ }
+
         // Always create flight path for all cities (including disconnected ones)
         // This ensures continuous visual line throughout the journey
         this.animateFlightPath(fromCity, toCity, () => {
@@ -1772,6 +1780,13 @@ class AnimatedFlightMap {
         if (this.continuousPath && !this.map.hasLayer(this.continuousPath)) {
             this.continuousPath.addTo(this.map);
         }
+
+        // Show interactive route hit areas so hover works when lines are visible
+        if (this.routeInteractivePolylines && this.routeInteractivePolylines.length) {
+            this.routeInteractivePolylines.forEach(r => {
+                if (r && r.poly && !this.map.hasLayer(r.poly)) this.map.addLayer(r.poly);
+            });
+        }
     }
 
     hideAllLines() {
@@ -1797,6 +1812,13 @@ class AnimatedFlightMap {
         // Hide current continuous path
         if (this.continuousPath && this.map.hasLayer(this.continuousPath)) {
             this.map.removeLayer(this.continuousPath);
+        }
+
+        // Hide interactive route hit areas (prevent hover when lines are hidden)
+        if (this.routeInteractivePolylines && this.routeInteractivePolylines.length) {
+            this.routeInteractivePolylines.forEach(r => {
+                if (r && r.poly && this.map.hasLayer(r.poly)) this.map.removeLayer(r.poly);
+            });
         }
     }
 
@@ -2297,6 +2319,14 @@ class AnimatedFlightMap {
             }
         });
         this.visitedPaths = [];
+
+        // Clear existing interactive route polylines (hover targets)
+        if (this.routeInteractivePolylines && this.routeInteractivePolylines.length) {
+            this.routeInteractivePolylines.forEach(r => {
+                if (r && r.poly && this.map.hasLayer(r.poly)) this.map.removeLayer(r.poly);
+            });
+            this.routeInteractivePolylines = [];
+        }
         
         // Rebuild the continuous path up to current position
         this.allPathCoordinates = [];
@@ -2380,8 +2410,268 @@ class AnimatedFlightMap {
             }
         }
         
+        // Add per-hop interactive polylines for hover/popups
+        // (we add these after continuous path to avoid z-indexing issues)
+        this._createRouteInteractivity();
+
         // Add city markers
         this.addCityMarkers();
+    }
+
+    // Build invisible, interactive polylines for every city→city hop so lines are hoverable
+    _createRouteInteractivity() {
+        // Remove any previous interactive polylines and clear transient hover state
+        if (this.routeInteractivePolylines && this.routeInteractivePolylines.length) {
+            this.routeInteractivePolylines.forEach(r => {
+                try { if (r && r.poly && this.map.hasLayer(r.poly)) this.map.removeLayer(r.poly); } catch (err) {}
+                try { this._clearRouteHover(r); } catch (err) {}
+            });
+        }
+        this.routeInteractivePolylines = [];
+
+        if (!this.cities || this.cities.length < 2) return;
+
+        for (let i = 0; i < this.cities.length - 1; i++) {
+            // Only create hover targets for hops that have already been shown.
+            // This prevents hover on future/unrevealed routes.
+            if (i >= this.currentCityIndex) continue;
+
+            const fromCity = this.cities[i];
+            const toCity = this.cities[i + 1];
+            if (!fromCity || !toCity) continue;
+
+            // Build a simplified great circle for the hop and split if crossing date line
+            const hopPath = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng], 60);
+            const segments = this.splitPathAtDateLine(hopPath);
+
+            segments.forEach(seg => {
+                if (!seg || seg.length < 2) return;
+
+                // Invisible but thick hit-area so hover is easy on small screens
+                const hit = L.polyline(seg, {
+                    color: '#4CAF50',
+                    weight: 10,
+                    opacity: 0,
+                    interactive: true,
+                    className: 'route-hit'
+                });
+
+                if (this.linesVisible) hit.addTo(this.map);
+
+                const meta = { poly: hit, fromIndex: i, toIndex: i + 1, fromCity, toCity };
+
+                // Hover — show tooltip (use same element/classes as city marker tooltip so appearance is identical)
+                hit.on('mouseover', (e) => {
+                    const content = this._buildRoutePopupContent(fromCity, toCity);
+
+                    // Use a Leaflet Tooltip with the same class as city tooltips
+                    try {
+                        meta._hoverTooltip = L.tooltip({ className: 'city-tooltip', direction: 'top', offset: [0, -18], opacity: 0.98, sticky: false })
+                            .setLatLng(e.latlng)
+                            .setContent(content)
+                            .openOn(this.map);
+                    } catch (err) {
+                        // fallback to popup if tooltip creation fails
+                        meta._hoverTooltip = L.popup({ className: 'route-popup ghost', closeButton: false, autoPan: false, offset: [0, -10] })
+                            .setLatLng(e.latlng)
+                            .setContent(content)
+                            .openOn(this.map);
+                    }
+
+                    // Add a temporary visual highlight along the visible stroke (mirrors city hover affordance)
+                    try {
+                        if (this.map) {
+                            meta._hoverHighlight = L.polyline(seg, {
+                                color: '#4CAF50',
+                                weight: 3,
+                                opacity: 0.95,
+                                interactive: false,
+                                className: 'route-highlight'
+                            });
+                            if (this.linesVisible) meta._hoverHighlight.addTo(this.map);
+                        }
+                    } catch (err) { /* ignore */ }
+
+                    // Highlight endpoint city markers (use existing marker .active when present,
+                    // otherwise create small temporary hover-dots so appearance matches city hover)
+                    try {
+                        const activateEndpoint = (idx, city, key) => {
+                            const existing = (this.cityMarkers && this.cityMarkers[idx] && this.cityMarkers[idx].marker) || null;
+                            if (existing && existing.getElement && existing.getElement()) {
+                                existing.getElement().classList.add('active');
+                                meta[`_${key}MarkerActivated`] = true;
+                            } else {
+                                meta[`_${key}HoverDot`] = L.circleMarker([city.lat, city.lng], {
+                                    radius: 6,
+                                    color: '#4CAF50',
+                                    fillColor: '#4CAF50',
+                                    fillOpacity: 1,
+                                    interactive: false,
+                                    className: 'route-hover-dot temporary'
+                                }).addTo(this.map);
+                            }
+                        };
+                        activateEndpoint(meta.fromIndex, fromCity, 'from');
+                        activateEndpoint(meta.toIndex, toCity, 'to');
+
+                        if (hit._path) hit._path.style.cursor = 'pointer';
+                    } catch (err) {}
+
+                    // Attach defensive mousemove listener to guarantee hover cleanup if 'mouseout' is missed
+                    try {
+                        meta._hoverActive = true;
+                        meta._hoverMouseMove = (mvEv) => {
+                            try {
+                                const el = document.elementFromPoint(mvEv.clientX, mvEv.clientY);
+                                if (!el) return this._clearRouteHover(meta);
+                                if (el.closest && (el.closest('.route-hit') || el.closest('.city-marker') || el.closest('.leaflet-tooltip') || el.closest('.leaflet-popup'))) {
+                                    return; // still on a relevant element
+                                }
+                                this._clearRouteHover(meta);
+                            } catch (ex) {
+                                this._clearRouteHover(meta);
+                            }
+                        };
+                        const container = this.map && this.map.getContainer ? this.map.getContainer() : null;
+                        if (container && meta._hoverMouseMove) container.addEventListener('mousemove', meta._hoverMouseMove);
+                    } catch (err) {}
+                });
+
+                hit.on('mouseout', () => this._clearRouteHover(meta));
+
+                // Click to pin a dismissable popup (keep highlight until popup is closed)
+                hit.on('click', (e) => {
+                    const content = this._buildRoutePopupContent(fromCity, toCity);
+                    const pinned = L.popup({ className: 'route-popup', closeButton: true, offset: [0, -10] })
+                        .setLatLng(e.latlng)
+                        .setContent(content)
+                        .openOn(this.map);
+
+                    // Keep a pinned highlight so the route remains emphasized while popup is open
+                    try {
+                        if (!meta._pinnedHighlight) {
+                            meta._pinnedHighlight = L.polyline(seg, {
+                                color: '#4CAF50',
+                                weight: 3,
+                                opacity: 0.95,
+                                interactive: false,
+                                className: 'route-highlight'
+                            }).addTo(this.map);
+                        }
+                    } catch (err) { /* ignore */ }
+
+                    meta._pinnedPopup = pinned;
+                    // Remove pinned highlight and any active endpoint states when popup is closed
+                    try {
+                        pinned.on('remove', () => {
+                            try {
+                                if (meta._pinnedHighlight && this.map.hasLayer(meta._pinnedHighlight)) this.map.removeLayer(meta._pinnedHighlight);
+                            } catch (err) {}
+                            meta._pinnedHighlight = null;
+                            meta._pinnedPopup = null;
+
+                            // ensure endpoint markers are not left active
+                            ['from', 'to'].forEach(k => {
+                                try {
+                                    if (meta[`_${k}MarkerActivated`]) {
+                                        const idx = k === 'from' ? meta.fromIndex : meta.toIndex;
+                                        const mm = (this.cityMarkers && this.cityMarkers[idx] && this.cityMarkers[idx].marker) || null;
+                                        if (mm && mm.getElement && mm.getElement()) mm.getElement().classList.remove('active');
+                                        meta[`_${k}MarkerActivated`] = false;
+                                    }
+                                } catch (err) {}
+                            });
+                        });
+                    } catch (err) {}
+                });
+
+                this.routeInteractivePolylines.push(meta);
+            });
+        }
+    }
+
+    // Remove hover artifacts for a single interactive route meta (tooltip, highlight, hover-dots, mouse handlers)
+    _clearRouteHover(meta) {
+        try {
+            if (!meta) return;
+
+            // Do not remove pinned popup/highlight — only clear transient hover state
+            // Remove hover tooltip if present
+            if (meta._hoverTooltip) {
+                try { if (this.map.hasLayer(meta._hoverTooltip)) this.map.removeLayer(meta._hoverTooltip); } catch (e) {}
+                meta._hoverTooltip = null;
+            }
+
+            // Remove transient highlight
+            if (meta._hoverHighlight) {
+                try { if (this.map.hasLayer(meta._hoverHighlight)) this.map.removeLayer(meta._hoverHighlight); } catch (e) {}
+                meta._hoverHighlight = null;
+            }
+
+            // Remove any temporary hover dots and deactivate marker active state
+            ['from', 'to'].forEach(k => {
+                try {
+                    if (meta[`_${k}HoverDot`] && this.map.hasLayer(meta[`_${k}HoverDot`])) {
+                        this.map.removeLayer(meta[`_${k}HoverDot`]);
+                    }
+                    meta[`_${k}HoverDot`] = null;
+
+                    if (meta[`_${k}MarkerActivated`]) {
+                        const idx = k === 'from' ? meta.fromIndex : meta.toIndex;
+                        const mm = (this.cityMarkers && this.cityMarkers[idx] && this.cityMarkers[idx].marker) || null;
+                        if (mm && mm.getElement && mm.getElement()) mm.getElement().classList.remove('active');
+                        meta[`_${k}MarkerActivated`] = false;
+                    }
+                } catch (err) {
+                    /* ignore */
+                }
+            });
+
+            // Remove mousemove detector
+            try {
+                const container = this.map && this.map.getContainer ? this.map.getContainer() : null;
+                if (container && meta._hoverMouseMove) container.removeEventListener('mousemove', meta._hoverMouseMove);
+            } catch (err) {}
+            meta._hoverMouseMove = null;
+            meta._hoverActive = false;
+
+        } catch (err) {
+            console.error('Error clearing route hover', err);
+        }
+    }
+
+    // Return HTML string for a route popup (from → to, mode/details, cost/date)
+    _buildRoutePopupContent(fromCity, toCity) {
+        // Use the same inner markup classes as city tooltips so design matches exactly
+        const journey = (toCity && toCity.originalFlight) || {};
+        const modeRaw = (journey.mode || journey.type || 'flight').toString();
+        const mode = modeRaw.charAt(0).toUpperCase() + modeRaw.slice(1);
+
+        // Top line mirrors `.city-name` (same size/weight as city tooltip)
+        const title = `${fromCity.name} → ${toCity.name}`;
+
+        // Second line mirrors `.city-country` (smaller, muted)
+        const details = [];
+        if ((journey.type && journey.type === 'land') || (journey.mode && typeof journey.mode === 'string')) {
+            const duration = journey.durationFormatted ? `${mode} • ${journey.durationFormatted}` : mode;
+            details.push(duration);
+        } else {
+            const flightNum = journey.flightNumber || journey.flight || '';
+            const airline = journey.airline || '';
+            const desc = [flightNum, airline].filter(Boolean).join(' — ');
+            details.push(desc || 'Flight');
+        }
+        if (journey.costSGD) details.push(`S$${Math.round(journey.costSGD)}`);
+        //if (journey.date) details.push(new Date(journey.date).toLocaleDateString());
+
+        const detailsText = details.filter(Boolean).join(' · ');
+
+        return `
+            <div class="city-tooltip-inner">
+                <div class="city-name">${this.normalizeCityDisplayName(title)}</div>
+                <div class="city-country">${detailsText}</div>
+            </div>
+        `;
     }
 
     clearMap() {
@@ -2871,7 +3161,7 @@ class AnimatedFlightMap {
                             const estimatedCostUSD = distance * 0.25;
                             return {
                                 USD: Math.round(estimatedCostUSD),
-                                SGD: Math.round(estimatedCostUSD * (this.exchangeRates.USD_TO_SGD || 1.35)),
+                                SGD: Math.round(estimatedCostUSD * (this.exchangeRates.USD_TO_SGD || 1.30)),
                                 source: "calculated_estimate"
                             };
                         }
@@ -3123,7 +3413,7 @@ class AnimatedFlightMap {
         // Separate USD and SGD cost displays
         if (totalCostUSDEl) {
             if (this.totalCostSGD > 0) {
-                const totalCostUSD = this.totalCostSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
+                const totalCostUSD = this.totalCostSGD * (this.exchangeRates.SGD_TO_USD || 0.77);
                 this.animateNumber(totalCostUSDEl, totalCostUSD, 800, (val) => `US$${Math.round(val).toLocaleString()}`);
             } else {
                 totalCostUSDEl.textContent = '-';
