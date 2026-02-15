@@ -39,8 +39,8 @@ class AnimatedFlightMap {
         
         // Initialize exchange rates with fallback values
         this.exchangeRates = {
-            USD_TO_SGD: 1.35, // Fallback values
-            SGD_TO_USD: 0.74, // Inverse of USD_TO_SGD
+            USD_TO_SGD: 1.30, // Fallback values
+            SGD_TO_USD: 0.77, // Inverse of USD_TO_SGD
             USD_TO_EUR: 0.9,
             USD_TO_RMB: 7.2
         };
@@ -399,12 +399,26 @@ class AnimatedFlightMap {
                 });
                 // Single update for the full list
                 this.updateCityList();
-                
-                this.updateLoadingProgress(90, 'Finalizing...');
-                
+
+                // Make startup map view match the first city point
                 if (this.cities.length > 0) {
+                    const firstCity = this.cities[0];
+                    // Center the map on the first city without changing zoom
+                    try { this.map.setView([firstCity.lat, firstCity.lng], this.map.getZoom(), { animate: false }); } catch (e) {}
+
+                    // Position the flight dot at the first city and add the city's marker so the initial view and first point are identical
+                    try { this.positionDotAtCity(0); } catch (e) {}
+                    if (this.cityMarkers[0] && this.cityMarkers[0].marker && !this.map.hasLayer(this.cityMarkers[0].marker)) {
+                        this.cityMarkers[0].marker.addTo(this.map);
+                    }
+
+                    // Mark first city visually as current in the list & stats
+                    this.updateCityMarkerStyle(0, 'current');
                     this.updateCurrentTripYear(0);
+                    this.updateStatistics();
                 }
+
+                this.updateLoadingProgress(90, 'Finalizing...');
                 
                 this.updateLoadingProgress(100, 'Ready!');
                 setTimeout(() => this.hideLoadingBar(), 800);
@@ -1059,27 +1073,57 @@ class AnimatedFlightMap {
     }
 
     createCityMarker(city) {
+        // Use a larger invisible hit area (outerSize) while keeping the visible dot small.
+        const outerSize = 28; // px - increases hover/click radius
+        const visibleDotSize = 4; // px - visible dot remains small
+
         const markerIcon = L.divIcon({
             className: 'city-marker',
-            html: `<div style="
-                width: 4px; 
-                height: 4px; 
-                background: #666; 
-                border-radius: 50%;
-                transition: all 0.3s;
-            "></div>`,
-            iconSize: [4, 4],
-            iconAnchor: [2, 2]
+            html: `
+                <div style="width: ${outerSize}px; height: ${outerSize}px; display:flex; align-items:center; justify-content:center; background:transparent;">
+                    <div class="city-dot" style="width: ${visibleDotSize}px; height: ${visibleDotSize}px; background: #666; border-radius: 50%; transition: all 0.3s;"></div>
+                </div>
+            `,
+            iconSize: [outerSize, outerSize],
+            iconAnchor: [outerSize / 2, outerSize / 2]
         });
 
         const marker = L.marker([city.lat, city.lng], { icon: markerIcon });
         
-        // Bind tooltip that shows only city name on hover
-        marker.bindTooltip(city.name, {
+        // Bind a tooltip that mirrors the city list layout: city (top) and country (below)
+        const tooltipEl = document.createElement('div');
+        tooltipEl.className = 'city-tooltip-inner';
+        const ttName = document.createElement('div');
+        ttName.className = 'city-name';
+        ttName.textContent = city.name || '';
+        const ttCountry = document.createElement('div');
+        ttCountry.className = 'city-country';
+        ttCountry.textContent = city.country || '';
+        tooltipEl.appendChild(ttName);
+        tooltipEl.appendChild(ttCountry);
+
+        marker.bindTooltip(tooltipEl, {
             permanent: false,
             direction: 'top',
-            className: 'city-tooltip'
+            className: 'city-tooltip',
+            offset: [0, -18],
+            opacity: 0.98,
+            sticky: false
         });
+
+        // Explicit hover handlers — ensures tooltip always hides on mouseout and provides active state
+        marker.on('mouseover', () => {
+            try { marker.openTooltip(); } catch (e) {}
+            const el = (marker.getElement && marker.getElement());
+            if (el) el.classList.add('active');
+        });
+        marker.on('mouseout', () => {
+            try { marker.closeTooltip(); } catch (e) {}
+            const el = (marker.getElement && marker.getElement());
+            if (el) el.classList.remove('active');
+        });
+        marker.on('remove', () => { try { marker.closeTooltip(); } catch (e) {} });
+
         // Don't add to map initially - will be added when flight reaches city
 
         this.cityMarkers.push({ city: city, marker: marker });
@@ -1088,34 +1132,32 @@ class AnimatedFlightMap {
     updateCityMarkerStyle(cityIndex, status) {
         if (this.cityMarkers[cityIndex]) {
             const marker = this.cityMarkers[cityIndex].marker;
-            let color, size;
-            
+            let color, innerSize;
+            const outerSize = 28; // keep a larger, consistent hit area
+
             switch (status) {
                 case 'visited':
                     color = '#4CAF50';
-                    size = '4px';
+                    innerSize = 4; // visible dot size
                     break;
                 case 'current':
                     color = '#FFD700';
-                    size = '8px';
+                    innerSize = 8;
                     break;
                 default:
                     color = '#666';
-                    size = '4px';
+                    innerSize = 4;
             }
 
             marker.setIcon(L.divIcon({
                 className: 'city-marker',
-                html: `<div style="
-                    width: ${size}; 
-                    height: ${size}; 
-                    background: ${color}; 
-                    border-radius: 50%;
-                    transition: all 0.3s;
-                    box-shadow: 0 0 8px rgba(${color === '#FFD700' ? '255, 215, 0' : '76, 175, 80'}, 0.6);
-                "></div>`,
-                iconSize: [parseInt(size), parseInt(size)],
-                iconAnchor: [parseInt(size)/2, parseInt(size)/2]
+                html: `
+                    <div style="width: ${outerSize}px; height: ${outerSize}px; display:flex; align-items:center; justify-content:center; background:transparent;">
+                        <div class="city-dot" style="width: ${innerSize}px; height: ${innerSize}px; background: ${color}; border-radius: 50%; transition: all 0.3s; box-shadow: 0 0 8px rgba(${color === '#FFD700' ? '255, 215, 0' : '76, 175, 80'}, 0.6);"></div>
+                    </div>
+                `,
+                iconSize: [outerSize, outerSize],
+                iconAnchor: [outerSize / 2, outerSize / 2]
             }));
         }
     }

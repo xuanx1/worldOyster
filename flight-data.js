@@ -500,6 +500,8 @@ class FlightDataManager {
             // Seoul area airports -> Seoul
             'ICN': 'Seoul',
             'GMP': 'Seoul',
+            // Pyongyang Sunan airport -> Pyongyang (use city coordinates)
+            'FNJ': 'Pyongyang',
             
             // Beijing area airports -> Beijing
             'PEK': 'Beijing',
