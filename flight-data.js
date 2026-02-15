@@ -161,6 +161,9 @@ class FlightDataManager {
             'HAK': [19.9349, 110.4591], // Haikou Meilan
             'LHW': [36.5152, 103.6203], // Lanzhou Zhongchuan
             'SIN': [1.3644, 103.9915],  // Singapore
+            'RGN': [16.9073, 96.1333],   // Yangon / Mingaladon
+            'MDL': [21.7028, 95.9778],   // Mandalay / Mandalay Intl
+            'CMB': [7.1803, 79.8842],    // Colombo / Bandaranaike
             'VTE': [17.9883, 102.5633], // Vientiane Wattay
             'YIA': [-7.9006, 110.0568], // Yogyakarta International
             'BKI': [5.9372, 116.0517],  // Kota Kinabalu
@@ -334,6 +337,9 @@ class FlightDataManager {
             'Da Nang': [16.0544, 108.2022],
             'Hoi An': [15.8801, 108.3380],
             'Bangkok': [13.7563, 100.5018],
+            'Yangon': [16.8409, 96.1735],
+            'Mandalay': [21.9757, 96.0848],
+            'Colombo': [6.9271, 79.8612],
             'Kuala Lumpur': [3.1390, 101.6869],
             'Singapore': [1.3521, 103.8198],
             'Manila': [14.5995, 120.9842],
@@ -519,7 +525,14 @@ class FlightDataManager {
             // Bangkok area airports -> Bangkok
             'BKK': 'Bangkok',
             'DMK': 'Bangkok',
-            
+
+            // Myanmar airports -> Yangon / Mandalay
+            'RGN': 'Yangon',
+            'MDL': 'Mandalay',
+
+            // Sri Lanka -> Colombo
+            'CMB': 'Colombo',
+
             // Mexico City area airports -> Mexico City
             'MEX': 'Mexico City',
             'NLU': 'Mexico City',

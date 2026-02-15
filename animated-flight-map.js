@@ -386,7 +386,19 @@ class AnimatedFlightMap {
                 this.animateCityListPopulation(citySequence);
                 
                 // Continue adding cities to map while animation runs
-                citySequence.forEach(city => this.addCity(city));
+                // Batch-add cities + markers and update the city list once (avoids per-city re-render)
+                citySequence.forEach((city, idx) => {
+                    const enriched = {
+                        ...city,
+                        id: this.cities.length + 1 + idx,
+                        visited: false,
+                        order: this.cities.length + 1 + idx
+                    };
+                    this.cities.push(enriched);
+                    this.createCityMarker(enriched);
+                });
+                // Single update for the full list
+                this.updateCityList();
                 
                 this.updateLoadingProgress(90, 'Finalizing...');
                 
@@ -791,6 +803,12 @@ class AnimatedFlightMap {
                 
                 // Asia - Indonesia
                 'CGK': 'Indonesia', 'YIA': 'Indonesia',
+
+                // Asia - Myanmar
+                'RGN': 'Myanmar', 'MDL': 'Myanmar',
+
+                // Asia - Sri Lanka
+                'CMB': 'Sri Lanka',
                 
                 // Asia - Thailand
                 'BKK': 'Thailand', 'DMK': 'Thailand', 'CNX': 'Thailand',
@@ -943,9 +961,11 @@ class AnimatedFlightMap {
             'Da Nang': 'Vietnam', 'Danang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh City (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam', 'Hue': 'Vietnam',
             'Vientiane': 'Laos', 'Luang Prabang': 'Laos',
             'Phnom Penh': 'Cambodia', 'Siem Reap': 'Cambodia',
+            // Myanmar
+            'Yangon': 'Myanmar', 'Mandalay': 'Myanmar',
             'Manila': 'Philippines', 'Cebu': 'Philippines',
             'New Delhi': 'India', 'Delhi': 'India', 'Agra': 'India', 'Jaipur': 'India', 
-            'Mumbai': 'India', 'Kolkata': 'India', 'Calcutta': 'India', 'Chennai': 'India',
+            'Mumbai': 'India', 'Kolkata': 'India', 'Calcutta': 'India', 'Colombo': 'Sri Lanka', 'Chennai': 'India',
             'Dhaka': 'Bangladesh',
             'Chiang Mai': 'Thailand','Bangkok': 'Thailand', 'Phuket': 'Thailand',
             'Yogyakarta': 'Indonesia', 'Surakarta': 'Indonesia', 'Jakarta': 'Indonesia', 'Bandung': 'Indonesia',
@@ -1030,7 +1050,12 @@ class AnimatedFlightMap {
 
         this.cities.push(city);
         this.createCityMarker(city);
-        this.updateCityList();
+        // Debounce city list updates to avoid O(N^2) re-renders during bulk add
+        if (this._cityListUpdateTimer) clearTimeout(this._cityListUpdateTimer);
+        this._cityListUpdateTimer = setTimeout(() => {
+            this.updateCityList();
+            this._cityListUpdateTimer = null;
+        }, 50);
     }
 
     createCityMarker(city) {
@@ -2467,29 +2492,14 @@ class AnimatedFlightMap {
     updateCityList() {
         const cityListContainer = document.getElementById('cityList');
         const cityListMobileContainer = document.getElementById('cityListMobile');
-        
-        // Wait for DOM to be ready if containers don't exist yet
+
+        // If DOM not ready, retry shortly
         if (!cityListContainer && !cityListMobileContainer) {
             setTimeout(() => this.updateCityList(), 100);
             return;
         }
-        
-        if (cityListContainer) cityListContainer.innerHTML = '';
-        if (cityListMobileContainer) cityListMobileContainer.innerHTML = '';
 
-        // Sort cities by flight date to ensure chronological order
-        const sortedCities = [...this.cities].sort((a, b) => {
-            const dateA = new Date(a.flightDate);
-            const dateB = new Date(b.flightDate);
-            return dateA - dateB;
-        });
-
-        // Create a map to track unique cities and their first travel date
-        const uniqueCities = new Map();
-        const cityElements = new Map();
-        let cityDisplayOrder = 1; // Independent numbering for displayed cities
-
-        // Helper to normalize city names for display (treat 'Danang' and 'Da Nang' as the same, 'Pusan' and 'Busan' as the same)
+        // Helper: normalize display name (keeps behavior identical)
         function normalizeCityDisplayName(name) {
             if (!name) return name;
             const trimmed = name.trim();
@@ -2504,116 +2514,175 @@ class AnimatedFlightMap {
             return name;
         }
 
-        // First pass: identify unique cities with their earliest travel date
-        sortedCities.forEach((city, index) => {
-            // Normalize city name and create a unique key
-            const normalizedName = normalizeCityDisplayName(city.name.trim());
+        // Build sorted unique city collection (same semantics as before)
+        const sortedCities = [...this.cities].sort((a, b) => new Date(a.flightDate) - new Date(b.flightDate));
+        const uniqueCities = new Map();
+        let cityDisplayOrder = 1;
+
+        for (const city of sortedCities) {
+            const normalizedName = normalizeCityDisplayName((city.name || '').trim());
             const normalizedCountry = city.country ? city.country.trim() : '';
             const cityKey = `${normalizedName}-${normalizedCountry}`;
-            
-            // If this city hasn't been seen before, record it
             if (!uniqueCities.has(cityKey)) {
-                const originalIndex = this.cities.findIndex(c => 
-                    normalizeCityDisplayName(c.name.trim()) === normalizedName && 
-                    (c.country ? c.country.trim() : '') === normalizedCountry && 
+                const originalIndex = this.cities.findIndex(c =>
+                    normalizeCityDisplayName((c.name || '').trim()) === normalizedName &&
+                    (c.country ? c.country.trim() : '') === normalizedCountry &&
                     c.flightDate === city.flightDate
                 );
-                // Force display name to 'Da Nang'
-                const cityForDisplay = { ...city, name: normalizedName };
-                uniqueCities.set(cityKey, { 
+                uniqueCities.set(cityKey, {
                     firstIndex: originalIndex,
-                    city: cityForDisplay,
+                    city: { ...city, name: normalizedName },
                     displayOrder: cityDisplayOrder,
                     travelDate: city.flightDate
                 });
                 cityDisplayOrder++;
             }
-        });
+        }
 
-        // Second pass: create elements in chronological order
-        const sortedUniqueCities = Array.from(uniqueCities.entries())
-            .sort((a, b) => new Date(a[1].travelDate) - new Date(b[1].travelDate));
-            
-        sortedUniqueCities.forEach(([cityKey, cityData], displayIndex) => {
-                const city = cityData.city;
-                
-                // Create city item HTML
-                const cityItemHTML = `
-                    <div class="city-status">${displayIndex + 1}</div>
+        const newKeys = Array.from(uniqueCities.keys());
+
+        // Incrementally update a single container (desktop or mobile)
+        const patchContainer = (container) => {
+            if (!container) return;
+
+            // Fast path: empty container — build all nodes once using DocumentFragment
+            if (container.children.length === 0) {
+                const frag = document.createDocumentFragment();
+                newKeys.forEach((key, idx) => {
+                    const data = uniqueCities.get(key);
+                    const city = data.city;
+                    const node = document.createElement('div');
+                    node.className = 'city-item';
+                    node.setAttribute('data-city-key', key);
+                    node.setAttribute('data-city-index', data.firstIndex);
+                    node.innerHTML = `
+                        <div class="city-status">${idx + 1}</div>
+                        <div class="city-info">
+                            <div class="city-name"></div>
+                            <div class="city-country"></div>
+                        </div>
+                    `;
+                    node.querySelector('.city-name').textContent = city.name || '';
+                    node.querySelector('.city-country').textContent = city.country || '';
+                    frag.appendChild(node);
+                });
+                container.appendChild(frag);
+                return;
+            }
+
+            // Otherwise, walk through newKeys and keep/move/create nodes as required
+            for (let i = 0; i < newKeys.length; i++) {
+                const key = newKeys[i];
+                const data = uniqueCities.get(key);
+                const expectedKey = key;
+                const existingAtPos = container.children[i];
+
+                if (existingAtPos && existingAtPos.getAttribute('data-city-key') === expectedKey) {
+                    // correct node at correct position — update minimal fields
+                    const statusDiv = existingAtPos.querySelector('.city-status');
+                    const nameEl = existingAtPos.querySelector('.city-name');
+                    const countryEl = existingAtPos.querySelector('.city-country');
+                    if (statusDiv && statusDiv.textContent !== String(i + 1)) statusDiv.textContent = String(i + 1);
+                    if (nameEl && nameEl.textContent !== data.city.name) nameEl.textContent = data.city.name || '';
+                    if (countryEl && countryEl.textContent !== (data.city.country || '')) countryEl.textContent = data.city.country || '';
+                    existingAtPos.setAttribute('data-city-index', data.firstIndex);
+                    continue;
+                }
+
+                // Try to find an existing node for this key elsewhere in container
+                const found = container.querySelector(`[data-city-key="${expectedKey}"]`);
+                if (found) {
+                    // Move it into the correct position
+                    container.insertBefore(found, existingAtPos || null);
+                    // Update its content (status / text)
+                    const statusDiv = found.querySelector('.city-status');
+                    const nameEl = found.querySelector('.city-name');
+                    const countryEl = found.querySelector('.city-country');
+                    if (statusDiv) statusDiv.textContent = String(i + 1);
+                    if (nameEl) nameEl.textContent = data.city.name || '';
+                    if (countryEl) countryEl.textContent = data.city.country || '';
+                    found.setAttribute('data-city-index', data.firstIndex);
+                    continue;
+                }
+
+                // Node does not exist — create and insert
+                const node = document.createElement('div');
+                node.className = 'city-item';
+                node.setAttribute('data-city-key', expectedKey);
+                node.setAttribute('data-city-index', data.firstIndex);
+                node.innerHTML = `
+                    <div class="city-status">${i + 1}</div>
                     <div class="city-info">
-                        <div class="city-name">${city.name}</div>
-                        <div class="city-country">${city.country}</div>
+                        <div class="city-name">${data.city.name || ''}</div>
+                        <div class="city-country">${data.city.country || ''}</div>
                     </div>
                 `;
 
-                // Add to desktop list
-                if (cityListContainer) {
-                    const cityItem = document.createElement('div');
-                    cityItem.className = 'city-item';
-                    cityItem.setAttribute('data-city-key', cityKey);
-                    cityItem.setAttribute('data-city-index', cityData.firstIndex);
-                    cityItem.innerHTML = cityItemHTML;
-                    cityListContainer.appendChild(cityItem);
-                }
-                
-                // Add to mobile list
-                if (cityListMobileContainer) {
-                    const cityItemMobile = document.createElement('div');
-                    cityItemMobile.className = 'city-item';
-                    cityItemMobile.setAttribute('data-city-key', cityKey);
-                    cityItemMobile.setAttribute('data-city-index', cityData.firstIndex);
-                    cityItemMobile.innerHTML = cityItemHTML;
-                    cityListMobileContainer.appendChild(cityItemMobile);
-                }
-            });
+                // Insert into correct position
+                container.insertBefore(node, existingAtPos || null);
 
-        // Update status for all unique cities based on current position
+                // Small entrance animation to keep UX consistent
+                node.style.opacity = '0';
+                node.style.transform = 'translateY(8px)';
+                requestAnimationFrame(() => {
+                    node.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                    node.style.opacity = '1';
+                    node.style.transform = 'translateY(0)';
+                });
+            }
+
+            // Remove any trailing nodes that are no longer needed
+            while (container.children.length > newKeys.length) {
+                container.removeChild(container.lastElementChild);
+            }
+        };
+
+        // Patch both desktop and mobile containers incrementally
+        patchContainer(cityListContainer);
+        patchContainer(cityListMobileContainer);
+
+        // Update statuses (visited / current) for existing DOM nodes — minimal work
         uniqueCities.forEach((cityData, cityKey) => {
-            // Get both desktop and mobile elements
             const desktopElement = cityListContainer ? cityListContainer.querySelector(`[data-city-key="${cityKey}"]`) : null;
             const mobileElement = cityListMobileContainer ? cityListMobileContainer.querySelector(`[data-city-key="${cityKey}"]`) : null;
-            
+
             [desktopElement, mobileElement].forEach(cityElement => {
                 if (!cityElement) return;
-                
                 const statusDiv = cityElement.querySelector('.city-status');
-                
+
                 // Reset classes
                 cityElement.className = 'city-item';
-                statusDiv.className = 'city-status';
-                
-                // Check if any instance of this city has been visited
-                const isVisited = this.cities.some((city, index) => {
-                    const normalizedName = normalizeCityDisplayName(city.name.trim());
-                    const normalizedCountry = city.country ? city.country.trim() : '';
+                if (statusDiv) statusDiv.className = 'city-status';
+
+                // Determine visited/current using same logic as before
+                const isVisited = this.cities.some(c => {
+                    const normalizedName = normalizeCityDisplayName((c.name || '').trim());
+                    const normalizedCountry = c.country ? c.country.trim() : '';
                     const cityKeyToCheck = `${normalizedName}-${normalizedCountry}`;
-                    return cityKeyToCheck === cityKey && city.visited;
+                    return cityKeyToCheck === cityKey && c.visited;
                 });
-                
-                // Check if this city is currently active
+
                 const currentCity = this.cities[this.currentCityIndex];
                 let isCurrent = false;
                 if (currentCity) {
-                    const normalizedCurrentName = normalizeCityDisplayName(currentCity.name.trim());
+                    const normalizedCurrentName = normalizeCityDisplayName((currentCity.name || '').trim());
                     const normalizedCurrentCountry = currentCity.country ? currentCity.country.trim() : '';
                     const currentCityKey = `${normalizedCurrentName}-${normalizedCurrentCountry}`;
                     isCurrent = currentCityKey === cityKey;
                 }
-                
-                // Apply appropriate status
+
                 if (isCurrent) {
                     cityElement.classList.add('current');
-                    statusDiv.classList.add('current');
-                    // Update the data-city-index to current for scrolling
+                    if (statusDiv) statusDiv.classList.add('current');
                     cityElement.setAttribute('data-city-index', this.currentCityIndex);
                 } else if (isVisited) {
                     cityElement.classList.add('visited');
-                    statusDiv.classList.add('visited');
+                    if (statusDiv) statusDiv.classList.add('visited');
                 }
             });
         });
-        
-        // Auto-scroll to current city
+
+        // Ensure current city is visible
         this.scrollToCurrentCity();
     }
     
