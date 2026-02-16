@@ -158,6 +158,8 @@ class FlightDataManager {
             'CAN': [23.3924, 113.2988], // Guangzhou
             'PKX': [39.5098, 116.4105], // Beijing Daxing
             'WUH': [30.7838, 114.2081], // Wuhan Tianhe
+            'CKG': [29.4316, 106.9123], // Chongqing
+            'TFU': [30.5728, 104.0668], // Chengdu Tianfu
             'HAK': [19.9349, 110.4591], // Haikou Meilan
             'LHW': [36.5152, 103.6203], // Lanzhou Zhongchuan
             'SIN': [1.3644, 103.9915],  // Singapore
@@ -569,6 +571,10 @@ class FlightDataManager {
             
             // Wuhan area airports -> Wuhan
             'WUH': 'Wuhan',
+
+            // Chongqing & Chengdu airports -> Chongqing / Chengdu
+            'CKG': 'Chongqing',
+            'TFU': 'Chengdu',
             
             // Haikou area airports -> Haikou
             'HAK': 'Haikou',

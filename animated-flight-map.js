@@ -802,7 +802,7 @@ class AnimatedFlightMap {
                 
                 // Asia - China
                 'PVG': 'China', 'PEK': 'China', 'CAN': 'China', 'PKX': 'China', 'XIY': 'China',
-                'WUH': 'China', 'HAK': 'China', 'LHW': 'China',
+                'WUH': 'China', 'CKG': 'China', 'TFU': 'China', 'HAK': 'China', 'LHW': 'China',
                 
                 // Asia - North Korea
                 'FNJ': 'North Korea',
@@ -970,7 +970,7 @@ class AnimatedFlightMap {
             'Seoul': 'South Korea', 'Busan': 'South Korea', 'Pusan': 'South Korea', 'Daegu': 'South Korea', 'Daejeon': 'South Korea',
             'Pyongyang': 'North Korea', 'Kaesong': 'North Korea', 'Nampo': 'North Korea', 'Sariwon': 'North Korea',
             'Dandong': 'China',
-            'Beijing': 'China', 'Peking': 'China', 'Tianjin': 'China', 'Shanghai': 'China', 'Wuhan': 'China', 
+            'Beijing': 'China', 'Peking': 'China', 'Tianjin': 'China', 'Shanghai': 'China', 'Chengdu': 'China', 'Chongqing': 'China', 'Wuhan': 'China', 
             'Nanyang': 'China', 'Xian': 'China', "Xi'an": 'China', 'Lanzhou': 'China', 'Haikou': 'China',
             'Hong Kong': 'Hong Kong', 'Taipei': 'Taiwan', 'Kuala Lumpur': 'Malaysia',
             'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
@@ -3333,27 +3333,27 @@ class AnimatedFlightMap {
                 // Tiered comparisons - each shows ~2x to ~10x range
                 if (smallTownYears >= 0.00225) {
                     // 90+ tons: Small town
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${(smallTownYears * 100).toFixed(2)}% Town Emissions / Year</span>`;
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${(smallTownYears * 100).toFixed(2)}% Annual Town Emission</span>`;
                 }
                 else if (homesEquivalent >= 3) {
                     // 22.5+ tons: Home (3x → 12x at 90)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${homesEquivalent.toFixed(1)}x Household Emissions / Year</span>`;
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${homesEquivalent.toFixed(1)}x Annual Household Emission</span>`;
                 }
                 else if (carsEquivalent >= 3) {
                     // 13.8+ tons: Car (3x → 4.9x at 22.5)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${carsEquivalent.toFixed(1)}x Car Emissions / Year</span>`;
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${carsEquivalent.toFixed(1)}x Annual Car Emission</span>`;
                 }
                 else if (personYears >= 2) {
                     // 8+ tons: Per capita (2x → 3.45x at 13.8)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${personYears.toFixed(1)}x Annual Per Capita Emissions</span>`;
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${personYears.toFixed(1)}x Annual Global Average Per Capita Emission</span>`;
                 }
                 else if (motorcyclesEquivalent >= 2) {
                     // 5+ tons: Motorcycle (2x → 3.2x at 8)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${motorcyclesEquivalent.toFixed(1)}x Motorcycle Emissions / Year</span>`;
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${motorcyclesEquivalent.toFixed(1)}x Annual Motorcycle Emission</span>`;
                 }
                 else if (laptopsEquivalent >= 2) {
                     // 0.6+ tons: Laptops (2x → 16.7x at 5)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${laptopsEquivalent.toFixed(0)} Laptop${laptopsEquivalent >= 2 ? 's' : ''} Production Emissions</span>`;
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${laptopsEquivalent.toFixed(0)} Laptops'${laptopsEquivalent >= 2 ? '' : ''} Production Emission</span>`;
                 }
                 
                 this.animateNumber(co2EmissionEl, co2Kg, 750, (val) => {

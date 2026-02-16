@@ -206,3 +206,5 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2026-02-26,AK 47,"Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)","Colombo / Bandaranaike (CMB/VCBI)",20:50:00,21:50:00,04:00:00,"AirAsia"," ()",,,0,0,0,,1527,577,0,0,100.5
 2026-03-02,AK 46,"Colombo / Bandaranaike (CMB/VCBI)","Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)",22:50:00,05:00:00,03:10:00,"AirAsia"," ()",,,0,0,0,,577,1527,0,0,100.5
 2026-03-03,AK 701,"Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)","Singapore / Changi (SIN/WSSS)",06:00:00,07:05:00,01:05:00,"AirAsia"," ()",,,0,0,0,,1527,2672,0,0,39
+2026-04-30,PN 6444,"Singapore / Changi (SIN/WSSS)","Chongqing / Chongqing (CKG/ZUCK)",00:40:00,05:40:00,05:00:00,"West Air"," ()",,,0,0,0,,2672,566,0,0,206
+2026-05-04,SQ 843,"Chengdu / Chengdu Tianfu International Airport (TFU/ZUTF)","Singapore / Changi (SIN/WSSS)",18:25:00,23:15:00,04:50:00,"Singapore Airlines"," ()",,,0,0,0,,9607,2672,0,0,135.84
