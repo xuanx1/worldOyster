@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Is the World Your Oyster? 🦪</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sundanese&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -373,6 +374,16 @@
             word-break: break-word;
         }
 
+        /* Native (local) name shown under English name in city list */
+        .city-item .city-native {
+            color: #bbbbbb;
+            font-size: 0.65em;
+            margin-top: 3px;
+            line-height: 1.7;
+            font-family: 'Noto Sans Sundanese', 'Noto Sans', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .city-item .city-native:empty { display: none; }
+
         @media (max-width: 768px) {
             .city-item {
                 padding: 8px;
@@ -412,7 +423,7 @@
             min-width: 120px;
             text-align: center;
             line-height: 1.1;
-            color: inherit; /* allow inner elements (.city-name/.city-country) to control their own styles */
+            color: inherit; /* allow inner elements (.city-name/.city-country/.city-native) to control their own styles */
         }
 
         .leaflet-tooltip.city-tooltip .city-name {
@@ -427,6 +438,15 @@
             text-transform: uppercase;
             letter-spacing: 0.2em;
         }
+        .leaflet-tooltip.city-tooltip .city-native {
+            color: #e0e0e0;
+            font-size: 0.9em;
+            margin-top: 2px;
+            line-height: 1.1;
+            font-style: normal;
+            opacity: 0.95;
+            font-family: 'Noto Sans Sundanese', 'Noto Sans', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
         .leaflet-tooltip.city-tooltip .city-country {
             color: #ffffff;
             font-size: 0.6em;
@@ -436,6 +456,9 @@
         }
 
         .city-tooltip-inner { display:flex; flex-direction:column; gap:4px; align-items:center; justify-content:center; }
+
+        /* Hide empty native-name lines to avoid extra spacing */
+        .city-native:empty { display: none !important; }
 
         /* Ensure tooltip arrow matches new background */
         .leaflet-tooltip.city-tooltip.leaflet-tooltip-top:before,
@@ -1083,6 +1106,7 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="flight-data.js"></script>
+    <script src="city-native-names.js"></script>
     <script src="animated-flight-map.js"></script>
 </body>
 </html>
