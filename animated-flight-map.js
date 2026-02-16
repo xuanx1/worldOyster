@@ -2473,9 +2473,10 @@ class AnimatedFlightMap {
                 if (!seg || seg.length < 2) return;
 
                 // Invisible but thick hit-area so hover is easy on small screens
+                // Increased weight to improve hover/tap hit radius on mobile and small screens
                 const hit = L.polyline(seg, {
                     color: '#4CAF50',
-                    weight: 10,
+                    weight: 32,
                     opacity: 0,
                     interactive: true,
                     className: 'route-hit'
