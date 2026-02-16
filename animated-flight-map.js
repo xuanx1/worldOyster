@@ -1006,7 +1006,7 @@ class AnimatedFlightMap {
             // North America
             'New York': 'USA', 'Philadelphia': 'USA', 'Los Angeles': 'USA', 'Los Angles': 'USA',
             'Chicago': 'USA', 'Milwaukee': 'USA', 'San Francisco': 'USA', 'Seattle': 'USA',
-            'Boston': 'USA', 'Atlantic City': 'USA', 'Washington DC': 'USA',
+            'Boston': 'USA', 'Atlantic City': 'USA', 'Washington, D.C.': 'USA',
             'Toronto': 'Canada', 'Vancouver': 'Canada', 'Montreal': 'Canada', 'Ottawa': 'Canada', 'Niagara': 'Canada',
             'Tijuana': 'Mexico',
             
@@ -1109,16 +1109,26 @@ class AnimatedFlightMap {
 
         const marker = L.marker([city.lat, city.lng], { icon: markerIcon });
         
-        // Bind a tooltip that mirrors the city list layout: city (top) and country (below)
+        // Bind a tooltip that mirrors the city list layout: city (top), native name (middle) and country (below)
         const tooltipEl = document.createElement('div');
         tooltipEl.className = 'city-tooltip-inner';
         const ttName = document.createElement('div');
         ttName.className = 'city-name';
         ttName.textContent = city.name || '';
+
+        // Native / local-language name (loaded from `city-native-names.js` if present)
+        const ttNative = document.createElement('div');
+        ttNative.className = 'city-native';
+        const nativeLookupKey = (city.name || '').trim();
+        const _rawNative = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[nativeLookupKey] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(nativeLookupKey)])) || '';
+        ttNative.textContent = (_rawNative && _rawNative.trim() !== (city.name || '').trim()) ? _rawNative : '';
+
         const ttCountry = document.createElement('div');
         ttCountry.className = 'city-country';
         ttCountry.textContent = city.country || '';
+
         tooltipEl.appendChild(ttName);
+        tooltipEl.appendChild(ttNative);
         tooltipEl.appendChild(ttCountry);
 
         marker.bindTooltip(tooltipEl, {
@@ -2261,6 +2271,7 @@ class AnimatedFlightMap {
         if (lower === 'phnompenh' || trimmed === 'Phnom Penh') return 'Phnom Penh';
         if (lower === 'hue') return 'Hue';
         if (lower === 'perth') return 'Perth';
+        if (lower === 'malta' || trimmed === 'Malta') return 'Valletta';
         if (lower === 'ho chi minh (saigon)') return 'Ho Chi Minh City';
         return name;
     }
@@ -2759,6 +2770,7 @@ class AnimatedFlightMap {
             if (lower === 'phnompenh' || trimmed === 'phnom penh') return 'Phnom Penh';
             if (lower === 'hue') return 'Hue';
             if (lower === 'perth') return 'Perth';
+            if (lower === 'malta' || trimmed === 'Malta') return 'Valletta';
             return name;
         }
         
@@ -2787,10 +2799,13 @@ class AnimatedFlightMap {
         // Animate each city appearing
         uniqueCityArray.forEach((city, index) => {
             setTimeout(() => {
+                const _rawNativeForList = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(city.name)])) || '';
+                const nativeNameForList = (_rawNativeForList && _rawNativeForList.trim() !== (city.name || '').trim()) ? _rawNativeForList : '';
                 const cityItemHTML = `
                     <div class="city-status">${index + 1}</div>
                     <div class="city-info">
                         <div class="city-name">${city.name}</div>
+                        <div class="city-native">${nativeNameForList}</div>
                         <div class="city-country">${city.country}</div>
                     </div>
                 `;
@@ -2902,10 +2917,15 @@ class AnimatedFlightMap {
                         <div class="city-status">${idx + 1}</div>
                         <div class="city-info">
                             <div class="city-name"></div>
+                            <div class="city-native"></div>
                             <div class="city-country"></div>
                         </div>
                     `;
                     node.querySelector('.city-name').textContent = city.name || '';
+                    {
+                        const _raw = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(city.name)])) || '';
+                        node.querySelector('.city-native').textContent = (_raw && _raw.trim() !== (city.name || '').trim()) ? _raw : '';
+                    }
                     node.querySelector('.city-country').textContent = city.country || '';
                     frag.appendChild(node);
                 });
@@ -2924,9 +2944,15 @@ class AnimatedFlightMap {
                     // correct node at correct position — update minimal fields
                     const statusDiv = existingAtPos.querySelector('.city-status');
                     const nameEl = existingAtPos.querySelector('.city-name');
+                    const nativeEl = existingAtPos.querySelector('.city-native');
                     const countryEl = existingAtPos.querySelector('.city-country');
                     if (statusDiv && statusDiv.textContent !== String(i + 1)) statusDiv.textContent = String(i + 1);
                     if (nameEl && nameEl.textContent !== data.city.name) nameEl.textContent = data.city.name || '';
+                    if (nativeEl) {
+                        const _raw = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[data.city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(data.city.name)])) || '';
+                        const _display = (_raw && _raw.trim() !== (data.city.name || '').trim()) ? _raw : '';
+                        if (nativeEl.textContent !== _display) nativeEl.textContent = _display;
+                    }
                     if (countryEl && countryEl.textContent !== (data.city.country || '')) countryEl.textContent = data.city.country || '';
                     existingAtPos.setAttribute('data-city-index', data.firstIndex);
                     continue;
@@ -2940,15 +2966,22 @@ class AnimatedFlightMap {
                     // Update its content (status / text)
                     const statusDiv = found.querySelector('.city-status');
                     const nameEl = found.querySelector('.city-name');
+                    const nativeEl = found.querySelector('.city-native');
                     const countryEl = found.querySelector('.city-country');
                     if (statusDiv) statusDiv.textContent = String(i + 1);
                     if (nameEl) nameEl.textContent = data.city.name || '';
+                    if (nativeEl) {
+                        const _raw = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[data.city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(data.city.name)])) || '';
+                        nativeEl.textContent = (_raw && _raw.trim() !== (data.city.name || '').trim()) ? _raw : '';
+                    }
                     if (countryEl) countryEl.textContent = data.city.country || '';
                     found.setAttribute('data-city-index', data.firstIndex);
                     continue;
                 }
 
                 // Node does not exist — create and insert
+                const _rawNativeForNode = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[data.city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(data.city.name)])) || '';
+                const nativeNameForNode = (_rawNativeForNode && _rawNativeForNode.trim() !== (data.city.name || '').trim()) ? _rawNativeForNode : '';
                 const node = document.createElement('div');
                 node.className = 'city-item';
                 node.setAttribute('data-city-key', expectedKey);
@@ -2957,6 +2990,7 @@ class AnimatedFlightMap {
                     <div class="city-status">${i + 1}</div>
                     <div class="city-info">
                         <div class="city-name">${data.city.name || ''}</div>
+                        <div class="city-native">${nativeNameForNode}</div>
                         <div class="city-country">${data.city.country || ''}</div>
                     </div>
                 `;

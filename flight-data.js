@@ -253,6 +253,7 @@ class FlightDataManager {
             'Palermo': [38.1157, 13.3613],
             'Modena': [44.6478, 10.9249],
             'San Marino': [43.9424, 12.4578],
+            'Valletta': [35.8989, 14.5146],
             'Bozen': [46.4983, 11.3548],
             'Trieste': [45.6495, 13.7768],
             'Novara': [45.4469, 8.6216],
@@ -408,6 +409,7 @@ class FlightDataManager {
             'Boston': [42.3601, -71.0589],
             'Atlantic City': [39.3643, -74.4229],
             'Washington DC': [38.9072, -77.0369],
+            'Washington, D.C.': [38.9072, -77.0369],
             'Miami': [25.7617, -80.1918],
             'Las Vegas': [36.1699, -115.1398],
             'Toronto': [43.6532, -79.3832],
@@ -490,6 +492,8 @@ class FlightDataManager {
             'MXP': 'Milan',
             'LIN': 'Milan',
             'BGY': 'Milan',
+            // Malta airport -> Valletta
+            'MLA': 'Valletta',
             
             // Tokyo area airports -> Tokyo
             'HND': 'Tokyo',
@@ -979,6 +983,7 @@ class FlightDataManager {
                 if (lower === 'phnompenh' || lower === 'phnom penh') return 'Phnom Penh';
                 if (lower === 'hue') return 'Hue';
                 if (lower === 'perth') return 'Perth';
+                if (lower === 'malta') return 'Valletta';
                 return name;
             }
 

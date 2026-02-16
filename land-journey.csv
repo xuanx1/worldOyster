@@ -54,8 +54,8 @@ Petra,Amman,bus,18,8/4/2022
 Amman,Jerusalem,bus,77.93,9/4/2022
 New York,Philadelphia,train,21,13/4/2022
 Philadelphia,New York,train,21,13/4/2022
-New York,Washington DC,bus,39,15/4/2022
-Washington DC,New York,bus,39,15/4/2022
+New York,"Washington, D.C.", D.C.,bus,39,15/4/2022
+"Washington, D.C.",New York,bus,39,15/4/2022
 Jerusalem,Eilat,bus,15,3/5/2022
 Eilat,Taba,bus,15,4/5/2022
 Taba,Cairo,bus,200,4/5/2022
@@ -192,8 +192,8 @@ Visoko,Sarajevo,bus,4.5,8/5/2024
 Sarajevo,Podgorica,bus,32.83,10/5/2024
 Lisbon,Porto,bus,7.5,14/5/2024
 Porto,Lisbon,bus,7.5,14/5/2024
-New York,Washington DC,train,38.87,31/10/2024
-Washington DC,New York,train,38.87,1/11/2024
+New York,"Washington, D.C.",train,38.87,31/10/2024
+"Washington, D.C.",New York,train,38.87,1/11/2024
 New Delhi,Agra,car,8.5,14/11/2024
 Agra,New Delhi,car,11.5,14/11/2024
 New York,Montreal,bus,113.19,27/11/2024
@@ -208,8 +208,8 @@ Philadelphia,Atlantic City,train,17.37,8/1/2025
 Atlantic City,New York,bus,61.89,9/1/2025
 Chicago,Milwaukee,train,29.89,28/2/2025
 Milwaukee,Chicago,train,29.89,28/2/2025
-New York,Washington DC,train,56.54,9/5/2025
-Washington DC,New York,train,56.54,9/5/2025
+New York,"Washington, D.C.",train,56.54,9/5/2025
+"Washington, D.C.",New York,train,56.54,9/5/2025
 New York,Boston,bus,46.83,10/5/2025
 Boston,New York,bus,46.83,10/5/2025
 New York,Niagara,bus,70.42,10/5/2025
