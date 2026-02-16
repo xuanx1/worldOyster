@@ -129,6 +129,21 @@ class AnimatedFlightMap {
 
         // Create custom flight dot marker
         this.createFlightDot();
+
+        // Clear transient route hovers/tooltips when clicking or tapping the map (mobile-friendly)
+        this.map.on('click', () => {
+            if (this.routeInteractivePolylines && this.routeInteractivePolylines.length) {
+                this.routeInteractivePolylines.forEach(m => this._clearRouteHover(m));
+            }
+        });
+        const _mapContainer = this.map && this.map.getContainer ? this.map.getContainer() : null;
+        if (_mapContainer) {
+            _mapContainer.addEventListener('touchstart', () => {
+                if (this.routeInteractivePolylines && this.routeInteractivePolylines.length) {
+                    this.routeInteractivePolylines.forEach(m => this._clearRouteHover(m));
+                }
+            }, { passive: true });
+        }
     }
 
     updatePanningState() {
@@ -1126,6 +1141,16 @@ class AnimatedFlightMap {
             const el = (marker.getElement && marker.getElement());
             if (el) el.classList.remove('active');
         });
+
+        // Support mobile: open tooltip on tap so city markers behave consistently with route taps
+        marker.on('click', (ev) => {
+            try {
+                marker.openTooltip();
+                const el = (marker.getElement && marker.getElement());
+                if (el) el.classList.add('active');
+            } catch (err) { /* ignore */ }
+        });
+
         marker.on('remove', () => { try { marker.closeTooltip(); } catch (e) {} });
 
         // Don't add to map initially - will be added when flight reaches city
@@ -2461,6 +2486,11 @@ class AnimatedFlightMap {
                 const meta = { poly: hit, fromIndex: i, toIndex: i + 1, fromCity, toCity };
 
                 // Hover — show tooltip (use same element/classes as city marker tooltip so appearance is identical)
+                const _showRouteHover = (ev) => {
+                    // reuse same mouseover behavior for touch/click
+                    hit.fire('mouseover', ev);
+                };
+
                 hit.on('mouseover', (e) => {
                     const content = this._buildRoutePopupContent(fromCity, toCity);
 
@@ -2537,10 +2567,32 @@ class AnimatedFlightMap {
                     } catch (err) {}
                 });
 
+                // Support mobile/tap and pointer interactions — tap once to show, tap again (or tap map) to clear
+                hit.on('click', (e) => {
+                    try {
+                        if (meta._hoverActive) {
+                            this._clearRouteHover(meta);
+                        } else {
+                            // forward to mouseover handler for consistent behavior
+                            hit.fire('mouseover', e);
+                        }
+                    } catch (ex) { /* ignore */ }
+                });
+
+                // Some platforms expose touch events directly; handle them the same as click
+                hit.on('touchstart', (e) => {
+                    try {
+                        if (meta._hoverActive) {
+                            this._clearRouteHover(meta);
+                        } else {
+                            hit.fire('mouseover', e);
+                        }
+                    } catch (ex) { /* ignore */ }
+                });
+
                 hit.on('mouseout', () => this._clearRouteHover(meta));
 
-                // Click-to-pin popup disabled — routes use hover-only popups now.
-                // Click behavior removed to avoid pinned popups; hover still shows transient tooltip.
+                // Click-to-pin popup disabled for desktop — routes still respond to tap on mobile via the handlers above.
 
 
                 this.routeInteractivePolylines.push(meta);
