@@ -3,7 +3,7 @@ An animated journey map visualizing my travel history and its environmental impa
 
 <img width="1290" height="2796" alt="127 0 0 1_5500_animated-flight-map html(iPhone 14 Pro Max)" src="https://github.com/user-attachments/assets/c9d5f456-c813-4c4e-9d26-a936f76b22ec" />
 
-![Screenshot 2025-09-23 015354](https://github.com/user-attachments/assets/c54b6a5e-84de-4e5f-baf3-be1cde4c0ce9)
+![Screenshot 2026-02-16 145934](https://github.com/user-attachments/assets/7ebe332f-89ab-46f6-b75d-4e7251f8d4bc)
 
 ### 🎮 Interactive Timeline Controls
 - **Video-like scrubber**: Drag the glowing timeline head to jump to any point in your journey
