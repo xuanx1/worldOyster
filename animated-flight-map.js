@@ -228,7 +228,7 @@ class AnimatedFlightMap {
                 button.onclick = () => {
                     map.setView([20, 100], 1.45);
                     // Update panning state after reset
-                    this.updatePanningState();
+                    try { this.updatePanningState(); } catch (e) { /* defensive */ }
                 };
                 
                 return button;
@@ -533,6 +533,17 @@ class AnimatedFlightMap {
             const toCode = journey.toCode || journey.destination;
             
             console.log(`Processing journey ${index}: ${fromCode} -> ${toCode}, date: ${journey.date}, type: ${journey.type}`);
+
+            // Diagnostic: detect malformed or out-of-range dates that could display as unexpected years (e.g. 2039)
+            try {
+                const parsed = new Date(journey.date);
+                const year = parsed && !isNaN(parsed.getFullYear()) ? parsed.getFullYear() : null;
+                if (year === null || year < 1900 || year > 2050) {
+                    console.warn('Unusual journey.date parsed year:', { index, rawDate: journey.date, parsedYear: year, journey });
+                }
+            } catch (e) {
+                console.warn('Error parsing journey.date for diagnostic check', { index, rawDate: journey.date, err: e, journey });
+            }
             
             // Add departure city only if it's the first journey OR if the previous journey's destination doesn't match this origin
             const previousCity = citySequence.length > 0 ? citySequence[citySequence.length - 1] : null;

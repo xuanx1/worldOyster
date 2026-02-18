@@ -54,7 +54,7 @@ Petra,Amman,bus,18,8/4/2022
 Amman,Jerusalem,bus,77.93,9/4/2022
 New York,Philadelphia,train,21,13/4/2022
 Philadelphia,New York,train,21,13/4/2022
-New York,"Washington, D.C.", D.C.,bus,39,15/4/2022
+New York,"Washington, D.C.",bus,39,15/4/2022
 "Washington, D.C.",New York,bus,39,15/4/2022
 Jerusalem,Eilat,bus,15,3/5/2022
 Eilat,Taba,bus,15,4/5/2022
