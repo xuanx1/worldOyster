@@ -40,8 +40,8 @@ class AnimatedFlightMap {
         
         // Initialize exchange rates with fallback values
         this.exchangeRates = {
-            USD_TO_SGD: 1.30, // Fallback values
-            SGD_TO_USD: 0.77, // Inverse of USD_TO_SGD
+            USD_TO_SGD: 1.27, // Fallback values
+            SGD_TO_USD: 0.787, // Inverse of USD_TO_SGD
             USD_TO_EUR: 0.9,
             USD_TO_RMB: 7.2
         };
@@ -169,7 +169,7 @@ class AnimatedFlightMap {
             const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
             if (response.ok) {
                 const data = await response.json();
-                const usdToSgd = data.rates.SGD || 1.30;
+                const usdToSgd = data.rates.SGD || 1.27;
                 this.exchangeRates = {
                     USD_TO_SGD: usdToSgd,
                     SGD_TO_USD: 1 / usdToSgd,
@@ -1009,7 +1009,8 @@ class AnimatedFlightMap {
             'Yangon': 'Myanmar', 'Mandalay': 'Myanmar',
             'Manila': 'Philippines', 'Cebu': 'Philippines',
             'New Delhi': 'India', 'Delhi': 'India', 'Agra': 'India', 'Jaipur': 'India', 
-            'Mumbai': 'India', 'Kolkata': 'India', 'Calcutta': 'India', 'Colombo': 'Sri Lanka', 'Chennai': 'India',
+            'Mumbai': 'India', 'Kolkata': 'India', 'Calcutta': 'India', 'Chennai': 'India',
+            'Colombo': 'Sri Lanka', 'Kandy': 'Sri Lanka', 'Galle': 'Sri Lanka', 'Sigiriya': 'Sri Lanka', 'Dambulla': 'Sri Lanka', 'Anuradhapura': 'Sri Lanka',
             'Dhaka': 'Bangladesh',
             'Chiang Mai': 'Thailand','Bangkok': 'Thailand', 'Phuket': 'Thailand',
             'Yogyakarta': 'Indonesia', 'Surakarta': 'Indonesia', 'Jakarta': 'Indonesia', 'Bandung': 'Indonesia',
@@ -3159,7 +3160,7 @@ class AnimatedFlightMap {
                 },
                 costs: {
                     SGD: Math.round(this.totalCostSGD),
-                    USD: Math.round(this.totalCostSGD * (this.exchangeRates.SGD_TO_USD || 0.74))
+                    USD: Math.round(this.totalCostSGD * (this.exchangeRates.SGD_TO_USD || 0.787))
                 }
             },
             cities: this.cities.map((city, index) => ({
@@ -3207,7 +3208,7 @@ class AnimatedFlightMap {
                     cost: (() => {
                         // Use actual cost from CSV if available, otherwise fall back to calculation
                         if (toCity.originalFlight && toCity.originalFlight.costSGD && toCity.originalFlight.costSGD > 0) {
-                            const actualCostUSD = toCity.originalFlight.costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
+                            const actualCostUSD = toCity.originalFlight.costSGD * (this.exchangeRates.SGD_TO_USD || 0.787);
                             return {
                                 USD: Math.round(actualCostUSD),
                                 SGD: Math.round(toCity.originalFlight.costSGD),
@@ -3217,7 +3218,7 @@ class AnimatedFlightMap {
                             const estimatedCostUSD = distance * 0.25;
                             return {
                                 USD: Math.round(estimatedCostUSD),
-                                SGD: Math.round(estimatedCostUSD * (this.exchangeRates.USD_TO_SGD || 1.30)),
+                                SGD: Math.round(estimatedCostUSD * (this.exchangeRates.USD_TO_SGD || 1.27)),
                                 source: "calculated_estimate"
                             };
                         }
@@ -3469,7 +3470,7 @@ class AnimatedFlightMap {
         // Separate USD and SGD cost displays
         if (totalCostUSDEl) {
             if (this.totalCostSGD > 0) {
-                const totalCostUSD = this.totalCostSGD * (this.exchangeRates.SGD_TO_USD || 0.77);
+                const totalCostUSD = this.totalCostSGD * (this.exchangeRates.SGD_TO_USD || 0.787);
                 this.animateNumber(totalCostUSDEl, totalCostUSD, 800, (val) => `US$${Math.round(val).toLocaleString()}`);
             } else {
                 totalCostUSDEl.textContent = '-';
@@ -3686,7 +3687,7 @@ class AnimatedFlightMap {
             
             // Update and show USD cost increment (convert from SGD)
             if (incCostUSD) {
-                const costUSD = costSGD * (this.exchangeRates.SGD_TO_USD || 0.74);
+                const costUSD = costSGD * (this.exchangeRates.SGD_TO_USD || 0.787);
                 incCostUSD.textContent = `+US$${Math.round(costUSD)}`;
                 incCostUSD.classList.add('show');
             }

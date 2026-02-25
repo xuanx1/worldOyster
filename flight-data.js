@@ -7,7 +7,7 @@ class FlightDataManager {
         this.combinedData = [];
         this.currencyRates = {
             SGD: 1.0,      // Base currency
-            USD: 0.74,     // 1 SGD = 0.74 USD
+            USD: 0.787,    // 1 SGD = 0.787 USD
             EUR: 0.68,     // 1 SGD = 0.68 EUR
             RMB: 5.32      // 1 SGD = 5.32 RMB
         };
@@ -343,6 +343,11 @@ class FlightDataManager {
             'Yangon': [16.8409, 96.1735],
             'Mandalay': [21.9757, 96.0848],
             'Colombo': [6.9271, 79.8612],
+            'Sigiriya': [7.9570, 80.7603],
+            'Dambulla': [7.8675, 80.6517],
+            'Kandy': [7.2906, 80.6337],
+            'Anuradhapura': [8.3114, 80.4037],
+            'Galle': [6.0535, 80.2210],
             'Kuala Lumpur': [3.1390, 101.6869],
             'Singapore': [1.3521, 103.8198],
             'Manila': [14.5995, 120.9842],

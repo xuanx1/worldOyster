@@ -239,9 +239,18 @@ Nanyang,Xi'an,train,38.13,26/12/2025
 Xi'an,Lanzhou,train,38.60,31/12/2025
 Yogyakarta,Surakarta,train,3.2,8/2/2026
 Surakarta,Yogyakarta,train,3.2,8/2/2026
-Singapore,Penang,ferry,0,19/2/2026
-Penang,Phuket,ferry,0,19/2/2026
-Phuket,Singapore,ferry,0,20/2/2026
+Singapore,Penang,ferry,120,19/2/2026
+Penang,Phuket,ferry,160,19/2/2026
+Phuket,Singapore,ferry,220,20/2/2026
+Colombo,Sigiriya,bus,6.13,27/2/2026
+Sigiriya,Dambulla,bus,0.5,27/2/2026
+Dambulla,Colombo,bus,2.25,27/2/2026
+Colombo,Kandy,bus,1.72,28/2/2026
+Kandy,Colombo,bus,1.72,28/2/2026
+Colombo,Anuradhapura,train,12.26,1/3/2026
+Anuradhapura,Colombo,bus,3.27,1/3/2026
+Colombo,Galle,train,2.45,2/3/2026
+Galle,Colombo,bus,1.72,2/3/2026
 Singapore,Kuala Lumpur,train,28.76,3/4/2026
 Kuala Lumpur,Singapore,train,28.76,5/4/2026
 Chongqing,Chengdu,train,17.66,2/5/2026
