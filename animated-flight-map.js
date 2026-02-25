@@ -462,6 +462,22 @@ class AnimatedFlightMap {
         }
     }
     
+    getYearSlogan(year) {
+        const slogans = {
+            2017: 'Return to the Origin',
+            2018: 'The Nation Calls',
+            2019: 'Beyond the Horizon',
+            2020: 'Grounded, Almost',
+            2021: 'The Far West',
+            2022: 'Middle East\'s First Foray',
+            2023: 'Chasing Schengen',
+            2024: 'Every Continent Calls',
+            2025: 'The Americas Await',
+            2026: 'The Southeast Asian Network',
+        };
+        return slogans[year] || '';
+    }
+
     updateHeaderYear(journeys) {
         // Store journeys for year updates during animation
         this.flightData = journeys;
@@ -477,6 +493,8 @@ class AnimatedFlightMap {
             if ((headerTitle || yearOverlay) && !isNaN(firstYear)) {
                 if (headerTitle) {
                     headerTitle.textContent = firstYear.toString();
+                    const slogan = document.querySelector('.header-slogan');
+                    if (slogan) slogan.textContent = this.getYearSlogan(firstYear);
                 }
                 if (yearOverlay) {
                     yearOverlay.textContent = firstYear.toString();
@@ -487,6 +505,8 @@ class AnimatedFlightMap {
                     const retryOverlay = document.getElementById('yearOverlay');
                     if (retryHeader && !isNaN(firstYear)) {
                         retryHeader.textContent = firstYear.toString();
+                        const slogan = document.querySelector('.header-slogan');
+                        if (slogan) slogan.textContent = this.getYearSlogan(firstYear);
                     }
                     if (retryOverlay && !isNaN(firstYear)) {
                         retryOverlay.textContent = firstYear.toString();
@@ -508,6 +528,8 @@ class AnimatedFlightMap {
                 if (!isNaN(currentYear)) {
                     if (headerTitle) {
                         headerTitle.textContent = currentYear.toString();
+                        const slogan = document.querySelector('.header-slogan');
+                        if (slogan) slogan.textContent = this.getYearSlogan(currentYear);
                     }
                     if (yearOverlay) {
                         yearOverlay.textContent = currentYear.toString();
@@ -3250,13 +3272,23 @@ class AnimatedFlightMap {
                 },
                 scales: {
                     x: {
+                        afterBuildTicks: (axis) => {
+                            const labels = this.legChart?.data?.labels;
+                            if (!labels || !labels.length) return;
+                            axis.ticks = axis.ticks.filter((tick, idx) => {
+                                const i = Math.round(tick.value);
+                                if (i < 0 || i >= labels.length) return false;
+                                if (idx === 0) return true;
+                                return labels[i] !== labels[i - 1];
+                            });
+                        },
                         ticks: {
                             color: '#838383', maxRotation: 0, font: { size: 8 },
-                            callback: (_val, idx) => {
-                                const label = this.legChart.data.labels[idx];
-                                if (idx === 0) return label;
-                                const prev = this.legChart.data.labels[idx - 1];
-                                return label !== prev ? label : null;
+                            autoSkip: false,
+                            callback: (_val) => {
+                                const labels = this.legChart.data.labels;
+                                if (_val < 0 || _val >= labels.length) return null;
+                                return labels[_val];
                             }
                         },
                         grid: { color: '#1e1e1e83' }
@@ -3264,14 +3296,14 @@ class AnimatedFlightMap {
                     y1: {
                         type: 'linear',
                         position: 'left',
-                        ticks: { color: '#4CAF50', font: { size: 10 }, maxTicksLimit: 5 },
+                        ticks: { color: '#4CAF50', font: { size: 11 }, maxTicksLimit: 3 },
                         grid: { color: '#1e1e1e83' },
                         title: { display: true, text: '', color: '#4CAF50', font: { size: 8 } }
                     },
                     y2: {
                         type: 'linear',
                         position: 'right',
-                        ticks: { color: '#FF6B35', font: { size: 10 }, maxTicksLimit: 5 },
+                        ticks: { color: '#FF6B35', font: { size: 11}, maxTicksLimit: 3 },
                         grid: { drawOnChartArea: false },
                         title: { display: true, text: '', color: '#FF6B35', font: { size: 8 } }
                     }
@@ -3279,9 +3311,10 @@ class AnimatedFlightMap {
             }
         });
 
-        // Wire up filter buttons
+        // Wire up filter buttons; disable year buttons initially until enough data is animated
         document.querySelectorAll('.chart-filter-btn').forEach(btn => {
             btn.addEventListener('click', () => this.filterChart(btn.dataset.period));
+            if (btn.dataset.period !== 'all') btn.disabled = true;
         });
 
         // Manual drag-to-pan on X axis
@@ -3291,9 +3324,9 @@ class AnimatedFlightMap {
         cv.addEventListener('mousedown', (e) => {
             if (e.button !== 0) return;
             dragStartX = e.clientX;
-            const sc = this.legChart.scales.x;
-            dragStartMin = sc.min;
-            dragStartMax = sc.max;
+            const total = this.legChart.data.labels.length;
+            dragStartMin = (this._panMin != null) ? this._panMin : (this.legChart.options.scales.x.min ?? 0);
+            dragStartMax = (this._panMax != null) ? this._panMax : (this.legChart.options.scales.x.max ?? Math.max(0, total - 1));
             cv.style.cursor = 'grabbing';
         });
         cv.addEventListener('mousemove', (e) => {
@@ -3302,7 +3335,7 @@ class AnimatedFlightMap {
             if (!total) return;
             const range = dragStartMax - dragStartMin;
             const pxPerIdx = this.legChart.chartArea.width / range;
-            const shift = Math.round((dragStartX - e.clientX) / pxPerIdx);
+            const shift = (dragStartX - e.clientX) / pxPerIdx;
             const newMin = Math.max(0, dragStartMin + shift);
             const newMax = Math.min(total - 1, newMin + range);
             this._panMin = newMax - range; // persist pan position
@@ -3310,10 +3343,92 @@ class AnimatedFlightMap {
             this.legChart.options.scales.x.min = this._panMin;
             this.legChart.options.scales.x.max = this._panMax;
             this.legChart.update('none');
+            this._updateScrollbar();
         });
         const endDrag = () => { dragStartX = null; cv.style.cursor = 'grab'; };
         cv.addEventListener('mouseup', endDrag);
         cv.addEventListener('mouseleave', endDrag);
+
+        // Scroll wheel panning
+        cv.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const total = this.legChart.data.labels.length;
+            if (!total) return;
+            const currentMin = (this._panMin != null) ? this._panMin : (this.legChart.options.scales.x.min ?? 0);
+            const currentMax = (this._panMax != null) ? this._panMax : (this.legChart.options.scales.x.max ?? total - 1);
+            const windowRange = currentMax - currentMin;
+            if (windowRange <= 0 || windowRange >= total - 1) return;
+            let delta = e.deltaY;
+            if (e.deltaMode === 1) delta *= 20;
+            else if (e.deltaMode === 2) delta *= 400;
+            const chartWidth = (this.legChart.chartArea && this.legChart.chartArea.width) || 300;
+            const shift = (delta / chartWidth) * windowRange;
+            const newMin = Math.max(0, currentMin + shift);
+            const newMax = Math.min(total - 1, newMin + windowRange);
+            this._panMin = newMax - windowRange;
+            this._panMax = newMax;
+            this.legChart.options.scales.x.min = this._panMin;
+            this.legChart.options.scales.x.max = this._panMax;
+            this.legChart.update('none');
+            this._updateScrollbar();
+        }, { passive: false });
+
+        // Scrollbar thumb drag and track click
+        const scrollTrack = document.getElementById('chartScrollbarTrack');
+        const scrollThumb = document.getElementById('chartScrollbarThumb');
+        if (scrollTrack && scrollThumb) {
+            let sbDragStartX = null, sbDragStartLeft = null;
+
+            scrollThumb.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                sbDragStartX = e.clientX;
+                sbDragStartLeft = parseFloat(scrollThumb.style.left) || 0;
+                scrollThumb.classList.add('dragging');
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (sbDragStartX === null) return;
+                const total = this.legChart.data.labels.length;
+                if (!total) return;
+                const scMin = this.legChart.options.scales.x.min ?? 0;
+                const scMax = this.legChart.options.scales.x.max ?? (total - 1);
+                const visible = scMax - scMin + 1;
+                const thumbWidth = parseFloat(scrollThumb.style.width) || 20;
+                const maxThumbLeft = scrollTrack.offsetWidth - thumbWidth;
+                const newLeft = Math.max(0, Math.min(maxThumbLeft, sbDragStartLeft + (e.clientX - sbDragStartX)));
+                const newMin = maxThumbLeft > 0 ? (newLeft / maxThumbLeft) * (total - visible) : 0;
+                this._panMin = newMin;
+                this._panMax = newMin + visible - 1;
+                this.legChart.options.scales.x.min = this._panMin;
+                this.legChart.options.scales.x.max = this._panMax;
+                this.legChart.update('none');
+                this._updateScrollbar();
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (sbDragStartX !== null) { sbDragStartX = null; scrollThumb.classList.remove('dragging'); }
+            });
+
+            scrollTrack.addEventListener('click', (e) => {
+                if (e.target === scrollThumb) return;
+                const total = this.legChart.data.labels.length;
+                if (!total) return;
+                const scMin = this.legChart.options.scales.x.min ?? 0;
+                const scMax = this.legChart.options.scales.x.max ?? (total - 1);
+                const visible = scMax - scMin + 1;
+                const thumbWidth = parseFloat(scrollThumb.style.width) || 20;
+                const maxThumbLeft = scrollTrack.offsetWidth - thumbWidth;
+                const clickX = e.clientX - scrollTrack.getBoundingClientRect().left - thumbWidth / 2;
+                const newLeft = Math.max(0, Math.min(maxThumbLeft, clickX));
+                const newMin = maxThumbLeft > 0 ? (newLeft / maxThumbLeft) * (total - visible) : 0;
+                this._panMin = newMin;
+                this._panMax = newMin + visible - 1;
+                this.legChart.options.scales.x.min = this._panMin;
+                this.legChart.options.scales.x.max = this._panMax;
+                this.legChart.update('none');
+                this._updateScrollbar();
+            });
+        }
     }
 
     _getDatasetStartDate() {
@@ -3340,9 +3455,11 @@ class AnimatedFlightMap {
         if (!total) return;
 
         if (!this.chartFilter || this.chartFilter === 'all') {
-            if (resetPan) { this._panMin = undefined; this._panMax = undefined; }
-            this.legChart.options.scales.x.min = this._panMin;
-            this.legChart.options.scales.x.max = this._panMax;
+            // Always show the full data range for 'all' — ignore any accumulated pan position
+            this._panMin = undefined;
+            this._panMax = undefined;
+            this.legChart.options.scales.x.min = 0;
+            this.legChart.options.scales.x.max = total - 1;
         } else {
             const years = parseInt(this.chartFilter);
             const cutoff = new Date(this._getDatasetStartDate());
@@ -3354,14 +3471,17 @@ class AnimatedFlightMap {
             }
             if (resetPan) this._panMin = 0;
             const min = Math.max(0, Math.min(this._panMin ?? 0, total - 1 - windowSize));
+            const max = Math.min(total - 1, min + windowSize);
+            this._panMin = min;
+            this._panMax = max;
             this.legChart.options.scales.x.min = min;
-            this.legChart.options.scales.x.max = Math.min(total - 1, min + windowSize);
+            this.legChart.options.scales.x.max = max;
         }
     }
 
     _applyXWindow(resetPan = false) {
         this._setXWindowOpts(resetPan);
-        if (this.legChart) this.legChart.update('none');
+        if (this.legChart) { this.legChart.update('none'); this._updateScrollbar(); }
     }
 
     filterChart(period) {
@@ -3370,7 +3490,67 @@ class AnimatedFlightMap {
             btn.classList.toggle('active', btn.dataset.period === period);
         });
         if (this.legChart) this.legChart.stop();
-        this._applyXWindow(); // preserve pan position, only change window size
+        this._applyXWindow(true); // reset pan on explicit filter switch so the view starts at the correct position
+    }
+
+    _updateScrollbar() {
+        const track = document.getElementById('chartScrollbarTrack');
+        const thumb = document.getElementById('chartScrollbarThumb');
+        if (!track || !thumb || !this.legChart) return;
+
+        const total = this.legChart.data.labels.length;
+        if (!total) { track.style.display = 'none'; return; }
+
+        const scMin = this.legChart.options.scales.x.min ?? 0;
+        const scMax = this.legChart.options.scales.x.max ?? (total - 1);
+        const visible = scMax - scMin + 1;
+
+        // Hide scrollbar when all data is already visible
+        if (visible >= total) { track.style.display = 'none'; return; }
+        track.style.display = 'block';
+
+        const trackWidth = track.offsetWidth;
+        const thumbWidth = Math.max(16, (visible / total) * trackWidth);
+        const maxThumbLeft = trackWidth - thumbWidth;
+        const thumbLeft = (total - visible) > 0 ? (scMin / (total - visible)) * maxThumbLeft : 0;
+
+        thumb.style.width = thumbWidth + 'px';
+        thumb.style.left = Math.max(0, Math.min(maxThumbLeft, thumbLeft)) + 'px';
+    }
+
+    _updateFilterButtons() {
+        const dates = this._chartDates;
+        const startDate = this._getDatasetStartDate();
+        if (!dates || !dates.length || !startDate || isNaN(startDate.getTime())) {
+            document.querySelectorAll('.chart-filter-btn[data-period]').forEach(btn => {
+                if (btn.dataset.period !== 'all') btn.disabled = true;
+            });
+            return;
+        }
+
+        // Find the latest non-null date currently in the chart
+        let latestDate = null;
+        for (let i = dates.length - 1; i >= 0; i--) {
+            if (dates[i]) {
+                const d = new Date(dates[i]);
+                if (!isNaN(d.getTime())) { latestDate = d; break; }
+            }
+        }
+        if (!latestDate) return;
+
+        const yearsCovered = (latestDate.getTime() - startDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+
+        document.querySelectorAll('.chart-filter-btn[data-period]').forEach(btn => {
+            const period = btn.dataset.period;
+            if (period === 'all') return;
+            btn.disabled = yearsCovered < parseInt(period);
+        });
+
+        // If the active filter is now disabled (e.g. scrubbed backward), fall back to 'all'
+        if (this.chartFilter && this.chartFilter !== 'all') {
+            const activeBtn = document.querySelector(`.chart-filter-btn[data-period="${this.chartFilter}"]`);
+            if (activeBtn && activeBtn.disabled) this.filterChart('all');
+        }
     }
 
     addChartPoint(label, costPerKm, co2PerSGD, date, tripName) {
@@ -3392,6 +3572,8 @@ class AnimatedFlightMap {
             this._setXWindowOpts();
         }
         this.legChart.update(); // animated line extension
+        this._updateScrollbar();
+        this._updateFilterButtons();
     }
 
     rebuildChart() {
@@ -3415,6 +3597,7 @@ class AnimatedFlightMap {
         this._chartDates = dates;
         this._chartTripNames = tripNames;
         this._applyXWindow();
+        this._updateFilterButtons();
     }
 
     // ────────────────────────────────────────────────────────────────────────
