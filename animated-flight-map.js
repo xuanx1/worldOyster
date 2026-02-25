@@ -52,8 +52,10 @@ class AnimatedFlightMap {
         this.loadingStatusText = document.getElementById('loadingStatusText');
         
         this.legChart = null;
+        this.priceChart = null; // separate chart for journey prices/inflation
         this.chartFilter = 'all';
         this._datasetEndDate = null;
+        this._chartWindowSize = 40; // number of points visible in the sliding window when filter='all' (controls push effect)
 
         this.updateLoadingProgress(10, 'Initializing map...');
         this.initializeMap();
@@ -1413,10 +1415,10 @@ class AnimatedFlightMap {
         const _costPerKm = distanceKm > 0 ? costSGD / distanceKm : 0;
         const _co2PerSGD = costSGD > 0 ? (co2EmissionKg / costSGD) * 1000 : null;
         const _legDate = toCity.originalFlight ? toCity.originalFlight.date : null;
-        toCity.legChartData = { costPerKm: _costPerKm, co2PerSGD: _co2PerSGD, date: _legDate };
+        toCity.legChartData = { costPerKm: _costPerKm, co2PerSGD: _co2PerSGD, date: _legDate, cost: costSGD };
         const _legYear = _legDate ? new Date(_legDate).getFullYear().toString() : '';
         const _tripName = `${fromCity.name} → ${toCity.name}`;
-        this.addChartPoint(_legYear, _costPerKm, _co2PerSGD, _legDate, _tripName);
+        this.addChartPoint(_legYear, _costPerKm, _co2PerSGD, _legDate, _tripName, costSGD);
         
         // Faster animation - reduced timing (min 500ms, max 2000ms)
         // Apply speed multiplier
@@ -2292,7 +2294,7 @@ class AnimatedFlightMap {
                 const _costPerKm = distanceKm > 0 ? costSGD / distanceKm : 0;
                 const _co2PerSGD = costSGD > 0 ? (co2EmissionKg / costSGD) * 1000 : null;
                 const _legDate = toCity.originalFlight ? toCity.originalFlight.date : null;
-                toCity.legChartData = { costPerKm: _costPerKm, co2PerSGD: _co2PerSGD, date: _legDate };
+                toCity.legChartData = { costPerKm: _costPerKm, co2PerSGD: _co2PerSGD, date: _legDate, cost: costSGD };
             }
         }
         this.rebuildChart();
@@ -3272,32 +3274,14 @@ class AnimatedFlightMap {
                 },
                 scales: {
                     x: {
-                        afterBuildTicks: (axis) => {
-                            const labels = this.legChart?.data?.labels;
-                            if (!labels || !labels.length) return;
-                            axis.ticks = axis.ticks.filter((tick, idx) => {
-                                const i = Math.round(tick.value);
-                                if (i < 0 || i >= labels.length) return false;
-                                if (idx === 0) return true;
-                                return labels[i] !== labels[i - 1];
-                            });
-                        },
-                        ticks: {
-                            color: '#838383', maxRotation: 0, font: { size: 8 },
-                            autoSkip: false,
-                            callback: (_val) => {
-                                const labels = this.legChart.data.labels;
-                                if (_val < 0 || _val >= labels.length) return null;
-                                return labels[_val];
-                            }
-                        },
-                        grid: { color: '#1e1e1e83' }
+                        ticks: { display: false },
+                        grid: { color: '#1e1e1e09' }
                     },
                     y1: {
                         type: 'linear',
                         position: 'left',
                         ticks: { color: '#4CAF50', font: { size: 11 }, maxTicksLimit: 3 },
-                        grid: { color: '#1e1e1e83' },
+                        grid: { color: '#1e1e1e09' },
                         title: { display: true, text: '', color: '#4CAF50', font: { size: 8 } }
                     },
                     y2: {
@@ -3311,26 +3295,103 @@ class AnimatedFlightMap {
             }
         });
 
+        // initialize price chart (simple single‑line showing SGD per leg)
+        const priceCanvas = document.getElementById('priceChart');
+        if (priceCanvas && typeof Chart !== 'undefined') {
+            this.priceChart = new Chart(priceCanvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'SGD, Absolute',
+                        data: [],
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                        tension: 0.35,
+                        pointRadius: 1.5,
+                        borderWidth: 0.5,
+                        spanGaps: false
+                    }]
+                },
+                options: {
+                    animation: { duration: 600, easing: 'easeOutQuart' },
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { labels: { color: '#b6b6b6', font: { size: 9 }, boxWidth: 10 } },
+                        tooltip: {
+                            backgroundColor: 'rgba(38,38,38,0.98)',
+                            borderColor: 'rgba(255,255,255,0.04)',
+                            borderWidth: 1,
+                            borderRadius: 8,
+                            padding: { x: 10, y: 8 },
+                            titleColor: '#4CAF50',
+                            titleFont: { size: 10, weight: '600' },
+                            bodyColor: '#e0e0e0',
+                            bodyFont: { size: 9 },
+                            footerColor: 'rgba(255,255,255,0.3)',
+                            footerFont: { size: 8 },
+                            titleAlign: 'center',
+                            bodyAlign: 'center',
+                            footerAlign: 'center',
+                            displayColors: false,
+                            callbacks: {
+                                title: (items) => {
+                                    const idx = items[0]?.dataIndex;
+                                    return (this._chartTripNames && idx != null)
+                                        ? this._chartTripNames[idx]
+                                        : '';
+                                },
+                                label: (ctx) => {
+                                    if (ctx.raw === null) return null;
+                                    return `S$  ${ctx.raw.toFixed(2)}`;
+                                },
+                                footer: (items) => {
+                                    const idx = items[0]?.dataIndex;
+                                    const d = this._chartDates?.[idx];
+                                    return d ? new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase() : '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { display: false },
+                            grid: { color: '#1e1e1e09' }
+                        },
+                        y: {
+                            ticks: { color: '#4CAF50', font: { size: 11 }, maxTicksLimit: 3 },
+                            grid: { drawOnChartArea: false },
+                        }
+                    }
+                }
+            });
+        }
+
         // Wire up filter buttons; disable year buttons initially until enough data is animated
         document.querySelectorAll('.chart-filter-btn').forEach(btn => {
             btn.addEventListener('click', () => this.filterChart(btn.dataset.period));
             if (btn.dataset.period !== 'all') btn.disabled = true;
         });
 
-        // Manual drag-to-pan on X axis
-        const cv = canvas;
+        // Manual drag-to-pan on X axis (applies to both charts)
+        const cvs = [canvas];
+        if (priceCanvas) cvs.push(priceCanvas);
         let dragStartX = null, dragStartMin = null, dragStartMax = null;
-        cv.style.cursor = 'grab';
-        cv.addEventListener('mousedown', (e) => {
+
+        const onMouseDown = (e) => {
             if (e.button !== 0) return;
+            const cv = e.currentTarget;
             dragStartX = e.clientX;
             const total = this.legChart.data.labels.length;
             dragStartMin = (this._panMin != null) ? this._panMin : (this.legChart.options.scales.x.min ?? 0);
             dragStartMax = (this._panMax != null) ? this._panMax : (this.legChart.options.scales.x.max ?? Math.max(0, total - 1));
             cv.style.cursor = 'grabbing';
-        });
-        cv.addEventListener('mousemove', (e) => {
+        };
+        const onMouseMove = (e) => {
             if (dragStartX === null) return;
+            const cv = e.currentTarget;
             const total = this.legChart.data.labels.length;
             if (!total) return;
             const range = dragStartMax - dragStartMin;
@@ -3340,17 +3401,20 @@ class AnimatedFlightMap {
             const newMax = Math.min(total - 1, newMin + range);
             this._panMin = newMax - range; // persist pan position
             this._panMax = newMax;
-            this.legChart.options.scales.x.min = this._panMin;
-            this.legChart.options.scales.x.max = this._panMax;
-            this.legChart.update('none');
+            if (this.legChart) {
+                this.legChart.options.scales.x.min = this._panMin;
+                this.legChart.options.scales.x.max = this._panMax;
+                this.legChart.update('none');
+            }
+            if (this.priceChart) {
+                this.priceChart.options.scales.x.min = this._panMin;
+                this.priceChart.options.scales.x.max = this._panMax;
+                this.priceChart.update('none');
+            }
             this._updateScrollbar();
-        });
-        const endDrag = () => { dragStartX = null; cv.style.cursor = 'grab'; };
-        cv.addEventListener('mouseup', endDrag);
-        cv.addEventListener('mouseleave', endDrag);
-
-        // Scroll wheel panning
-        cv.addEventListener('wheel', (e) => {
+        };
+        const endDragFn = (e) => { dragStartX = null; e.currentTarget.style.cursor = 'grab'; };
+        const onWheel = (e) => {
             e.preventDefault();
             const total = this.legChart.data.labels.length;
             if (!total) return;
@@ -3367,11 +3431,27 @@ class AnimatedFlightMap {
             const newMax = Math.min(total - 1, newMin + windowRange);
             this._panMin = newMax - windowRange;
             this._panMax = newMax;
-            this.legChart.options.scales.x.min = this._panMin;
-            this.legChart.options.scales.x.max = this._panMax;
-            this.legChart.update('none');
+            if (this.legChart) {
+                this.legChart.options.scales.x.min = this._panMin;
+                this.legChart.options.scales.x.max = this._panMax;
+                this.legChart.update('none');
+            }
+            if (this.priceChart) {
+                this.priceChart.options.scales.x.min = this._panMin;
+                this.priceChart.options.scales.x.max = this._panMax;
+                this.priceChart.update('none');
+            }
             this._updateScrollbar();
-        }, { passive: false });
+        };
+
+        cvs.forEach(cv => {
+            cv.style.cursor = 'grab';
+            cv.addEventListener('mousedown', onMouseDown);
+            cv.addEventListener('mousemove', onMouseMove);
+            cv.addEventListener('mouseup', endDragFn);
+            cv.addEventListener('mouseleave', endDragFn);
+            cv.addEventListener('wheel', onWheel, { passive: false });
+        });
 
         // Scrollbar thumb drag and track click
         const scrollTrack = document.getElementById('chartScrollbarTrack');
@@ -3399,9 +3479,16 @@ class AnimatedFlightMap {
                 const newMin = maxThumbLeft > 0 ? (newLeft / maxThumbLeft) * (total - visible) : 0;
                 this._panMin = newMin;
                 this._panMax = newMin + visible - 1;
-                this.legChart.options.scales.x.min = this._panMin;
-                this.legChart.options.scales.x.max = this._panMax;
-                this.legChart.update('none');
+                if (this.legChart) {
+                    this.legChart.options.scales.x.min = this._panMin;
+                    this.legChart.options.scales.x.max = this._panMax;
+                    this.legChart.update('none');
+                }
+                if (this.priceChart) {
+                    this.priceChart.options.scales.x.min = this._panMin;
+                    this.priceChart.options.scales.x.max = this._panMax;
+                    this.priceChart.update('none');
+                }
                 this._updateScrollbar();
             });
 
@@ -3423,9 +3510,16 @@ class AnimatedFlightMap {
                 const newMin = maxThumbLeft > 0 ? (newLeft / maxThumbLeft) * (total - visible) : 0;
                 this._panMin = newMin;
                 this._panMax = newMin + visible - 1;
-                this.legChart.options.scales.x.min = this._panMin;
-                this.legChart.options.scales.x.max = this._panMax;
-                this.legChart.update('none');
+                if (this.legChart) {
+                    this.legChart.options.scales.x.min = this._panMin;
+                    this.legChart.options.scales.x.max = this._panMax;
+                    this.legChart.update('none');
+                }
+                if (this.priceChart) {
+                    this.priceChart.options.scales.x.min = this._panMin;
+                    this.priceChart.options.scales.x.max = this._panMax;
+                    this.priceChart.update('none');
+                }
                 this._updateScrollbar();
             });
         }
@@ -3450,16 +3544,23 @@ class AnimatedFlightMap {
 
     // Only sets scale options — caller is responsible for calling chart.update().
     _setXWindowOpts(resetPan = false) {
-        if (!this.legChart) return;
-        const total = this.legChart.data.labels.length;
+        // handle both charts – legChart is primary but priceChart should mirror
+        const chart = this.legChart || this.priceChart;
+        if (!chart) return;
+        const total = chart.data.labels.length;
         if (!total) return;
 
         if (!this.chartFilter || this.chartFilter === 'all') {
-            // Always show the full data range for 'all' — ignore any accumulated pan position
             this._panMin = undefined;
             this._panMax = undefined;
-            this.legChart.options.scales.x.min = 0;
-            this.legChart.options.scales.x.max = total - 1;
+            if (this.legChart) {
+                this.legChart.options.scales.x.min = 0;
+                this.legChart.options.scales.x.max = total - 1;
+            }
+            if (this.priceChart) {
+                this.priceChart.options.scales.x.min = 0;
+                this.priceChart.options.scales.x.max = total - 1;
+            }
         } else {
             const years = parseInt(this.chartFilter);
             const cutoff = new Date(this._getDatasetStartDate());
@@ -3474,14 +3575,21 @@ class AnimatedFlightMap {
             const max = Math.min(total - 1, min + windowSize);
             this._panMin = min;
             this._panMax = max;
-            this.legChart.options.scales.x.min = min;
-            this.legChart.options.scales.x.max = max;
+            if (this.legChart) {
+                this.legChart.options.scales.x.min = min;
+                this.legChart.options.scales.x.max = max;
+            }
+            if (this.priceChart) {
+                this.priceChart.options.scales.x.min = min;
+                this.priceChart.options.scales.x.max = max;
+            }
         }
     }
 
     _applyXWindow(resetPan = false) {
         this._setXWindowOpts(resetPan);
         if (this.legChart) { this.legChart.update('none'); this._updateScrollbar(); }
+        if (this.priceChart) { this.priceChart.update('none'); }
     }
 
     filterChart(period) {
@@ -3553,25 +3661,33 @@ class AnimatedFlightMap {
         }
     }
 
-    addChartPoint(label, costPerKm, co2PerSGD, date, tripName) {
-        if (!this.legChart) return;
-        this.legChart.data.labels.push(label);
-        this.legChart.data.datasets[0].data.push(costPerKm != null ? +costPerKm.toFixed(4) : null);
-        this.legChart.data.datasets[1].data.push(co2PerSGD != null ? +co2PerSGD.toFixed(2) : null);
+    addChartPoint(label, costPerKm, co2PerSGD, date, tripName, cost = null) {
+        // update efficiency chart
+        if (this.legChart) {
+            this.legChart.data.labels.push(label);
+            this.legChart.data.datasets[0].data.push(costPerKm != null ? +costPerKm.toFixed(4) : null);
+            this.legChart.data.datasets[1].data.push(co2PerSGD != null ? +co2PerSGD.toFixed(2) : null);
+        }
+        // update price chart
+        if (this.priceChart) {
+            this.priceChart.data.labels.push(label);
+            this.priceChart.data.datasets[0].data.push(cost != null ? +cost.toFixed(2) : null);
+        }
         if (!this._chartDates) this._chartDates = [];
         if (!this._chartTripNames) this._chartTripNames = [];
         this._chartDates.push(date || null);
         this._chartTripNames.push(tripName || label);
         this._setXWindowOpts();
         // If the new point falls past the right edge of the window, slide forward
-        const newIdx = this.legChart.data.labels.length - 1;
-        const xMax = this.legChart.options.scales.x.max;
+        const newIdx = (this.legChart || this.priceChart).data.labels.length - 1;
+        const xMax = this.legChart ? this.legChart.options.scales.x.max : undefined;
         if (xMax !== undefined && newIdx > xMax) {
             const windowSize = xMax - (this.legChart.options.scales.x.min ?? 0);
             this._panMin = Math.max(0, newIdx - windowSize);
             this._setXWindowOpts();
         }
-        this.legChart.update(); // animated line extension
+        if (this.legChart) this.legChart.update(); // animated line extension
+        if (this.priceChart) this.priceChart.update();
         this._updateScrollbar();
         this._updateFilterButtons();
     }
@@ -3579,7 +3695,7 @@ class AnimatedFlightMap {
     rebuildChart() {
         if (!this.legChart) return;
         this.legChart.stop();
-        const labels = [], costData = [], co2Data = [], dates = [], tripNames = [];
+        const labels = [], costData = [], co2Data = [], priceData = [], dates = [], tripNames = [];
         for (let i = 1; i < this.cities.length && i <= this.currentCityIndex; i++) {
             const city = this.cities[i];
             const d = city.legChartData;
@@ -3587,6 +3703,7 @@ class AnimatedFlightMap {
                 labels.push(d.date ? new Date(d.date).getFullYear().toString() : '');
                 costData.push(d.costPerKm != null ? +d.costPerKm.toFixed(4) : null);
                 co2Data.push(d.co2PerSGD != null ? +d.co2PerSGD.toFixed(2) : null);
+                priceData.push(d.cost != null ? +d.cost.toFixed(2) : null);
                 dates.push(d.date || null);
                 tripNames.push(`${this.cities[i - 1].name} → ${city.name}`);
             }
@@ -3594,6 +3711,10 @@ class AnimatedFlightMap {
         this.legChart.data.labels = labels;
         this.legChart.data.datasets[0].data = costData;
         this.legChart.data.datasets[1].data = co2Data;
+        if (this.priceChart) {
+            this.priceChart.data.labels = labels;
+            this.priceChart.data.datasets[0].data = priceData;
+        }
         this._chartDates = dates;
         this._chartTripNames = tripNames;
         this._applyXWindow();

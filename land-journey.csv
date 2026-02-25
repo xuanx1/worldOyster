@@ -149,6 +149,7 @@ Helsinki,Tallinn,ferry,32.25,13/8/2023
 Tallinn,Helsinki,ferry,32.25,13/8/2023
 Singapore,Batam,ferry,38,4/9/2023
 Batam,Singapore,ferry,38,5/9/2023
+Abu Dhabi,Sharjah,bus,13.76,11/9/2023
 Milan,Novara,train,13,15/10/2023
 Novara,Milan,train,13,15/10/2023
 Milan,Rome,train,39.09,2/11/2023
@@ -194,8 +195,8 @@ Lisbon,Porto,bus,7.5,14/5/2024
 Porto,Lisbon,bus,7.5,14/5/2024
 New York,"Washington, D.C.",train,38.87,31/10/2024
 "Washington, D.C.",New York,train,38.87,1/11/2024
-New Delhi,Agra,car,8.5,14/11/2024
-Agra,New Delhi,car,11.5,14/11/2024
+Delhi,Agra,car,8.5,14/11/2024
+Agra,Delhi,car,11.5,14/11/2024
 New York,Montreal,bus,113.19,27/11/2024
 Montreal,Ottawa,train,56.27,28/11/2024
 Ottawa,Toronto,train,72.66,29/11/2024

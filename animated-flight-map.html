@@ -1049,6 +1049,21 @@
             flex-direction: column;
             overflow: hidden;
         }
+        /* Price/inflation chart sits above the efficiency chart; identical styling
+           height reduced and container allowed to expand to full available width */
+        #priceChartContainer {
+            margin-top: auto;
+            width: 100%;
+            height: 200px; /* reduced height */
+            background: #333333;
+            border: 1px solid #2a2a2a;
+            border-radius: 14px;
+            padding: 12px 0;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
         .chart-header {
             display: flex;
             justify-content: space-between;
@@ -1094,6 +1109,17 @@
             width: 100% !important;
             height: 100% !important;
         }
+        /* mirror for price chart */
+        #priceChartWrap {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+        }
+        #priceChart {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
         .chart-scrollbar-track {
             height: 6px;
             background: #444;
@@ -1104,6 +1130,8 @@
             flex-shrink: 0;
             display: none;
         }
+        /* hide the duplicate track for price chart since we'll only control the top chart */
+        #priceChartScrollbarTrack { display: none !important; }
         .chart-scrollbar-thumb {
             position: absolute;
             top: 0;
@@ -1119,6 +1147,7 @@
         .chart-scrollbar-thumb.dragging { background: #888; cursor: grabbing; }
         @media (max-width: 768px) {
             #chartContainer { display: none; }
+            #priceChartContainer { display: none; }
         }
 
         /* Year display overlay */
@@ -1147,6 +1176,27 @@
         <h1 class="main-title">
             IS THE WORLD<br>YOUR 🦪🦪?
         </h1>
+        <!-- price/inflation chart sits between title and existing efficiency chart -->
+        <div id="priceChartContainer">
+            <div class="chart-header">
+                <div class="chart-label">Inflation, Singapore</div>
+                <div class="chart-filters">
+                    <button class="chart-filter-btn active" data-period="all">ALL</button>
+                    <button class="chart-filter-btn" data-period="1">1Y</button>
+                    <button class="chart-filter-btn" data-period="3">3Y</button>
+                    <button class="chart-filter-btn" data-period="5">5Y</button>
+                    <button class="chart-filter-btn" data-period="7">7Y</button>
+                    <button class="chart-filter-btn" data-period="10">10Y</button>
+                </div>
+            </div>
+            <div id="priceChartWrap">
+                <canvas id="priceChart"></canvas>
+            </div>
+            <div class="chart-scrollbar-track" id="priceChartScrollbarTrack">
+                <div class="chart-scrollbar-thumb" id="priceChartScrollbarThumb"></div>
+            </div>
+        </div>
+
         <button class="export-button" id="exportButton">
             📊 Export Data
         </button>
