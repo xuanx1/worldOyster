@@ -51,6 +51,10 @@ class AnimatedFlightMap {
         this.loadingBar = document.getElementById('loadingBar');
         this.loadingStatusText = document.getElementById('loadingStatusText');
         
+        this.legChart = null;
+        this.chartFilter = 'all';
+        this._datasetEndDate = null;
+
         this.updateLoadingProgress(10, 'Initializing map...');
         this.initializeMap();
         this.updateLoadingProgress(30, 'Loading flight data...');
@@ -59,6 +63,7 @@ class AnimatedFlightMap {
         this.fetchExchangeRates(); // Fetch live rates
         this.updateStatistics();
         this.initializeScrubber(); // Initialize scrubber functionality
+        this.initChart();
         
         // Auto-start animation after data loads (increased delay for CSV loading)
         setTimeout(() => {
@@ -608,10 +613,20 @@ class AnimatedFlightMap {
                 }
             }
         });
-        
-        return citySequence;
+
+        // Collapse consecutive same-name cities (different airports in the same city)
+        // into a single entry so no zero-distance legs appear in the animation or chart.
+        const deduped = [];
+        for (const city of citySequence) {
+            if (deduped.length === 0 || deduped[deduped.length - 1].name !== city.name) {
+                deduped.push(city);
+            }
+            // else: same city name as previous — skip
+        }
+
+        return deduped;
     }
-    
+
     getJourneyCoordinates(journey, direction) {
         // Try to get coordinates for any journey type
         let locationCode;
@@ -1020,13 +1035,29 @@ class AnimatedFlightMap {
             'Chicago': 'USA', 'Milwaukee': 'USA', 'San Francisco': 'USA', 'Seattle': 'USA',
             'Boston': 'USA', 'Atlantic City': 'USA', 'Washington, D.C.': 'USA',
             'Toronto': 'Canada', 'Vancouver': 'Canada', 'Montreal': 'Canada', 'Ottawa': 'Canada', 'Niagara': 'Canada',
-            'Tijuana': 'Mexico',
-            
+            'Tijuana': 'Mexico', 'Mexico City': 'Mexico', 'Oaxaca': 'Mexico',
+            'Miami': 'USA', 'Las Vegas': 'USA', 'Washington DC': 'USA', 'Denver': 'USA', 'New Orleans': 'USA',
+
             // South America
             'La Paz': 'Bolivia', 'Uyuni': 'Bolivia', 'Puno': 'Peru', 'Cusco': 'Peru', 'Cuzco': 'Peru',
             'Ollantaytambo': 'Peru', 'Aguas Calientes': 'Peru', 'Aguas Caliente': 'Peru',
-            'Lima': 'Peru', 'Ica': 'Peru', 'Huacachina': 'Peru',
-            'Tamanrasset': 'Algeria',
+            'Lima': 'Peru', 'Ica': 'Peru', 'Huacachina': 'Peru', 'Santiago': 'Chile', 'Bogotá': 'Colombia', 'Bogota': 'Colombia',
+            'Tamanrasset': 'Algeria', 'Constantine': 'Algeria',
+
+            // Middle East / North Africa extras
+            'Jeddah': 'Saudi Arabia', 'Mecca': 'Saudi Arabia', 'Medina': 'Saudi Arabia',
+            'Muscat': 'Oman', 'Salalah': 'Oman',
+            'Sharjah': 'UAE',
+            'Kuwait': 'Kuwait',
+            'Giza': 'Egypt',
+
+            // Europe extras
+            'Tirana': 'Albania', 'Iasi': 'Romania',
+
+            // Asia extras
+            'Jeju': 'South Korea',
+            'Dhaka': 'Bangladesh',
+            'Baku': 'Azerbaijan',
 
             //Oceania
             'Sydney': 'Australia', 'Melbourne': 'Australia', 'Brisbane': 'Australia', 'Perth': 'Australia',
@@ -1355,6 +1386,15 @@ class AnimatedFlightMap {
         // Show increment box - pass journey type for proper display
         const isLandJourney = journeyData && journeyData.type === 'land';
         this.showIncrement(distanceKm, timeHours, co2EmissionKg, costSGD, isLandJourney);
+
+        // Store per-leg chart data and update chart
+        const _costPerKm = distanceKm > 0 ? costSGD / distanceKm : 0;
+        const _co2PerSGD = costSGD > 0 ? (co2EmissionKg / costSGD) * 1000 : null;
+        const _legDate = toCity.originalFlight ? toCity.originalFlight.date : null;
+        toCity.legChartData = { costPerKm: _costPerKm, co2PerSGD: _co2PerSGD, date: _legDate };
+        const _legYear = _legDate ? new Date(_legDate).getFullYear().toString() : '';
+        const _tripName = `${fromCity.name} → ${toCity.name}`;
+        this.addChartPoint(_legYear, _costPerKm, _co2PerSGD, _legDate, _tripName);
         
         // Faster animation - reduced timing (min 500ms, max 2000ms)
         // Apply speed multiplier
@@ -2225,8 +2265,15 @@ class AnimatedFlightMap {
                 this.totalTime += timeHours;
                 this.totalCO2 += co2EmissionKg;
                 this.totalCostSGD += costSGD;
+
+                // Store chart data for scrubber sync
+                const _costPerKm = distanceKm > 0 ? costSGD / distanceKm : 0;
+                const _co2PerSGD = costSGD > 0 ? (co2EmissionKg / costSGD) * 1000 : null;
+                const _legDate = toCity.originalFlight ? toCity.originalFlight.date : null;
+                toCity.legChartData = { costPerKm: _costPerKm, co2PerSGD: _co2PerSGD, date: _legDate };
             }
         }
+        this.rebuildChart();
     }
 
     // Position the flight dot at the current city
@@ -3119,6 +3166,258 @@ class AnimatedFlightMap {
     }
 
 
+
+    // ── Leg efficiency chart ────────────────────────────────────────────────
+
+    initChart() {
+        const canvas = document.getElementById('legChart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        this.legChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'S$/km',
+                        data: [],
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76,175,80,0.7)',
+                        yAxisID: 'y1',
+                        tension: 0.35,
+                        pointRadius: 1.5,
+                        borderWidth: 0.5,
+                        spanGaps: false
+                    },
+                    {
+                        label: 'g CO₂/S$',
+                        data: [],
+                        borderColor: '#FF6B35',
+                        backgroundColor: 'rgba(255,107,53,0.7)',
+                        yAxisID: 'y2',
+                        tension: 0.35,
+                        pointRadius: 1.5,
+                        borderWidth: 0.5,
+                        spanGaps: false
+                    }
+                ]
+            },
+            options: {
+                animation: { duration: 600, easing: 'easeOutQuart' },
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: {
+                        labels: { color: '#b6b6b6', font: { size: 9 }, boxWidth: 10 }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(38,38,38,0.98)',
+                        borderColor: 'rgba(255,255,255,0.04)',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        padding: { x: 10, y: 8 },
+                        titleColor: '#4CAF50',
+                        titleFont: { size: 10, weight: '600' },
+                        bodyColor: '#e0e0e0',
+                        bodyFont: { size: 9 },
+                        footerColor: 'rgba(255,255,255,0.3)',
+                        footerFont: { size: 8 },
+                        titleAlign: 'center',
+                        bodyAlign: 'center',
+                        footerAlign: 'center',
+                        displayColors: false,
+                        callbacks: {
+                            title: (items) => {
+                                const idx = items[0]?.dataIndex;
+                                const name = (this._chartTripNames && idx != null)
+                                    ? this._chartTripNames[idx]
+                                    : (this.legChart.data.labels[idx] || '');
+                                return name.toUpperCase();
+                            },
+                            label: (ctx) => {
+                                if (ctx.raw === null) return null;
+                                return ctx.datasetIndex === 0
+                                    ? `S$/KM  ${ctx.raw.toFixed(3)}`
+                                    : `G CO₂/S$  ${ctx.raw.toFixed(1)}`;
+                            },
+                            footer: (items) => {
+                                const idx = items[0]?.dataIndex;
+                                const d = this._chartDates?.[idx];
+                                return d ? new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase() : '';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#838383', maxRotation: 0, font: { size: 8 },
+                            callback: (_val, idx) => {
+                                const label = this.legChart.data.labels[idx];
+                                if (idx === 0) return label;
+                                const prev = this.legChart.data.labels[idx - 1];
+                                return label !== prev ? label : null;
+                            }
+                        },
+                        grid: { color: '#1e1e1e83' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        position: 'left',
+                        ticks: { color: '#4CAF50', font: { size: 10 }, maxTicksLimit: 5 },
+                        grid: { color: '#1e1e1e83' },
+                        title: { display: true, text: '', color: '#4CAF50', font: { size: 8 } }
+                    },
+                    y2: {
+                        type: 'linear',
+                        position: 'right',
+                        ticks: { color: '#FF6B35', font: { size: 10 }, maxTicksLimit: 5 },
+                        grid: { drawOnChartArea: false },
+                        title: { display: true, text: '', color: '#FF6B35', font: { size: 8 } }
+                    }
+                }
+            }
+        });
+
+        // Wire up filter buttons
+        document.querySelectorAll('.chart-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.filterChart(btn.dataset.period));
+        });
+
+        // Manual drag-to-pan on X axis
+        const cv = canvas;
+        let dragStartX = null, dragStartMin = null, dragStartMax = null;
+        cv.style.cursor = 'grab';
+        cv.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            dragStartX = e.clientX;
+            const sc = this.legChart.scales.x;
+            dragStartMin = sc.min;
+            dragStartMax = sc.max;
+            cv.style.cursor = 'grabbing';
+        });
+        cv.addEventListener('mousemove', (e) => {
+            if (dragStartX === null) return;
+            const total = this.legChart.data.labels.length;
+            if (!total) return;
+            const range = dragStartMax - dragStartMin;
+            const pxPerIdx = this.legChart.chartArea.width / range;
+            const shift = Math.round((dragStartX - e.clientX) / pxPerIdx);
+            const newMin = Math.max(0, dragStartMin + shift);
+            const newMax = Math.min(total - 1, newMin + range);
+            this._panMin = newMax - range; // persist pan position
+            this._panMax = newMax;
+            this.legChart.options.scales.x.min = this._panMin;
+            this.legChart.options.scales.x.max = this._panMax;
+            this.legChart.update('none');
+        });
+        const endDrag = () => { dragStartX = null; cv.style.cursor = 'grab'; };
+        cv.addEventListener('mouseup', endDrag);
+        cv.addEventListener('mouseleave', endDrag);
+    }
+
+    _getDatasetStartDate() {
+        if (this._datasetStartDate) return this._datasetStartDate;
+        if (this.cities && this.cities.length > 1) {
+            for (let i = 1; i < this.cities.length; i++) {
+                const f = this.cities[i].originalFlight;
+                if (f && f.date) {
+                    const d = new Date(f.date);
+                    if (!isNaN(d.getTime())) {
+                        this._datasetStartDate = d;
+                        return d;
+                    }
+                }
+            }
+        }
+        return new Date();
+    }
+
+    // Only sets scale options — caller is responsible for calling chart.update().
+    _setXWindowOpts(resetPan = false) {
+        if (!this.legChart) return;
+        const total = this.legChart.data.labels.length;
+        if (!total) return;
+
+        if (!this.chartFilter || this.chartFilter === 'all') {
+            if (resetPan) { this._panMin = undefined; this._panMax = undefined; }
+            this.legChart.options.scales.x.min = this._panMin;
+            this.legChart.options.scales.x.max = this._panMax;
+        } else {
+            const years = parseInt(this.chartFilter);
+            const cutoff = new Date(this._getDatasetStartDate());
+            cutoff.setFullYear(cutoff.getFullYear() + years);
+            const dates = this._chartDates || [];
+            let windowSize = 0;
+            for (let i = 0; i < dates.length; i++) {
+                if (dates[i] && new Date(dates[i]) <= cutoff) windowSize = i;
+            }
+            if (resetPan) this._panMin = 0;
+            const min = Math.max(0, Math.min(this._panMin ?? 0, total - 1 - windowSize));
+            this.legChart.options.scales.x.min = min;
+            this.legChart.options.scales.x.max = Math.min(total - 1, min + windowSize);
+        }
+    }
+
+    _applyXWindow(resetPan = false) {
+        this._setXWindowOpts(resetPan);
+        if (this.legChart) this.legChart.update('none');
+    }
+
+    filterChart(period) {
+        this.chartFilter = period;
+        document.querySelectorAll('.chart-filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.period === period);
+        });
+        if (this.legChart) this.legChart.stop();
+        this._applyXWindow(); // preserve pan position, only change window size
+    }
+
+    addChartPoint(label, costPerKm, co2PerSGD, date, tripName) {
+        if (!this.legChart) return;
+        this.legChart.data.labels.push(label);
+        this.legChart.data.datasets[0].data.push(costPerKm != null ? +costPerKm.toFixed(4) : null);
+        this.legChart.data.datasets[1].data.push(co2PerSGD != null ? +co2PerSGD.toFixed(2) : null);
+        if (!this._chartDates) this._chartDates = [];
+        if (!this._chartTripNames) this._chartTripNames = [];
+        this._chartDates.push(date || null);
+        this._chartTripNames.push(tripName || label);
+        this._setXWindowOpts();
+        // If the new point falls past the right edge of the window, slide forward
+        const newIdx = this.legChart.data.labels.length - 1;
+        const xMax = this.legChart.options.scales.x.max;
+        if (xMax !== undefined && newIdx > xMax) {
+            const windowSize = xMax - (this.legChart.options.scales.x.min ?? 0);
+            this._panMin = Math.max(0, newIdx - windowSize);
+            this._setXWindowOpts();
+        }
+        this.legChart.update(); // animated line extension
+    }
+
+    rebuildChart() {
+        if (!this.legChart) return;
+        this.legChart.stop();
+        const labels = [], costData = [], co2Data = [], dates = [], tripNames = [];
+        for (let i = 1; i < this.cities.length && i <= this.currentCityIndex; i++) {
+            const city = this.cities[i];
+            const d = city.legChartData;
+            if (d) {
+                labels.push(d.date ? new Date(d.date).getFullYear().toString() : '');
+                costData.push(d.costPerKm != null ? +d.costPerKm.toFixed(4) : null);
+                co2Data.push(d.co2PerSGD != null ? +d.co2PerSGD.toFixed(2) : null);
+                dates.push(d.date || null);
+                tripNames.push(`${this.cities[i - 1].name} → ${city.name}`);
+            }
+        }
+        this.legChart.data.labels = labels;
+        this.legChart.data.datasets[0].data = costData;
+        this.legChart.data.datasets[1].data = co2Data;
+        this._chartDates = dates;
+        this._chartTripNames = tripNames;
+        this._applyXWindow();
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
 
     // Public method to add cities programmatically
     addCityFromData(name, country, lat, lng) {

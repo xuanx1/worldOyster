@@ -458,7 +458,25 @@ class FlightDataManager {
             'Lagos': [6.5244, 3.3792],
             'Marrakech': [31.6295, -7.9811],
             'Tunis': [36.8065, 10.1815],
-            'Algiers': [36.7538, 3.0588]
+            'Algiers': [36.7538, 3.0588],
+
+            // Cities missing from cityCoords but referenced by airportToCityMap or string parsing
+            'Mexico City': [19.4285, -99.1277],
+            'Bogota': [4.7110, -74.0721],        // accent-free fallback for string-parsed BOG
+            'Giza': [30.0131, 31.2089],           // SPX (Sphinx) airport
+            'Tirana': [41.3275, 19.8187],
+            'Iasi': [47.1585, 27.6014],
+            'Jeddah': [21.3891, 39.8579],
+            'Muscat': [23.5880, 58.3829],
+            'Sharjah': [25.3462, 55.4209],
+            'Jeju': [33.4996, 126.5312],
+            'Dhaka': [23.8103, 90.4125],
+            'Oaxaca': [17.0606, -96.7216],
+            'New Orleans': [29.9511, -90.0715],
+            'Denver': [39.7392, -104.9903],
+            'Constantine': [36.3650, 6.6147],
+            'Baku': [40.4093, 49.8671],
+            'Kuwait': [29.3759, 47.9774],         // accent-free alt for "Kuwait City"
         };
 
         for (const [city, coords] of Object.entries(cities)) {
@@ -709,6 +727,49 @@ class FlightDataManager {
             'TPE': 'Taipei',
             'DXB': 'Dubai',
             'KEF': 'Reykjavik',
+
+            // Airports not previously mapped — use string-parsed city name
+            // ensures airportToCityMap lookup always wins over string parsing
+            'ATH': 'Athens',
+            'AUH': 'Abu Dhabi',
+            'BAH': 'Manama',
+            'BCN': 'Barcelona',
+            'BOG': 'Bogotá',
+            'BOM': 'Mumbai',
+            'BUS': 'Batumi',
+            'CCU': 'Kolkata',
+            'CJU': 'Jeju',
+            'CTA': 'Catania',
+            'CUZ': 'Cusco',
+            'CZL': 'Constantine',
+            'DAC': 'Dhaka',
+            'DAD': 'Da Nang',
+            'DEL': 'Delhi',
+            'DEN': 'Denver',
+            'DOH': 'Doha',
+            'GVA': 'Geneva',
+            'GYD': 'Baku',
+            'IAS': 'Iasi',
+            'JED': 'Jeddah',
+            'KUL': 'Kuala Lumpur',
+            'KWI': 'Kuwait City',
+            'LAS': 'Las Vegas',
+            'LCA': 'Larnaca',
+            'MCT': 'Muscat',
+            'MNL': 'Manila',
+            'MRS': 'Marseille',
+            'MSY': 'New Orleans',
+            'NAP': 'Naples',
+            'OAX': 'Oaxaca',
+            'PUS': 'Busan',
+            'SCL': 'Santiago',
+            'SFO': 'San Francisco',
+            'SGN': 'Ho Chi Minh City (Saigon)',
+            'SHJ': 'Sharjah',
+            'SPX': 'Giza',
+            'TIA': 'Tirana',
+            'TLV': 'Tel Aviv',
+            'VTE': 'Vientiane',
 
         };
 

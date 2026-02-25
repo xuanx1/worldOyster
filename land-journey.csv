@@ -143,8 +143,8 @@ Versailles,Paris,train,9,9/7/2023
 Berlin,Prague,train,28.35,13/7/2023
 Prague,Krakow,train,36,13/7/2023
 Krakow,Prague,train,36,14/7/2023
-Singapore,Malacca,car,0,31/7/2023
-Malacca,Singapore,car,0,3/8/2023
+Singapore,Malacca,car,120,31/7/2023
+Malacca,Singapore,car,120,3/8/2023
 Helsinki,Tallinn,ferry,32.25,13/8/2023
 Tallinn,Helsinki,ferry,32.25,13/8/2023
 Singapore,Batam,ferry,38,4/9/2023
@@ -232,7 +232,7 @@ Huacachina,Lima,bus,23.83,15/9/2025
 Jakarta,Bandung,train,23.5,19/10/2025
 Bandung,Jakarta,train,23.5,19/10/2025
 Bangkok,Vientiane,train,26,14/11/2025
-Vientiane,Luang Prabang,train,0,15/11/2025
+Vientiane,Luang Prabang,train,20.56,15/11/2025
 Luang Prabang,Vientiane,train,20.56,15/11/2025
 Wuhan,Nanyang,train,44.96,24/12/2025
 Nanyang,Xi'an,train,38.13,26/12/2025
