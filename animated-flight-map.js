@@ -152,6 +152,33 @@ class AnimatedFlightMap {
                 }
             }, { passive: true });
         }
+
+        // Move tooltip & popup panes to <body> inside a .leaflet-container
+        // wrapper so they keep inherited Leaflet styles but escape overflow:hidden.
+        const _tp = this.map.getPane('tooltipPane');
+        const _pp = this.map.getPane('popupPane');
+        const _pw = document.createElement('div');
+        _pw.className = 'leaflet-container';
+        _pw.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;overflow:visible;pointer-events:none;z-index:9999;';
+        document.body.appendChild(_pw);
+        if (_tp) _pw.appendChild(_tp);
+        if (_pp) _pw.appendChild(_pp);
+        const _syncPanes = () => {
+            const r = this.map.getContainer().getBoundingClientRect();
+            const mp = this.map.getPane('mapPane');
+            const tr = mp ? mp.style.transform : '';
+            const mm = tr.match(/translate3d\(([^,]+),\s*([^,]+)/);
+            const tx = mm ? parseFloat(mm[1]) : 0;
+            const ty = mm ? parseFloat(mm[2]) : 0;
+            const l = (r.left + window.scrollX + tx) + 'px';
+            const t = (r.top  + window.scrollY + ty) + 'px';
+            if (_tp) { _tp.style.left = l; _tp.style.top = t; _tp.style.zIndex = '9999'; }
+            if (_pp) { _pp.style.left = l; _pp.style.top = t; _pp.style.zIndex = '9999'; }
+        };
+        _syncPanes();
+        this.map.on('move zoom viewreset resize', _syncPanes);
+        window.addEventListener('scroll', _syncPanes, { passive: true });
+        window.addEventListener('resize', _syncPanes, { passive: true });
     }
 
     updatePanningState() {
@@ -3214,6 +3241,52 @@ class AnimatedFlightMap {
 
     // ── Leg efficiency chart ────────────────────────────────────────────────
 
+    _externalTooltip(context, chartType) {
+        const { chart, tooltip } = context;
+        const id = 'chartTooltip_' + chartType;
+        let el = document.getElementById(id);
+        if (!el) {
+            el = document.createElement('div');
+            el.id = id;
+            el.classList.add('chart-tooltip');
+            document.body.appendChild(el);
+        }
+        if (tooltip.opacity === 0) {
+            el.classList.remove('active');
+            return;
+        }
+        const idx = tooltip.dataPoints?.[0]?.dataIndex;
+        const tripName = (this._chartTripNames && idx != null) ? this._chartTripNames[idx] : '';
+        let bodyHtml = '';
+        if (chartType === 'leg') {
+            for (const dp of tooltip.dataPoints) {
+                if (dp.raw === null) continue;
+                const lbl = dp.datasetIndex === 0
+                    ? `${dp.raw.toFixed(3)} S$/km`
+                    : `${(dp.raw / 1000).toFixed(3)} kg CO\u2082/S$`;
+                bodyHtml += `<div>${lbl}</div>`;
+            }
+        } else {
+            for (const dp of tooltip.dataPoints) {
+                if (dp.raw === null) continue;
+                const prefix = dp.datasetIndex === 1 ? 'Real' : 'Nominal';
+                bodyHtml += `<div>${prefix}  S$${dp.raw.toFixed(2)}</div>`;
+            }
+        }
+        const d = this._chartDates?.[idx];
+        const footerText = d ? new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase() : '';
+
+        el.innerHTML =
+            `<div class="ct-title">${tripName.toUpperCase()}</div>` +
+            (bodyHtml ? `<div class="ct-body">${bodyHtml}</div>` : '') +
+            (footerText ? `<div class="ct-footer">${footerText}</div>` : '');
+
+        const canvasRect = chart.canvas.getBoundingClientRect();
+        el.style.left = (canvasRect.left + tooltip.caretX + window.scrollX) + 'px';
+        el.style.top = (canvasRect.top + tooltip.caretY - el.offsetHeight - 8 + window.scrollY) + 'px';
+        el.classList.add('active');
+    }
+
     initChart() {
         const canvas = document.getElementById('legChart');
         if (!canvas || typeof Chart === 'undefined') return;
@@ -3256,41 +3329,8 @@ class AnimatedFlightMap {
                         labels: { color: '#b6b6b6', font: { size: 11 }, boxHeight: 5, boxWidth: 5 }
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(38,38,38,0.98)',
-                        borderColor: 'rgba(255,255,255,0.04)',
-                        borderWidth: 1,
-                        borderRadius: 8,
-                        padding: { x: 10, y: 8 },
-                        titleColor: '#4CAF50',
-                        titleFont: { size: 12, weight: '600' },
-                        bodyColor: '#e0e0e0',
-                        bodyFont: { size: 10 },
-                        footerColor: 'rgba(255,255,255,0.3)',
-                        footerFont: { size: 9 },
-                        titleAlign: 'center',
-                        bodyAlign: 'center',
-                        footerAlign: 'center',
-                        displayColors: false,
-                        callbacks: {
-                            title: (items) => {
-                                const idx = items[0]?.dataIndex;
-                                const name = (this._chartTripNames && idx != null)
-                                    ? this._chartTripNames[idx]
-                                    : (this.legChart.data.labels[idx] || '');
-                                return name.toUpperCase();
-                            },
-                            label: (ctx) => {
-                                if (ctx.raw === null) return null;
-                                return ctx.datasetIndex === 0
-                                    ? `S$/km  ${ctx.raw.toFixed(3)}`
-                                    : `kg CO₂/S$  ${(ctx.raw / 1000).toFixed(3)}`;
-                            },
-                            footer: (items) => {
-                                const idx = items[0]?.dataIndex;
-                                const d = this._chartDates?.[idx];
-                                return d ? new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase() : '';
-                            }
-                        }
+                        enabled: false,
+                        external: (context) => this._externalTooltip(context, 'leg')
                     }
                 },
                 scales: {
@@ -3352,39 +3392,8 @@ class AnimatedFlightMap {
                     plugins: {
                         legend: { labels: { color: '#b6b6b6', font: { size: 11 }, boxWidth: 5, boxHeight: 5 } },
                         tooltip: {
-                            backgroundColor: 'rgba(38,38,38,0.98)',
-                            borderColor: 'rgba(255,255,255,0.04)',
-                            borderWidth: 1,
-                            borderRadius: 8,
-                            padding: { x: 10, y: 8 },
-                            titleColor: '#4CAF50',
-                            titleFont: { size: 12, weight: '600' },
-                            bodyColor: '#e0e0e0',
-                            bodyFont: { size: 10 },
-                            footerColor: 'rgba(255,255,255,0.3)',
-                            footerFont: { size: 9 },
-                            titleAlign: 'center',
-                            bodyAlign: 'center',
-                            footerAlign: 'center',
-                            displayColors: false,
-                            callbacks: {
-                                title: (items) => {
-                                    const idx = items[0]?.dataIndex;
-                                    return (this._chartTripNames && idx != null)
-                                        ? this._chartTripNames[idx].toUpperCase()
-                                        : '';
-                                },
-                                label: (ctx) => {
-                                    if (ctx.raw === null) return null;
-                                    const prefix = ctx.datasetIndex === 1 ? 'Real' : 'Nominal';
-                                    return `${prefix}  S$${ctx.raw.toFixed(2)}`;
-                                },
-                                footer: (items) => {
-                                    const idx = items[0]?.dataIndex;
-                                    const d = this._chartDates?.[idx];
-                                    return d ? new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase() : '';
-                                }
-                            }
+                            enabled: false,
+                            external: (context) => this._externalTooltip(context, 'price')
                         }
                     },
                     scales: {
@@ -3635,7 +3644,11 @@ class AnimatedFlightMap {
             btn.classList.toggle('active', btn.dataset.period === period);
         });
         if (this.legChart) this.legChart.stop();
-        this._applyXWindow(true); // reset pan on explicit filter switch so the view starts at the correct position
+        if (this.priceChart) this.priceChart.stop();
+        this._setXWindowOpts(true);
+        this._applyYBoundsToScales();
+        if (this.legChart) { this.legChart.update({ duration: 400, easing: 'easeOutCubic' }); this._updateScrollbar(); }
+        if (this.priceChart) { this.priceChart.update({ duration: 400, easing: 'easeOutCubic' }); }
     }
 
     _updateScrollbar() {
