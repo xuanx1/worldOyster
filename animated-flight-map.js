@@ -3769,49 +3769,18 @@ class AnimatedFlightMap {
         if (!this._chartTripNames) this._chartTripNames = [];
         this._chartDates.push(date || null);
         this._chartTripNames.push(tripName || label);
+        this._setXWindowOpts();
+        // If the new point falls past the right edge of the window, slide forward
         const newIdx = (this.legChart || this.priceChart).data.labels.length - 1;
-        // For ALL: let Chart.js auto-fit by removing explicit bounds.
-        // For year filter: pin x.max = newIdx so line always reaches right edge.
-        if (!this.chartFilter || this.chartFilter === 'all') {
-            if (this.legChart) {
-                delete this.legChart.options.scales.x.min;
-                delete this.legChart.options.scales.x.max;
-            }
-            if (this.priceChart) {
-                delete this.priceChart.options.scales.x.min;
-                delete this.priceChart.options.scales.x.max;
-            }
-            this._panMin = undefined;
-            this._panMax = undefined;
-        } else {
-            const years = parseInt(this.chartFilter);
-            const cutoff = new Date(this._getDatasetStartDate());
-            cutoff.setFullYear(cutoff.getFullYear() + years);
-            const dates = this._chartDates || [];
-            let windowSize = 0;
-            for (let i = 0; i < dates.length; i++) {
-                if (dates[i] && new Date(dates[i]) <= cutoff) windowSize = i;
-            }
-            const newMin = Math.max(0, newIdx - windowSize);
-            this._panMin = newMin;
-            this._panMax = newIdx;
-            if (this.legChart) {
-                this.legChart.options.scales.x.min = newMin;
-                this.legChart.options.scales.x.max = newIdx;
-            }
-            if (this.priceChart) {
-                this.priceChart.options.scales.x.min = newMin;
-                this.priceChart.options.scales.x.max = newIdx;
-            }
+        const xMax = this.legChart ? this.legChart.options.scales.x.max : undefined;
+        if (xMax !== undefined && newIdx > xMax) {
+            const windowSize = xMax - (this.legChart.options.scales.x.min ?? 0);
+            this._panMin = Math.max(0, newIdx - windowSize);
+            this._setXWindowOpts();
         }
         this._updateYAxisBounds();
-        if (this.legChart) this.legChart.update();
+        if (this.legChart) this.legChart.update(); // animated line extension
         if (this.priceChart) this.priceChart.update();
-        // DEBUG: remove after fixing
-        if (this.legChart) {
-            const sc = this.legChart.scales.x;
-            console.log(`[chart] labels=${this.legChart.data.labels.length} newIdx=${newIdx} scale.min=${sc.min} scale.max=${sc.max} filter=${this.chartFilter||'all'}`);
-        }
         this._updateScrollbar();
         this._updateFilterButtons();
     }
@@ -3836,7 +3805,7 @@ class AnimatedFlightMap {
         this.legChart.data.datasets[0].data = costData;
         this.legChart.data.datasets[1].data = co2Data;
         if (this.priceChart) {
-            this.priceChart.data.labels = labels;
+            this.priceChart.data.labels = labels.slice();
             this.priceChart.data.datasets[0].data = priceData;
             this.priceChart.data.datasets[1].data = priceData.map((v, i) => this._toReal2025(v, dates[i]));
         }
