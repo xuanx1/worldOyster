@@ -46,11 +46,13 @@ class AnimatedFlightMap {
             USD_TO_RMB: 7.2
         };
         
-        // Loading bar elements
-        this.loadingBarContainer = document.getElementById('loadingBarContainer');
-        this.loadingBar = document.getElementById('loadingBar');
-        this.loadingStatusText = document.getElementById('loadingStatusText');
-        
+        // Loading + title elements
+        this._mainTitle = document.querySelector('.main-title');
+        this._headerH1 = document.querySelector('.header h1');
+        this._headerSlogan = document.querySelector('.header-slogan');
+        this._loadingDone = false;
+        this._currentYear = null; // track for typewriter year changes
+
         this.legChart = null;
         this.priceChart = null; // separate chart for journey prices/inflation
         this._globalYBounds = {}; // populated by _updateYAxisBounds; read by afterDataLimits callbacks
@@ -58,45 +60,100 @@ class AnimatedFlightMap {
         this._datasetEndDate = null;
         this._chartWindowSize = 40; // number of points visible in the sliding window when filter='all' (controls push effect)
 
-        this.updateLoadingProgress(10, 'Initializing map...');
+        // Start typewriter as loading indicator, load data in parallel
+        this._dataReady = false;
+        this._typewriterDone = false;
+        this._playTitleTypewriter();
         this.initializeMap();
-        this.updateLoadingProgress(30, 'Loading flight data...');
-        this.loadFlightData(); // Load from CSV instead of sample data
-        this.updateLoadingProgress(50, 'Fetching forex rates...');
-        this.fetchExchangeRates(); // Fetch live rates
+        this.loadFlightData();
+        this.fetchExchangeRates();
         this.updateStatistics();
-        this.initializeScrubber(); // Initialize scrubber functionality
+        this.initializeScrubber();
         this.initChart();
-        
-        // Auto-start animation after data loads (increased delay for CSV loading)
-        setTimeout(() => {
+    }
+
+    _playTitleTypewriter() {
+        const el = this._mainTitle;
+        if (!el) { this._typewriterDone = true; this._tryStart(); return; }
+
+        const lines = ['IS THE WORLD', 'YOUR \u{1F9AA}?'];
+        const fullText = lines.join('\n');
+        let charIdx = 0;
+
+        el.innerHTML = '<span class="title-text"></span><span class="title-cursor"></span>';
+        const textEl = el.querySelector('.title-text');
+
+        const typeInterval = setInterval(() => {
+            if (charIdx >= fullText.length) {
+                clearInterval(typeInterval);
+                this._typewriterDone = true;
+                this._tryStart();
+                return;
+            }
+            charIdx++;
+            textEl.innerHTML = fullText.substring(0, charIdx).split('\n').join('<br>');
+        }, 70);
+    }
+
+    static _stripAccents(s) { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+
+    _onDataReady() {
+        this._dataReady = true;
+        this._tryStart();
+    }
+
+    _tryStart() {
+        if (this._dataReady && this._typewriterDone) {
             this.startAnimation();
-        }, 3000);
-    }
-
-    updateLoadingProgress(percent, message) {
-        if (this.loadingBar) {
-            this.loadingBar.style.width = percent + '%';
-        }
-        if (this.loadingStatusText && message) {
-            this.loadingStatusText.textContent = message;
         }
     }
 
-    hideLoadingBar() {
-        if (this.loadingBarContainer) {
-            this.loadingBarContainer.classList.add('hidden');
-            setTimeout(() => {
-                this.loadingBarContainer.style.display = 'none';
-            }, 500);
-        }
-        if (this.loadingStatusText) {
-            this.loadingStatusText.classList.add('hidden');
-            setTimeout(() => {
-                this.loadingStatusText.style.display = 'none';
-            }, 500);
-        }
+    _typewriteYear(year) {
+        const h1 = this._headerH1;
+        const slogan = this._headerSlogan;
+        if (!h1) return;
+        if (this._yearTypeTimer) clearInterval(this._yearTypeTimer);
+        if (this._sloganTypeTimer) clearInterval(this._sloganTypeTimer);
+
+        const yearStr = year.toString();
+        const sloganStr = this.getYearSlogan(year) || '';
+
+        h1.innerHTML = '<span class="title-cursor"></span>';
+        if (slogan) slogan.textContent = '';
+        let i = 0;
+        this._yearTypeTimer = setInterval(() => {
+            if (i >= yearStr.length) {
+                clearInterval(this._yearTypeTimer);
+                this._yearTypeTimer = null;
+                h1.innerHTML = yearStr + '<span class="title-cursor fade-out"></span>';
+                if (slogan && sloganStr) this._typewriteSlogan(sloganStr);
+                return;
+            }
+            i++;
+            h1.innerHTML = yearStr.substring(0, i) + '<span class="title-cursor"></span>';
+        }, 80);
     }
+
+    _typewriteSlogan(text) {
+        const slogan = this._headerSlogan;
+        if (!slogan) return;
+        if (this._sloganTypeTimer) clearInterval(this._sloganTypeTimer);
+
+        slogan.innerHTML = '<span class="title-cursor"></span>';
+        let i = 0;
+        this._sloganTypeTimer = setInterval(() => {
+            if (i >= text.length) {
+                clearInterval(this._sloganTypeTimer);
+                this._sloganTypeTimer = null;
+                slogan.innerHTML = text + '<span class="title-cursor fade-out"></span>';
+                return;
+            }
+            i++;
+            slogan.innerHTML = text.substring(0, i) + '<span class="title-cursor"></span>';
+        }, 40);
+    }
+
+
 
     initializeMap() {
         // Define world bounds to prevent panning outside the map
@@ -416,28 +473,14 @@ class AnimatedFlightMap {
 
     async loadFlightData() {
         try {
-            this.updateLoadingProgress(40, 'Loading CSV data...');
-            // Create flight data manager and load both CSV and land journey data
             const flightDataManager = new FlightDataManager();
             const combinedData = await flightDataManager.loadData();
-            
-            this.updateLoadingProgress(60, 'Processing journeys...');
+
             if (combinedData && combinedData.length > 0) {
-                // Calculate year range from combined journey dates
                 this.updateHeaderYear(combinedData);
-                
-                // Convert journeys to city sequence
                 const citySequence = this.convertFlightsToCities(combinedData);
-                
-                // Add cities to map
-                this.updateLoadingProgress(80, 'Adding cities to map...');
-                
-                // Start animating city list population BEFORE cities are fully added
-                this.updateLoadingProgress(85, 'Populating city list...');
                 this.animateCityListPopulation(citySequence);
-                
-                // Continue adding cities to map while animation runs
-                // Batch-add cities + markers and update the city list once (avoids per-city re-render)
+
                 citySequence.forEach((city, idx) => {
                     const enriched = {
                         ...city,
@@ -448,47 +491,33 @@ class AnimatedFlightMap {
                     this.cities.push(enriched);
                     this.createCityMarker(enriched);
                 });
-                // Single update for the full list
                 this.updateCityList();
 
-                // Make startup map view match the first city point
                 if (this.cities.length > 0) {
                     const firstCity = this.cities[0];
-                    // Center the map on the first city without changing zoom
                     try { this.map.setView([firstCity.lat, firstCity.lng], this.map.getZoom(), { animate: false }); } catch (e) {}
-
-                    // Position the flight dot at the first city and add the city's marker so the initial view and first point are identical
                     try { this.positionDotAtCity(0); } catch (e) {}
                     if (this.cityMarkers[0] && this.cityMarkers[0].marker && !this.map.hasLayer(this.cityMarkers[0].marker)) {
                         this.cityMarkers[0].marker.addTo(this.map);
                     }
-
-                    // Mark first city visually as current in the list & stats
                     this.updateCityMarkerStyle(0, 'current');
                     this.updateCurrentTripYear(0);
                     this.updateStatistics();
-
-                    // Build interactive route hit areas so lines are hoverable immediately
                     this._createRouteInteractivity();
                 }
 
-                this.updateLoadingProgress(90, 'Finalizing...');
-                
-                this.updateLoadingProgress(100, 'Ready!');
-                setTimeout(() => this.hideLoadingBar(), 800);
-                
+                this._onDataReady();
+
             } else {
                 console.warn('No journey data loaded, using sample data');
-                this.updateLoadingProgress(100, 'Loading sample data...');
                 this.loadSampleCities();
-                setTimeout(() => this.hideLoadingBar(), 800);
+                this._onDataReady();
             }
         } catch (error) {
             console.error('Error loading journey data:', error);
             console.warn('Falling back to sample data');
-            this.updateLoadingProgress(100, 'Error - using sample data');
             this.loadSampleCities();
-            setTimeout(() => this.hideLoadingBar(), 1000);
+            this._onDataReady();
         }
     }
     
@@ -509,61 +538,34 @@ class AnimatedFlightMap {
     }
 
     updateHeaderYear(journeys) {
-        // Store journeys for year updates during animation
         this.flightData = journeys;
-        
-        // Set initial year from first journey (using 'date' field from CSV)
+
         if (journeys.length > 0) {
             const firstJourneyDate = new Date(journeys[0].date || journeys[0].departureDate);
             const firstYear = firstJourneyDate.getFullYear();
-            
-            const headerTitle = document.querySelector('.header h1');
-            const yearOverlay = document.getElementById('yearOverlay');
-            
-            if ((headerTitle || yearOverlay) && !isNaN(firstYear)) {
-                if (headerTitle) {
-                    headerTitle.textContent = firstYear.toString();
-                    const slogan = document.querySelector('.header-slogan');
-                    if (slogan) slogan.textContent = this.getYearSlogan(firstYear);
-                }
-                if (yearOverlay) {
-                    yearOverlay.textContent = firstYear.toString();
-                }
-            } else {
-                setTimeout(() => {
-                    const retryHeader = document.querySelector('.header h1');
-                    const retryOverlay = document.getElementById('yearOverlay');
-                    if (retryHeader && !isNaN(firstYear)) {
-                        retryHeader.textContent = firstYear.toString();
-                        const slogan = document.querySelector('.header-slogan');
-                        if (slogan) slogan.textContent = this.getYearSlogan(firstYear);
-                    }
-                    if (retryOverlay && !isNaN(firstYear)) {
-                        retryOverlay.textContent = firstYear.toString();
-                    }
-                }, 100);
+            if (!isNaN(firstYear)) {
+                // Set header with typewriter
+                this._currentYear = firstYear;
+                this._typewriteYear(firstYear);
+                const yearOverlay = document.getElementById('yearOverlay');
+                if (yearOverlay) yearOverlay.textContent = firstYear.toString();
             }
         }
     }
 
     updateCurrentTripYear(cityIndex) {
-        const headerTitle = document.querySelector('.header h1');
         const yearOverlay = document.getElementById('yearOverlay');
-        
-        if (headerTitle || yearOverlay) {
-            if (this.cities && this.cities[cityIndex] && this.cities[cityIndex].flightDate) {
-                const currentFlightDate = new Date(this.cities[cityIndex].flightDate);
-                const currentYear = currentFlightDate.getFullYear();
-                
-                if (!isNaN(currentYear)) {
-                    if (headerTitle) {
-                        headerTitle.textContent = currentYear.toString();
-                        const slogan = document.querySelector('.header-slogan');
-                        if (slogan) slogan.textContent = this.getYearSlogan(currentYear);
-                    }
-                    if (yearOverlay) {
-                        yearOverlay.textContent = currentYear.toString();
-                    }
+
+        if (this.cities && this.cities[cityIndex] && this.cities[cityIndex].flightDate) {
+            const currentFlightDate = new Date(this.cities[cityIndex].flightDate);
+            const currentYear = currentFlightDate.getFullYear();
+
+            if (!isNaN(currentYear)) {
+                if (yearOverlay) yearOverlay.textContent = currentYear.toString();
+                // Typewrite only when year actually changes
+                if (currentYear !== this._currentYear) {
+                    this._currentYear = currentYear;
+                    this._typewriteYear(currentYear);
                 }
             }
         }
@@ -1216,7 +1218,7 @@ class AnimatedFlightMap {
         ttNative.className = 'city-native';
         const nativeLookupKey = (city.name || '').trim();
         const _rawNative = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[nativeLookupKey] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(nativeLookupKey)])) || '';
-        ttNative.textContent = (_rawNative && _rawNative.trim() !== (city.name || '').trim()) ? _rawNative : '';
+        ttNative.textContent = (_rawNative && AnimatedFlightMap._stripAccents(_rawNative.trim()) !== AnimatedFlightMap._stripAccents((city.name || '').trim())) ? _rawNative : '';
 
         const ttCountry = document.createElement('div');
         ttCountry.className = 'city-country';
@@ -2911,7 +2913,7 @@ class AnimatedFlightMap {
         uniqueCityArray.forEach((city, index) => {
             setTimeout(() => {
                 const _rawNativeForList = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(city.name)])) || '';
-                const nativeNameForList = (_rawNativeForList && _rawNativeForList.trim() !== (city.name || '').trim()) ? _rawNativeForList : '';
+                const nativeNameForList = (_rawNativeForList && AnimatedFlightMap._stripAccents(_rawNativeForList.trim()) !== AnimatedFlightMap._stripAccents((city.name || '').trim())) ? _rawNativeForList : '';
                 const cityItemHTML = `
                     <div class="city-status">${index + 1}</div>
                     <div class="city-info">
@@ -3035,7 +3037,7 @@ class AnimatedFlightMap {
                     node.querySelector('.city-name').textContent = city.name || '';
                     {
                         const _raw = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(city.name)])) || '';
-                        node.querySelector('.city-native').textContent = (_raw && _raw.trim() !== (city.name || '').trim()) ? _raw : '';
+                        node.querySelector('.city-native').textContent = (_raw && AnimatedFlightMap._stripAccents(_raw.trim()) !== AnimatedFlightMap._stripAccents((city.name || '').trim())) ? _raw : '';
                     }
                     node.querySelector('.city-country').textContent = city.country || '';
                     frag.appendChild(node);
@@ -3061,7 +3063,7 @@ class AnimatedFlightMap {
                     if (nameEl && nameEl.textContent !== data.city.name) nameEl.textContent = data.city.name || '';
                     if (nativeEl) {
                         const _raw = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[data.city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(data.city.name)])) || '';
-                        const _display = (_raw && _raw.trim() !== (data.city.name || '').trim()) ? _raw : '';
+                        const _display = (_raw && AnimatedFlightMap._stripAccents(_raw.trim()) !== AnimatedFlightMap._stripAccents((data.city.name || '').trim())) ? _raw : '';
                         if (nativeEl.textContent !== _display) nativeEl.textContent = _display;
                     }
                     if (countryEl && countryEl.textContent !== (data.city.country || '')) countryEl.textContent = data.city.country || '';
@@ -3083,7 +3085,7 @@ class AnimatedFlightMap {
                     if (nameEl) nameEl.textContent = data.city.name || '';
                     if (nativeEl) {
                         const _raw = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[data.city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(data.city.name)])) || '';
-                        nativeEl.textContent = (_raw && _raw.trim() !== (data.city.name || '').trim()) ? _raw : '';
+                        nativeEl.textContent = (_raw && AnimatedFlightMap._stripAccents(_raw.trim()) !== AnimatedFlightMap._stripAccents((data.city.name || '').trim())) ? _raw : '';
                     }
                     if (countryEl) countryEl.textContent = data.city.country || '';
                     found.setAttribute('data-city-index', data.firstIndex);
@@ -3092,7 +3094,7 @@ class AnimatedFlightMap {
 
                 // Node does not exist — create and insert
                 const _rawNativeForNode = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[data.city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(data.city.name)])) || '';
-                const nativeNameForNode = (_rawNativeForNode && _rawNativeForNode.trim() !== (data.city.name || '').trim()) ? _rawNativeForNode : '';
+                const nativeNameForNode = (_rawNativeForNode && AnimatedFlightMap._stripAccents(_rawNativeForNode.trim()) !== AnimatedFlightMap._stripAccents((data.city.name || '').trim())) ? _rawNativeForNode : '';
                 const node = document.createElement('div');
                 node.className = 'city-item';
                 node.setAttribute('data-city-key', expectedKey);

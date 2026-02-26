@@ -118,6 +118,8 @@
             text-transform: uppercase;
             text-align: left;
             letter-spacing: 0.1em;
+            width: 100%;
+            min-height: 2.6em;
         }
 
         @media (max-width: 768px) {
@@ -413,15 +415,15 @@
 
         .city-item {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 6px;
             padding: 12px;
             background: transparent;
             border-radius: 0;
             border: none;
             transition: all 0.3s ease;
-            text-align: center;
+            text-align: left;
             min-height: 60px;
             overflow: visible;
             word-break: break-word;
@@ -595,8 +597,11 @@
         .city-info {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 4px;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 2px;
+            flex: 1;
+            min-width: 0;
         }
 
         @media (max-width: 768px) {
@@ -609,6 +614,7 @@
         .city-status {
             width: 20px;
             height: 20px;
+            min-width: 20px;
             border-radius: 50%;
             background: #666;
             display: flex;
@@ -644,7 +650,7 @@
         .city-name {
             font-weight: 500;
             font-size: 0.8em;
-            line-height: 1.1;
+            line-height: 20px;
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -986,57 +992,24 @@
             20%, 40% { transform: scale(1); }
         }
 
-        /* Loading bar under title */
-        .loading-bar-container {
-            width: 100%;
-            height: 3px;
-            background: rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            opacity: 1;
-            transition: opacity 0.5s ease;
-            margin-top: 20px;
+        /* Typewriter cursor */
+        .title-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: #fff;
+            margin-left: 2px;
+            vertical-align: text-bottom;
+            animation: cursorBlink 0.7s step-end infinite;
         }
-
-        .loading-bar-container.hidden {
+        .title-cursor.fade-out {
+            animation: none;
             opacity: 0;
+            transition: opacity 0.4s ease;
         }
-
-        .loading-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #FFD700 0%, #FFC700 100%);
-            width: 0%;
-            transition: width 0.3s ease;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-        }
-
-        @media (max-width: 768px) {
-            .loading-bar-container {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                margin-top: 0;
-                z-index: 9999;
-            }
-        }
-
-        .loading-status-text {
-            color: #999;
-            font-size: 0.85em;
-            margin-top: 5px;
-            text-align: right;
-            opacity: 1;
-            transition: opacity 0.5s ease;
-        }
-
-        .loading-status-text.hidden {
-            opacity: 0;
-        }
-
-        @media (max-width: 768px) {
-            .loading-status-text {
-                display: none;
-            }
+        @keyframes cursorBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
         }
 
         /* Leg efficiency chart */
@@ -1253,10 +1226,6 @@
         <button class="export-button" id="exportButton">
             📊 Export Data
         </button>
-        <div class="loading-bar-container" id="loadingBarContainer">
-            <div class="loading-bar" id="loadingBar"></div>
-        </div>
-        <div class="loading-status-text" id="loadingStatusText">Initializing...</div>
         <div id="chartContainer">
             <div class="chart-header">
                 <div class="chart-label">Leg Efficiency</div>
