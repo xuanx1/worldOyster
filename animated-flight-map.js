@@ -53,6 +53,7 @@ class AnimatedFlightMap {
         
         this.legChart = null;
         this.priceChart = null; // separate chart for journey prices/inflation
+        this._globalYBounds = {}; // populated by _updateYAxisBounds; read by afterDataLimits callbacks
         this.chartFilter = 'all';
         this._datasetEndDate = null;
         this._chartWindowSize = 40; // number of points visible in the sliding window when filter='all' (controls push effect)
@@ -3191,6 +3192,26 @@ class AnimatedFlightMap {
 
 
 
+    // ── Inflation helpers ───────────────────────────────────────────────────
+
+    // Singapore CPI (All Items, 2019 = 100) annual averages.
+    // Source: SingStat / MAS. 2025–2026 are estimates.
+    _sgCPI = {
+        2015: 95.8, 2016: 95.4, 2017: 96.5, 2018: 98.3,
+        2019: 100.0, 2020: 99.2, 2021: 101.3, 2022: 105.9,
+        2023: 110.4, 2024: 112.8, 2025: 114.5, 2026: 116.0
+    };
+    _CPI_2025 = 114.5;
+
+    // Return cost adjusted to 2025 SGD. Returns null if year is unknown.
+    _toReal2025(cost, date) {
+        if (cost == null || !date) return null;
+        const year = new Date(date).getFullYear();
+        const cpi = this._sgCPI[year];
+        if (!cpi) return null;
+        return +(cost * (this._CPI_2025 / cpi)).toFixed(2);
+    }
+
     // ── Leg efficiency chart ────────────────────────────────────────────────
 
     initChart() {
@@ -3205,7 +3226,7 @@ class AnimatedFlightMap {
                         label: 'S$/km',
                         data: [],
                         borderColor: '#4CAF50',
-                        backgroundColor: 'rgba(76,175,80,0.7)',
+                        backgroundColor: 'rgba(76, 175, 80, 0.7)',
                         yAxisID: 'y1',
                         tension: 0.35,
                         pointRadius: 1.5,
@@ -3213,10 +3234,10 @@ class AnimatedFlightMap {
                         spanGaps: false
                     },
                     {
-                        label: 'g CO₂/S$',
+                        label: 'kg CO₂/S$',
                         data: [],
-                        borderColor: '#FF6B35',
-                        backgroundColor: 'rgba(255,107,53,0.7)',
+                        borderColor: '#FF4444',
+                        backgroundColor: 'rgba(255, 68, 68, 0.7)',
                         yAxisID: 'y2',
                         tension: 0.35,
                         pointRadius: 1.5,
@@ -3232,7 +3253,7 @@ class AnimatedFlightMap {
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: {
-                        labels: { color: '#b6b6b6', font: { size: 9 }, boxWidth: 10 }
+                        labels: { color: '#b6b6b6', font: { size: 11 }, boxHeight: 5, boxWidth: 5 }
                     },
                     tooltip: {
                         backgroundColor: 'rgba(38,38,38,0.98)',
@@ -3241,11 +3262,11 @@ class AnimatedFlightMap {
                         borderRadius: 8,
                         padding: { x: 10, y: 8 },
                         titleColor: '#4CAF50',
-                        titleFont: { size: 10, weight: '600' },
+                        titleFont: { size: 12, weight: '600' },
                         bodyColor: '#e0e0e0',
-                        bodyFont: { size: 9 },
+                        bodyFont: { size: 10 },
                         footerColor: 'rgba(255,255,255,0.3)',
-                        footerFont: { size: 8 },
+                        footerFont: { size: 9 },
                         titleAlign: 'center',
                         bodyAlign: 'center',
                         footerAlign: 'center',
@@ -3261,8 +3282,8 @@ class AnimatedFlightMap {
                             label: (ctx) => {
                                 if (ctx.raw === null) return null;
                                 return ctx.datasetIndex === 0
-                                    ? `S$/KM  ${ctx.raw.toFixed(3)}`
-                                    : `G CO₂/S$  ${ctx.raw.toFixed(1)}`;
+                                    ? `S$/km  ${ctx.raw.toFixed(3)}`
+                                    : `kg CO₂/S$  ${(ctx.raw / 1000).toFixed(3)}`;
                             },
                             footer: (items) => {
                                 const idx = items[0]?.dataIndex;
@@ -3276,6 +3297,7 @@ class AnimatedFlightMap {
                     x: {
                         ticks: { display: false },
                         grid: { color: '#1e1e1e09' }
+                        
                     },
                     y1: {
                         type: 'linear',
@@ -3287,7 +3309,7 @@ class AnimatedFlightMap {
                     y2: {
                         type: 'linear',
                         position: 'right',
-                        ticks: { color: '#FF6B35', font: { size: 11}, maxTicksLimit: 3 },
+                        ticks: { color: '#FF6B35', font: { size: 11}, maxTicksLimit: 3, callback: (val) => `${(val / 1000).toFixed(1)}` },
                         grid: { drawOnChartArea: false },
                         title: { display: true, text: '', color: '#FF6B35', font: { size: 8 } }
                     }
@@ -3303,10 +3325,19 @@ class AnimatedFlightMap {
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'SGD, Absolute',
+                        label: 'SGD, Nominal',
                         data: [],
                         borderColor: '#4CAF50',
                         backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                        tension: 0.35,
+                        pointRadius: 1.5,
+                        borderWidth: 0.5,
+                        spanGaps: false
+                    }, {
+                        label: 'SGD, Real (2025)',
+                        data: [],
+                        borderColor: '#FF4444',
+                        backgroundColor: 'rgba(255, 68, 68, 0.7)',
                         tension: 0.35,
                         pointRadius: 1.5,
                         borderWidth: 0.5,
@@ -3319,7 +3350,7 @@ class AnimatedFlightMap {
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        legend: { labels: { color: '#b6b6b6', font: { size: 9 }, boxWidth: 10 } },
+                        legend: { labels: { color: '#b6b6b6', font: { size: 11 }, boxWidth: 5, boxHeight: 5 } },
                         tooltip: {
                             backgroundColor: 'rgba(38,38,38,0.98)',
                             borderColor: 'rgba(255,255,255,0.04)',
@@ -3327,11 +3358,11 @@ class AnimatedFlightMap {
                             borderRadius: 8,
                             padding: { x: 10, y: 8 },
                             titleColor: '#4CAF50',
-                            titleFont: { size: 10, weight: '600' },
+                            titleFont: { size: 12, weight: '600' },
                             bodyColor: '#e0e0e0',
-                            bodyFont: { size: 9 },
+                            bodyFont: { size: 10 },
                             footerColor: 'rgba(255,255,255,0.3)',
-                            footerFont: { size: 8 },
+                            footerFont: { size: 9 },
                             titleAlign: 'center',
                             bodyAlign: 'center',
                             footerAlign: 'center',
@@ -3340,12 +3371,13 @@ class AnimatedFlightMap {
                                 title: (items) => {
                                     const idx = items[0]?.dataIndex;
                                     return (this._chartTripNames && idx != null)
-                                        ? this._chartTripNames[idx]
+                                        ? this._chartTripNames[idx].toUpperCase()
                                         : '';
                                 },
                                 label: (ctx) => {
                                     if (ctx.raw === null) return null;
-                                    return `S$  ${ctx.raw.toFixed(2)}`;
+                                    const prefix = ctx.datasetIndex === 1 ? 'Real' : 'Nominal';
+                                    return `${prefix}  S$${ctx.raw.toFixed(2)}`;
                                 },
                                 footer: (items) => {
                                     const idx = items[0]?.dataIndex;
@@ -3362,7 +3394,7 @@ class AnimatedFlightMap {
                         },
                         y: {
                             ticks: { color: '#4CAF50', font: { size: 11 }, maxTicksLimit: 3 },
-                            grid: { drawOnChartArea: false },
+                            grid: { drawOnChartArea: false }
                         }
                     }
                 }
@@ -3401,6 +3433,7 @@ class AnimatedFlightMap {
             const newMax = Math.min(total - 1, newMin + range);
             this._panMin = newMax - range; // persist pan position
             this._panMax = newMax;
+            this._applyYBoundsToScales();
             if (this.legChart) {
                 this.legChart.options.scales.x.min = this._panMin;
                 this.legChart.options.scales.x.max = this._panMax;
@@ -3431,6 +3464,7 @@ class AnimatedFlightMap {
             const newMax = Math.min(total - 1, newMin + windowRange);
             this._panMin = newMax - windowRange;
             this._panMax = newMax;
+            this._applyYBoundsToScales();
             if (this.legChart) {
                 this.legChart.options.scales.x.min = this._panMin;
                 this.legChart.options.scales.x.max = this._panMax;
@@ -3479,6 +3513,7 @@ class AnimatedFlightMap {
                 const newMin = maxThumbLeft > 0 ? (newLeft / maxThumbLeft) * (total - visible) : 0;
                 this._panMin = newMin;
                 this._panMax = newMin + visible - 1;
+                this._applyYBoundsToScales();
                 if (this.legChart) {
                     this.legChart.options.scales.x.min = this._panMin;
                     this.legChart.options.scales.x.max = this._panMax;
@@ -3510,6 +3545,7 @@ class AnimatedFlightMap {
                 const newMin = maxThumbLeft > 0 ? (newLeft / maxThumbLeft) * (total - visible) : 0;
                 this._panMin = newMin;
                 this._panMax = newMin + visible - 1;
+                this._applyYBoundsToScales();
                 if (this.legChart) {
                     this.legChart.options.scales.x.min = this._panMin;
                     this.legChart.options.scales.x.max = this._panMax;
@@ -3588,6 +3624,7 @@ class AnimatedFlightMap {
 
     _applyXWindow(resetPan = false) {
         this._setXWindowOpts(resetPan);
+        this._applyYBoundsToScales();
         if (this.legChart) { this.legChart.update('none'); this._updateScrollbar(); }
         if (this.priceChart) { this.priceChart.update('none'); }
     }
@@ -3661,7 +3698,9 @@ class AnimatedFlightMap {
         }
     }
 
-    // Pin Y axes to full-dataset range so ticks don't shift while panning.
+    // Recompute global Y bounds from the full dataset and store in _globalYBounds.
+    // Only call _applyYBoundsToScales() explicitly for 'none' updates (pan/filter/scrub)
+    // so animated updates (addChartPoint) don't conflict with line-extension animation.
     _updateYAxisBounds() {
         if (this.legChart) {
             const d0 = this.legChart.data.datasets[0].data.filter(v => v != null);
@@ -3669,23 +3708,46 @@ class AnimatedFlightMap {
             if (d0.length) {
                 const mn = Math.min(...d0), mx = Math.max(...d0);
                 const pad = (mx - mn) * 0.15 || mx * 0.15 || 0.01;
-                this.legChart.options.scales.y1.min = Math.max(0, mn - pad);
-                this.legChart.options.scales.y1.max = mx + pad;
+                this._globalYBounds.y1Min = Math.max(0, mn - pad);
+                this._globalYBounds.y1Max = mx + pad;
             }
             if (d1.length) {
                 const mn = Math.min(...d1), mx = Math.max(...d1);
                 const pad = (mx - mn) * 0.15 || mx * 0.15 || 0.01;
-                this.legChart.options.scales.y2.min = Math.max(0, mn - pad);
-                this.legChart.options.scales.y2.max = mx + pad;
+                this._globalYBounds.y2Min = Math.max(0, mn - pad);
+                this._globalYBounds.y2Max = mx + pad;
             }
         }
         if (this.priceChart) {
-            const d0 = this.priceChart.data.datasets[0].data.filter(v => v != null);
-            if (d0.length) {
-                const mn = Math.min(...d0), mx = Math.max(...d0);
+            const allVals = [
+                ...this.priceChart.data.datasets[0].data,
+                ...this.priceChart.data.datasets[1].data
+            ].filter(v => v != null);
+            if (allVals.length) {
+                const mn = Math.min(...allVals), mx = Math.max(...allVals);
                 const pad = (mx - mn) * 0.15 || mx * 0.15 || 0.01;
-                this.priceChart.options.scales.y.min = Math.max(0, mn - pad);
-                this.priceChart.options.scales.y.max = mx + pad;
+                this._globalYBounds.yMin = Math.max(0, mn - pad);
+                this._globalYBounds.yMax = mx + pad;
+            }
+        }
+    }
+
+    // Write _globalYBounds into chart scale options. Safe to call before update('none').
+    _applyYBoundsToScales() {
+        if (this.legChart) {
+            if (this._globalYBounds.y1Min != null) {
+                this.legChart.options.scales.y1.min = this._globalYBounds.y1Min;
+                this.legChart.options.scales.y1.max = this._globalYBounds.y1Max;
+            }
+            if (this._globalYBounds.y2Min != null) {
+                this.legChart.options.scales.y2.min = this._globalYBounds.y2Min;
+                this.legChart.options.scales.y2.max = this._globalYBounds.y2Max;
+            }
+        }
+        if (this.priceChart) {
+            if (this._globalYBounds.yMin != null) {
+                this.priceChart.options.scales.y.min = this._globalYBounds.yMin;
+                this.priceChart.options.scales.y.max = this._globalYBounds.yMax;
             }
         }
     }
@@ -3701,23 +3763,55 @@ class AnimatedFlightMap {
         if (this.priceChart) {
             this.priceChart.data.labels.push(label);
             this.priceChart.data.datasets[0].data.push(cost != null ? +cost.toFixed(2) : null);
+            this.priceChart.data.datasets[1].data.push(this._toReal2025(cost, date));
         }
         if (!this._chartDates) this._chartDates = [];
         if (!this._chartTripNames) this._chartTripNames = [];
         this._chartDates.push(date || null);
         this._chartTripNames.push(tripName || label);
-        this._setXWindowOpts();
-        // If the new point falls past the right edge of the window, slide forward
         const newIdx = (this.legChart || this.priceChart).data.labels.length - 1;
-        const xMax = this.legChart ? this.legChart.options.scales.x.max : undefined;
-        if (xMax !== undefined && newIdx > xMax) {
-            const windowSize = xMax - (this.legChart.options.scales.x.min ?? 0);
-            this._panMin = Math.max(0, newIdx - windowSize);
-            this._setXWindowOpts();
+        // For ALL: let Chart.js auto-fit by removing explicit bounds.
+        // For year filter: pin x.max = newIdx so line always reaches right edge.
+        if (!this.chartFilter || this.chartFilter === 'all') {
+            if (this.legChart) {
+                delete this.legChart.options.scales.x.min;
+                delete this.legChart.options.scales.x.max;
+            }
+            if (this.priceChart) {
+                delete this.priceChart.options.scales.x.min;
+                delete this.priceChart.options.scales.x.max;
+            }
+            this._panMin = undefined;
+            this._panMax = undefined;
+        } else {
+            const years = parseInt(this.chartFilter);
+            const cutoff = new Date(this._getDatasetStartDate());
+            cutoff.setFullYear(cutoff.getFullYear() + years);
+            const dates = this._chartDates || [];
+            let windowSize = 0;
+            for (let i = 0; i < dates.length; i++) {
+                if (dates[i] && new Date(dates[i]) <= cutoff) windowSize = i;
+            }
+            const newMin = Math.max(0, newIdx - windowSize);
+            this._panMin = newMin;
+            this._panMax = newIdx;
+            if (this.legChart) {
+                this.legChart.options.scales.x.min = newMin;
+                this.legChart.options.scales.x.max = newIdx;
+            }
+            if (this.priceChart) {
+                this.priceChart.options.scales.x.min = newMin;
+                this.priceChart.options.scales.x.max = newIdx;
+            }
         }
         this._updateYAxisBounds();
-        if (this.legChart) this.legChart.update(); // animated line extension
+        if (this.legChart) this.legChart.update();
         if (this.priceChart) this.priceChart.update();
+        // DEBUG: remove after fixing
+        if (this.legChart) {
+            const sc = this.legChart.scales.x;
+            console.log(`[chart] labels=${this.legChart.data.labels.length} newIdx=${newIdx} scale.min=${sc.min} scale.max=${sc.max} filter=${this.chartFilter||'all'}`);
+        }
         this._updateScrollbar();
         this._updateFilterButtons();
     }
@@ -3744,6 +3838,7 @@ class AnimatedFlightMap {
         if (this.priceChart) {
             this.priceChart.data.labels = labels;
             this.priceChart.data.datasets[0].data = priceData;
+            this.priceChart.data.datasets[1].data = priceData.map((v, i) => this._toReal2025(v, dates[i]));
         }
         this._chartDates = dates;
         this._chartTripNames = tripNames;

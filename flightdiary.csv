@@ -196,8 +196,8 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2017-07-18,AY131,"Helsinki / Vantaa (HEL/EFHK)","Singapore / Changi (SIN/WSSS)",23:55:00,18:40:00,12:45:00,"Finnair (AY/FIN)","Airbus A350-900 (A359)",,,0,0,0,,1110,2672,304,2110,150
 2024-03-15,AH6234,"Algiers / Houari Boumediene (ALG/DAAG)","Tamanrasset / Aguenar (TMR/DAAT)",22:00:00,00:25:00,02:25:00,"Air Algerie (AH/DAH)","Boeing 737-800 (B738)",,,0,0,0,,104,2971,222,231,110
 2024-03-17,AH6289,"Tamanrasset / Aguenar (TMR/DAAT)","Algiers / Houari Boumediene (ALG/DAAG)",09:40:00,12:10:00,02:30:00,"Air Algerie (AH/DAH)","Boeing 737-600 (B736)",,,0,0,0,,2971,104,222,229,110
-2019-11-11,,"Singapore / Changi (SIN/WSSS)","Siem Reap / Siem Reap International Airport (REP/VDSR)",00:00:00,00:00:00,02:03:00,"Emirates"," ()",,,0,0,0,,2672,2502,0,0,125
-2019-11-14,,"Siem Reap / Siem Reap International Airport (REP/VDSR)","Singapore / Changi (SIN/WSSS)",00:00:00,00:00:00,02:03:00,"Emirates"," ()",,,0,0,0,,2502,2672,0,0,125
+2019-11-11,,"Singapore / Changi (SIN/WSSS)","Siem Reap / Siem Reap International Airport (REP/VDSR)",00:00:00,00:00:00,02:03:00,"Scoot"," ()",,,0,0,0,,2672,2502,0,0,125
+2019-11-14,,"Siem Reap / Siem Reap International Airport (REP/VDSR)","Singapore / Changi (SIN/WSSS)",00:00:00,00:00:00,02:03:00,"Scoot"," ()",,,0,0,0,,2502,2672,0,0,125
 2026-03-20,8M 236,"Singapore / Changi (SIN/WSSS)","Yangon / Mingaladon (RGN/VYYY)",04:30:00,06:00:00,03:30:00,"Myanmar Airways International"," ()",,,0,0,0,,2672,2513,0,0,147.03
 2026-03-21,3307,"Yangon / Mingaladon (RGN/VYYY)","Mandalay / Mandalay (MDL/VYMD)",06:00:00,07:05:00,01:05:00,"Myanmar Airways International"," ()",,,0,0,0,,2513,3863,0,0,122
 2026-03-22,3308,"Mandalay / Mandalay (MDL/VYMD)","Yangon / Mingaladon (RGN/VYYY)",13:35:00,14:40:00,01:05:00,"Myanmar Airways International"," ()",,,0,0,0,,3863,2513,0,0,122
