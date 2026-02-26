@@ -3661,6 +3661,35 @@ class AnimatedFlightMap {
         }
     }
 
+    // Pin Y axes to full-dataset range so ticks don't shift while panning.
+    _updateYAxisBounds() {
+        if (this.legChart) {
+            const d0 = this.legChart.data.datasets[0].data.filter(v => v != null);
+            const d1 = this.legChart.data.datasets[1].data.filter(v => v != null);
+            if (d0.length) {
+                const mn = Math.min(...d0), mx = Math.max(...d0);
+                const pad = (mx - mn) * 0.15 || mx * 0.15 || 0.01;
+                this.legChart.options.scales.y1.min = Math.max(0, mn - pad);
+                this.legChart.options.scales.y1.max = mx + pad;
+            }
+            if (d1.length) {
+                const mn = Math.min(...d1), mx = Math.max(...d1);
+                const pad = (mx - mn) * 0.15 || mx * 0.15 || 0.01;
+                this.legChart.options.scales.y2.min = Math.max(0, mn - pad);
+                this.legChart.options.scales.y2.max = mx + pad;
+            }
+        }
+        if (this.priceChart) {
+            const d0 = this.priceChart.data.datasets[0].data.filter(v => v != null);
+            if (d0.length) {
+                const mn = Math.min(...d0), mx = Math.max(...d0);
+                const pad = (mx - mn) * 0.15 || mx * 0.15 || 0.01;
+                this.priceChart.options.scales.y.min = Math.max(0, mn - pad);
+                this.priceChart.options.scales.y.max = mx + pad;
+            }
+        }
+    }
+
     addChartPoint(label, costPerKm, co2PerSGD, date, tripName, cost = null) {
         // update efficiency chart
         if (this.legChart) {
@@ -3686,6 +3715,7 @@ class AnimatedFlightMap {
             this._panMin = Math.max(0, newIdx - windowSize);
             this._setXWindowOpts();
         }
+        this._updateYAxisBounds();
         if (this.legChart) this.legChart.update(); // animated line extension
         if (this.priceChart) this.priceChart.update();
         this._updateScrollbar();
@@ -3717,6 +3747,7 @@ class AnimatedFlightMap {
         }
         this._chartDates = dates;
         this._chartTripNames = tripNames;
+        this._updateYAxisBounds();
         this._applyXWindow();
         this._updateFilterButtons();
     }
