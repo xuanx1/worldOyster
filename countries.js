@@ -228,7 +228,8 @@ window.CITY_TO_COUNTRY = {
     'Sofia': 'Bulgaria', 'Skopje': 'North Macedonia', 'Belgrade': 'Serbia', 'Novi Sad': 'Serbia',
     'Ljubljana': 'Slovenia', 'Zagreb': 'Croatia', 'Bratislava': 'Slovakia',
     'Sarajevo': 'Bosnia and Herzegovina', 'Mostar': 'Bosnia and Herzegovina', 'Visoko': 'Bosnia and Herzegovina',
-    'Podgorica': 'Montenegro',
+    'Podgorica': 'Montenegro', 'Tirana': 'Albania', 'Iasi': 'Romania',
+
 
     // Europe - Greece & Balkans
     'Athens': 'Greece', 'Thessaloniki': 'Greece', 'Ouranoupoli': 'Greece', 'Daphni': 'Greece',
@@ -292,10 +293,7 @@ window.CITY_TO_COUNTRY = {
     'Kuwait': 'Kuwait',
     'Giza': 'Egypt',
 
-    // Europe extras
-    'Tirana': 'Albania', 'Iasi': 'Romania',
 
-    // Asia extras
     'Jeju': 'South Korea',
     'Dhaka': 'Bangladesh',
     'Baku': 'Azerbaijan',

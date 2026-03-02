@@ -59,7 +59,8 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: transparent;
             color: #ffffff;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1255,11 +1256,25 @@
             letter-spacing: 0.2em;
             line-height: 1.3;
         }
-        .chart-tooltip .ct-body {
-            color: #e0e0e0;
-            font-size: 10px;
+        .chart-tooltip .ct-table {
             margin-top: 4px;
-            line-height: 1.4;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .chart-tooltip .ct-table td {
+            font-size: 10px;
+            padding: 1px 0;
+            line-height: 1.3;
+        }
+        .chart-tooltip .ct-label {
+            color: rgba(255,255,255,0.5);
+            text-align: left;
+            padding-right: 8px;
+        }
+        .chart-tooltip .ct-value {
+            color: #e0e0e0;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
         }
         .chart-tooltip .ct-footer {
             color: rgba(255,255,255,0.4);

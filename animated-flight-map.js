@@ -1259,9 +1259,21 @@ class AnimatedFlightMap {
         };
 
         // Use requestAnimationFrame for smoother animation
-        const startTime = performance.now();
+        let startTime = performance.now();
 
         const animate = (currentTime) => {
+            // Hover freeze — skip frame without completing; track pause duration
+            if (this._hoverFrozen) {
+                if (!this._hoverFreezeStart) this._hoverFreezeStart = currentTime;
+                requestAnimationFrame(animate);
+                return;
+            }
+            // Adjust start time for time spent frozen so animation resumes smoothly
+            if (this._hoverFreezeStart) {
+                startTime += (currentTime - this._hoverFreezeStart);
+                this._hoverFreezeStart = null;
+            }
+
             if (!this.isAnimating) {
                 // Complete the path if animation was stopped (paused)
                 if (this.currentAnimationPath) {
@@ -2381,6 +2393,8 @@ class AnimatedFlightMap {
                 };
 
                 hit.on('mouseover', (e) => {
+                    this._hoverPause();
+
                     const content = this._buildRoutePopupContent(fromCity, toCity);
 
                     // Use a Leaflet Tooltip with the same class as city tooltips
@@ -2489,6 +2503,33 @@ class AnimatedFlightMap {
         }
     }
 
+    // Pause animation and follow-camera during hover inspection
+    _hoverPause() {
+        clearTimeout(this._hoverResumeTimer); // cancel any pending resume
+        if (this._hoverPaused) return; // already paused by hover
+        this._hoverPaused = true;
+        this._hoverSavedFollow = this.followDot;
+        this._hoverSavedView = { center: this.map.getCenter(), zoom: this.map.getZoom() };
+        // Freeze the animation frame loop (skip frames) instead of setting isAnimating=false
+        // which would complete the current segment and spawn a yellow destination marker
+        this._hoverFrozen = true;
+        this.followDot = false;
+    }
+
+    // Resume animation and follow-camera after hover ends
+    _hoverResume() {
+        if (!this._hoverPaused) return;
+        this._hoverPaused = false;
+        this._hoverFrozen = false;
+        this.followDot = this._hoverSavedFollow;
+        // Restore map view
+        if (this._hoverSavedView) {
+            this.map.setView(this._hoverSavedView.center, this._hoverSavedView.zoom, { animate: true, duration: 0.5 });
+        }
+        this._hoverSavedFollow = false;
+        this._hoverSavedView = null;
+    }
+
     // Remove hover artifacts for a single interactive route meta (tooltip, highlight, hover-dots, mouse handlers)
     _clearRouteHover(meta) {
         try {
@@ -2533,6 +2574,10 @@ class AnimatedFlightMap {
             } catch (err) {}
             meta._hoverMouseMove = null;
             meta._hoverActive = false;
+
+            // Resume animation after a short delay (prevents rapid re-triggers)
+            clearTimeout(this._hoverResumeTimer);
+            this._hoverResumeTimer = setTimeout(() => this._hoverResume(), 150);
 
         } catch (err) {
             console.error('Error clearing route hover', err);
@@ -3007,9 +3052,9 @@ class AnimatedFlightMap {
 
     // ── Leg efficiency chart ────────────────────────────────────────────────
 
-    _externalTooltip(context, chartType) {
+    _mergedChartTooltip(context, chartType) {
         const { chart, tooltip } = context;
-        const id = 'chartTooltip_' + chartType;
+        const id = 'chartTooltipMerged';
         let el = document.getElementById(id);
         if (!el) {
             el = document.createElement('div');
@@ -3019,38 +3064,113 @@ class AnimatedFlightMap {
         }
         if (tooltip.opacity === 0) {
             el.classList.remove('active');
+            this._clearChartRouteHighlight();
+            // Clear active elements on both charts
+            this._syncChartHighlight(null, chartType);
+            this._hoverResume();
             return;
         }
+
+        // Pause animation on chart hover
+        this._hoverPause();
+
         const idx = tooltip.dataPoints?.[0]?.dataIndex;
+
+        // Highlight the same index on the OTHER chart
+        this._syncChartHighlight(idx, chartType);
         const tripName = (this._chartTripNames && idx != null) ? this._chartTripNames[idx] : '';
-        let bodyHtml = '';
-        if (chartType === 'leg') {
-            for (const dp of tooltip.dataPoints) {
-                if (dp.raw === null) continue;
-                const lbl = dp.datasetIndex === 0
-                    ? `${dp.raw.toFixed(3)} S$/km`
-                    : `${(dp.raw / 1000).toFixed(3)} kg CO\u2082/S$`;
-                bodyHtml += `<div>${lbl}</div>`;
-            }
-        } else {
-            for (const dp of tooltip.dataPoints) {
-                if (dp.raw === null) continue;
-                const prefix = dp.datasetIndex === 1 ? 'Real' : 'Nominal';
-                bodyHtml += `<div>${prefix}  S$${dp.raw.toFixed(2)}</div>`;
-            }
+
+        // Gather data from BOTH charts at the same index
+        const rows = [];
+
+        if (this.legChart) {
+            const cpk = this.legChart.data.datasets[0]?.data[idx];
+            const co2 = this.legChart.data.datasets[1]?.data[idx];
+            if (cpk != null) rows.push(['S$/km', cpk.toFixed(3)]);
+            if (co2 != null) rows.push(['kg CO\u2082/S$', (co2 / 1000).toFixed(3)]);
         }
+        if (this.priceChart) {
+            const nom = this.priceChart.data.datasets[0]?.data[idx];
+            const real = this.priceChart.data.datasets[1]?.data[idx];
+            if (nom != null) rows.push(['Nominal', 'S$' + nom.toFixed(2)]);
+            if (real != null) rows.push(['Real (2025)', 'S$' + real.toFixed(2)]);
+        }
+
         const d = this._chartDates?.[idx];
         const footerText = d ? new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase() : '';
 
+        const tableRows = rows.map(([label, val]) =>
+            `<tr><td class="ct-label">${label}</td><td class="ct-value">${val}</td></tr>`
+        ).join('');
+
         el.innerHTML =
             `<div class="ct-title">${tripName.toUpperCase()}</div>` +
-            (bodyHtml ? `<div class="ct-body">${bodyHtml}</div>` : '') +
+            (rows.length ? `<table class="ct-table">${tableRows}</table>` : '') +
             (footerText ? `<div class="ct-footer">${footerText}</div>` : '');
 
         const canvasRect = chart.canvas.getBoundingClientRect();
         el.style.left = (canvasRect.left + tooltip.caretX + window.scrollX) + 'px';
         el.style.top = (canvasRect.top + tooltip.caretY - el.offsetHeight - 8 + window.scrollY) + 'px';
         el.classList.add('active');
+
+        // Show route on map: highlight polyline + endpoint dots + zoom
+        try {
+            if (idx != null && this.cities && this.cities[idx] && this.cities[idx + 1]) {
+                const from = this.cities[idx];
+                const to = this.cities[idx + 1];
+
+                // Only rebuild highlight if the hovered index changed
+                if (this._chartHighlightIdx !== idx) {
+                    this._clearChartRouteHighlight();
+                    this._chartHighlightIdx = idx;
+
+                    // Route highlight polyline
+                    const path = this.createGreatCirclePath([from.lat, from.lng], [to.lat, to.lng], 60);
+                    const segments = this.splitPathAtDateLine(path);
+                    this._chartHighlightLines = segments.map(seg =>
+                        L.polyline(seg, { color: '#4CAF50', weight: 3, opacity: 0.95, interactive: false, className: 'route-highlight' }).addTo(this.map)
+                    );
+
+                    // Endpoint dots
+                    this._chartHighlightDots = [from, to].map(c =>
+                        L.circleMarker([c.lat, c.lng], { radius: 6, color: '#4CAF50', fillColor: '#4CAF50', fillOpacity: 1, interactive: false }).addTo(this.map)
+                    );
+
+                    // Zoom to route
+                    this.map.fitBounds(L.latLngBounds([from.lat, from.lng], [to.lat, to.lng]), { padding: [40, 40], maxZoom: 6, animate: true, duration: 0.5 });
+                }
+            }
+        } catch (err) {}
+    }
+
+    // Remove chart-hover route highlight from map
+    _clearChartRouteHighlight() {
+        if (this._chartHighlightLines) {
+            this._chartHighlightLines.forEach(l => { try { this.map.removeLayer(l); } catch (e) {} });
+            this._chartHighlightLines = null;
+        }
+        if (this._chartHighlightDots) {
+            this._chartHighlightDots.forEach(d => { try { this.map.removeLayer(d); } catch (e) {} });
+            this._chartHighlightDots = null;
+        }
+        this._chartHighlightIdx = null;
+    }
+
+    // Highlight (or clear) the matching data point on the OTHER chart
+    _syncChartHighlight(idx, sourceChartType) {
+        const other = sourceChartType === 'leg' ? this.priceChart : this.legChart;
+        if (!other) return;
+        if (idx == null) {
+            other.setActiveElements([]);
+            other.tooltip.setActiveElements([]);
+            other.update('none');
+            return;
+        }
+        const dsCount = other.data.datasets.length;
+        const elements = [];
+        for (let d = 0; d < dsCount; d++) elements.push({ datasetIndex: d, index: idx });
+        other.setActiveElements(elements);
+        other.update('none');
     }
 
     initChart() {
@@ -3096,7 +3216,7 @@ class AnimatedFlightMap {
                     },
                     tooltip: {
                         enabled: false,
-                        external: (context) => this._externalTooltip(context, 'leg')
+                        external: (context) => this._mergedChartTooltip(context, 'leg')
                     }
                 },
                 scales: {
@@ -3159,7 +3279,7 @@ class AnimatedFlightMap {
                         legend: { labels: { color: '#b6b6b6', font: { size: 11 }, boxWidth: 5, boxHeight: 5 } },
                         tooltip: {
                             enabled: false,
-                            external: (context) => this._externalTooltip(context, 'price')
+                            external: (context) => this._mergedChartTooltip(context, 'price')
                         }
                     },
                     scales: {
