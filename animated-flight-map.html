@@ -51,13 +51,15 @@
         html {
             margin: 0;
             padding: 0;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            background-attachment: fixed;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            background: transparent;
             color: #ffffff;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -74,11 +76,12 @@
                 padding: 0;
                 display: flex;
                 flex-direction: column;
-                overflow-y: hidden;
+                overflow-y: auto;
                 overflow-x: hidden;
                 align-items: stretch;
                 justify-content: flex-start;
-                height: 100vh;
+                min-height: 100vh;
+                height: auto;
                 min-width: 0;
             }
         }
@@ -99,12 +102,20 @@
             .title-section {
                 position: static;
                 width: 100%;
-                background: linear-gradient(135deg, #82e585 0%, #45a049 100%);
-                padding: 12px 15px;
+                height: auto;
+                order: 20;
+                align-items: stretch;
                 text-align: center;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                transform: none;
-                margin: 0;
+                padding: 0 12px 12px;
+                box-sizing: border-box;
+            }
+
+            .title-section .main-title {
+                display: none;
+            }
+
+            .title-section .export-button {
+                display: none !important;
             }
         }
 
@@ -190,6 +201,36 @@
                 flex: 0 0 auto;
                 border-radius: 0;
                 box-shadow: none;
+                transition: all 0.3s ease;
+            }
+
+            .card-container.mini-map-fixed {
+                position: fixed;
+                z-index: 1000;
+                overflow: hidden;
+                transition: top 0.4s ease, left 0.4s ease, width 0.4s ease, height 0.4s ease, border-radius 0.4s ease, box-shadow 0.4s ease;
+            }
+
+            .card-container.mini-map {
+                top: 12px;
+                left: 12px;
+                width: calc(100vw - 24px);
+                height: 25vh;
+                border-radius: 8px;
+                box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+                outline: 1px solid #61ac6b;
+            }
+
+            .card-container.mini-map .header
+            .card-container.mini-map .city-list-container { display: none; }
+            .card-container.mini-map .progress-bar { display: none; }
+            .card-container.mini-map .main-container { height: 25vh; transition: height 0.4s ease; }
+            .card-container.mini-map .leaflet-control-custom { display: none !important; }
+            .card-container.mini-map .leaflet-control-zoom { display: none !important; }
+            .card-container.mini-map .leaflet-bar { display: none !important; }
+
+            .card-spacer {
+                display: none;
             }
         }
 
@@ -204,7 +245,8 @@
 
         @media (max-width: 768px) {
             .header {
-                display: none;
+                border-radius: 0;
+                padding: 10px 15px;
             }
         }
 
@@ -441,9 +483,44 @@
 
         @media (max-width: 768px) {
             .city-item {
-                padding: 8px;
-                min-height: 70px;
-                border-radius: 6px;
+                padding: 4px;
+                min-height: 32px;
+                border-radius: 4px;
+                gap: 4px;
+                overflow: hidden;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .city-item .city-info {
+                min-width: 0;
+            }
+
+            .city-item .city-status {
+                width: 14px;
+                height: 14px;
+                min-width: 14px;
+                font-size: 0.45em;
+                margin-bottom: 0;
+            }
+
+            .city-item .city-native {
+                display: none;
+            }
+
+            .city-item .city-name {
+                font-size: 0.8em;
+                line-height: 1.3;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .city-item .city-country {
+                font-size: 0.65em;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
         }
 
@@ -681,7 +758,26 @@
 
 
 
-        /* Custom scrollbar */
+        /* Custom scrollbar — page level */
+        body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        body::-webkit-scrollbar-track {
+            background: #2a2a2a;
+            border-radius: 3px;
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 3px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+
+        /* Custom scrollbar — city list */
         .city-list::-webkit-scrollbar {
             width: 6px;
         }
@@ -922,15 +1018,16 @@
 
         @media (max-width: 768px) {
             .mobile-city-list-container {
-                display: block;
+                display: flex;
+                flex-direction: column;
                 background: #2a2a2a;
                 border-radius: 8px;
                 padding: 10px;
                 margin: 0 12px 10px;
                 width: calc(100% - 24px);
                 box-sizing: border-box;
-                flex: 1;
-                min-height: 0;
+                flex-shrink: 0;
+                max-height: 35vh;
                 overflow: hidden;
             }
 
@@ -945,8 +1042,9 @@
             .mobile-city-list-container .city-list {
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
-                gap: 8px;
-                height: 100%;
+                gap: 4px;
+                flex: 1;
+                min-height: 0;
                 overflow-y: auto;
                 padding: 0;
                 width: 100%;
@@ -966,6 +1064,7 @@
                 color: #999;
                 font-size: 0.8em;
                 flex-shrink: 0;
+                order: 99;
             }
         }
 
@@ -1171,8 +1270,12 @@
         }
 
         @media (max-width: 768px) {
-            #chartContainer { display: none; }
-            #priceChartContainer { display: none; }
+            #chartContainer,
+            #priceChartContainer {
+                width: 100%;
+                border-radius: 8px;
+                margin-bottom: 10px;
+            }
         }
 
         /* Year display overlay */
@@ -1182,16 +1285,7 @@
 
         @media (max-width: 768px) {
             .year-overlay {
-                display: block;
-                position: absolute;
-                top: 10px;
-                left: 10px;
-                color: #4CAF50;
-                padding: 6px 8px;
-                border-radius: 6px;
-                font-size: 1.5em;
-                font-weight: 600;
-                z-index: 1000;
+                display: none;
             }
         }
     </style>
@@ -1272,6 +1366,8 @@
             </div>
         </div>
     </div>
+
+    <div class="card-spacer"></div>
 
     <div class="stats-section">
         <div class="stats-title">Travel Statistics</div>

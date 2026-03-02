@@ -65,6 +65,7 @@ class AnimatedFlightMap {
         this._typewriterDone = false;
         this._playTitleTypewriter();
         this.initializeMap();
+        this.setupMiniMapObserver();
         this.loadFlightData();
         this.fetchExchangeRates();
         this.updateStatistics();
@@ -236,6 +237,75 @@ class AnimatedFlightMap {
         this.map.on('move zoom viewreset resize', _syncPanes);
         window.addEventListener('scroll', _syncPanes, { passive: true });
         window.addEventListener('resize', _syncPanes, { passive: true });
+    }
+
+    setupMiniMapObserver() {
+        if (window.innerWidth > 768) return;
+
+        const card = document.querySelector('.card-container');
+        const spacer = document.querySelector('.card-spacer');
+        if (!card || !spacer) return;
+
+        let isMini = false;
+        let transitioning = false;
+        const cardHeight = card.offsetHeight;
+        const cardWidth = card.offsetWidth;
+
+        const handleScroll = () => {
+            if (transitioning) return;
+            const scrollY = window.scrollY || window.pageYOffset;
+            const threshold = cardHeight * 0.7;
+
+            if (scrollY > threshold && !isMini) {
+                transitioning = true;
+                isMini = true;
+
+                // Step 1: pin card at its current screen position as fixed
+                const rect = card.getBoundingClientRect();
+                spacer.style.display = 'block';
+                spacer.style.height = cardHeight + 'px';
+                card.classList.add('mini-map-fixed');
+                card.style.top = rect.top + 'px';
+                card.style.left = rect.left + 'px';
+                card.style.width = cardWidth + 'px';
+                card.style.height = cardHeight + 'px';
+
+                // Step 2: next frame — transition to mini size
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        card.classList.add('mini-map');
+                        card.style.top = '';
+                        card.style.left = '';
+                        card.style.width = '';
+                        card.style.height = '';
+                        setTimeout(() => {
+                            this.map.invalidateSize();
+                            transitioning = false;
+                        }, 420);
+                    });
+                });
+            } else if (scrollY <= threshold && isMini) {
+                // Instant restore — no transition needed since user is scrolling back to it
+                isMini = false;
+                card.classList.remove('mini-map', 'mini-map-fixed');
+                card.style.top = '';
+                card.style.left = '';
+                card.style.width = '';
+                card.style.height = '';
+                spacer.style.display = 'none';
+                this.map.invalidateSize();
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        // Tap mini map to scroll back to top
+        card.addEventListener('click', (e) => {
+            if (card.classList.contains('mini-map')) {
+                e.stopPropagation();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
     }
 
     updatePanningState() {
@@ -4430,7 +4500,7 @@ class AnimatedFlightMap {
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.flightMap = new AnimatedFlightMap();
-    
+
     // Set up export button
     const exportButton = document.getElementById('exportButton');
     if (exportButton) {
@@ -4440,6 +4510,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Center the page horizontally when the window is narrower than the content
+    function centerScroll() {
+        if (window.innerWidth < document.body.scrollWidth) {
+            window.scrollTo((document.body.scrollWidth - window.innerWidth) / 2, 0);
+        }
+    }
+    centerScroll();
+    window.addEventListener('resize', centerScroll);
 });
 
 // Expose methods for external use
