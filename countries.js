@@ -239,7 +239,7 @@ window.CITY_TO_COUNTRY = {
     'Tbilisi': 'Georgia', 'Yerevan': 'Armenia', 'Gori': 'Georgia', 'Batumi': 'Georgia', 'Kutaisi': 'Georgia',
 
     // Middle East
-    'Beirut': 'Lebanon', 'Tripoli': 'Lebanon', 'Jerusalem': 'Israel', 'Eilat': 'Israel',
+    'Beirut': 'Lebanon', 'Tripoli': 'Lebanon', 'Jerusalem': 'Israel', 'Tel Aviv': 'Israel', 'Eilat': 'Israel',
     'Amman': 'Jordan', 'Petra': 'Jordan', 'Taba': 'Egypt',
 
     // Africa
@@ -289,7 +289,7 @@ window.CITY_TO_COUNTRY = {
     // Middle East / North Africa extras
     'Jeddah': 'Saudi Arabia', 'Mecca': 'Saudi Arabia', 'Medina': 'Saudi Arabia',
     'Muscat': 'Oman', 'Salalah': 'Oman',
-    'Sharjah': 'UAE',
+    'Abu Dhabi': 'UAE', 'Sharjah': 'UAE',
     'Kuwait': 'Kuwait',
     'Giza': 'Egypt',
 

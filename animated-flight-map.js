@@ -248,27 +248,30 @@ class AnimatedFlightMap {
 
         let isMini = false;
         let transitioning = false;
-        const cardHeight = card.offsetHeight;
-        const cardWidth = card.offsetWidth;
 
         const handleScroll = () => {
             if (transitioning) return;
             const scrollY = window.scrollY || window.pageYOffset;
-            const threshold = cardHeight * 0.7;
+            // Measure card dimensions live so the spacer always matches
+            const currentHeight = isMini ? parseFloat(spacer.style.height) || card.offsetHeight : card.offsetHeight;
+            const threshold = currentHeight * 0.7;
 
             if (scrollY > threshold && !isMini) {
                 transitioning = true;
                 isMini = true;
 
+                const liveHeight = card.offsetHeight;
+                const liveWidth = card.offsetWidth;
+
                 // Step 1: pin card at its current screen position as fixed
                 const rect = card.getBoundingClientRect();
                 spacer.style.display = 'block';
-                spacer.style.height = cardHeight + 'px';
+                spacer.style.height = liveHeight + 'px';
                 card.classList.add('mini-map-fixed');
                 card.style.top = rect.top + 'px';
                 card.style.left = rect.left + 'px';
-                card.style.width = cardWidth + 'px';
-                card.style.height = cardHeight + 'px';
+                card.style.width = liveWidth + 'px';
+                card.style.height = liveHeight + 'px';
 
                 // Step 2: next frame — transition to mini size
                 requestAnimationFrame(() => {
@@ -299,9 +302,21 @@ class AnimatedFlightMap {
 
         window.addEventListener('scroll', handleScroll, { passive: true });
 
-        // Tap mini map to scroll back to top
+        // Tap mini map to scroll back to top — use touch tracking to
+        // ignore swipe/scroll gestures and only react to stationary taps.
+        let touchStartY = null;
+        let touchMoved = false;
+        card.addEventListener('touchstart', (e) => {
+            touchStartY = e.touches[0].clientY;
+            touchMoved = false;
+        }, { passive: true });
+        card.addEventListener('touchmove', (e) => {
+            if (touchStartY !== null && Math.abs(e.touches[0].clientY - touchStartY) > 8) {
+                touchMoved = true;
+            }
+        }, { passive: true });
         card.addEventListener('click', (e) => {
-            if (card.classList.contains('mini-map')) {
+            if (card.classList.contains('mini-map') && !touchMoved) {
                 e.stopPropagation();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -3363,7 +3378,9 @@ class AnimatedFlightMap {
             const currentMax = (this._panMax != null) ? this._panMax : (this.legChart.options.scales.x.max ?? total - 1);
             const windowRange = currentMax - currentMin;
             if (windowRange <= 0 || windowRange >= total - 1) return;
-            let delta = e.deltaY;
+            // Use whichever axis has the larger movement so both vertical
+            // scroll-wheel and horizontal touchpad swipes pan the chart.
+            let delta = Math.abs(e.deltaX) >= Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
             if (e.deltaMode === 1) delta *= 20;
             else if (e.deltaMode === 2) delta *= 400;
             const chartWidth = (this.legChart.chartArea && this.legChart.chartArea.width) || 300;
@@ -3386,6 +3403,42 @@ class AnimatedFlightMap {
             this._updateScrollbar();
         };
 
+        // Touch drag-to-pan (mirrors mouse drag logic above)
+        const onTouchStart = (e) => {
+            if (e.touches.length !== 1) return;
+            const touch = e.touches[0];
+            dragStartX = touch.clientX;
+            const total = this.legChart.data.labels.length;
+            dragStartMin = (this._panMin != null) ? this._panMin : (this.legChart.options.scales.x.min ?? 0);
+            dragStartMax = (this._panMax != null) ? this._panMax : (this.legChart.options.scales.x.max ?? Math.max(0, total - 1));
+        };
+        const onTouchMove = (e) => {
+            if (dragStartX === null || e.touches.length !== 1) return;
+            const total = this.legChart.data.labels.length;
+            if (!total) return;
+            const range = dragStartMax - dragStartMin;
+            const pxPerIdx = this.legChart.chartArea.width / range;
+            const shift = (dragStartX - e.touches[0].clientX) / pxPerIdx;
+            const newMin = Math.max(0, dragStartMin + shift);
+            const newMax = Math.min(total - 1, newMin + range);
+            this._panMin = newMax - range;
+            this._panMax = newMax;
+            this._applyYBoundsToScales();
+            if (this.legChart) {
+                this.legChart.options.scales.x.min = this._panMin;
+                this.legChart.options.scales.x.max = this._panMax;
+                this.legChart.update('none');
+            }
+            if (this.priceChart) {
+                this.priceChart.options.scales.x.min = this._panMin;
+                this.priceChart.options.scales.x.max = this._panMax;
+                this.priceChart.update('none');
+            }
+            this._updateScrollbar();
+            e.preventDefault(); // prevent page scroll while panning chart
+        };
+        const onTouchEnd = () => { dragStartX = null; };
+
         cvs.forEach(cv => {
             cv.style.cursor = 'grab';
             cv.addEventListener('mousedown', onMouseDown);
@@ -3393,6 +3446,9 @@ class AnimatedFlightMap {
             cv.addEventListener('mouseup', endDragFn);
             cv.addEventListener('mouseleave', endDragFn);
             cv.addEventListener('wheel', onWheel, { passive: false });
+            cv.addEventListener('touchstart', onTouchStart, { passive: true });
+            cv.addEventListener('touchmove', onTouchMove, { passive: false });
+            cv.addEventListener('touchend', onTouchEnd);
         });
 
         // Scrollbar thumb drag and track click
