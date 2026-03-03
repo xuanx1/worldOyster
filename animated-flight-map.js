@@ -168,7 +168,7 @@ class AnimatedFlightMap {
             center: [20, 100],
             zoom: 1.45,
             minZoom: 1.45,
-            maxZoom: 9,
+            maxZoom: 12,
             zoomControl: false,
             dragging: false,
             maxBounds: worldBounds,
@@ -179,7 +179,7 @@ class AnimatedFlightMap {
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
             attribution: '',
             subdomains: 'abcd',
-            maxZoom: 9
+            maxZoom: 12
         }).addTo(this.map);
 
         // Add zoom event listeners to control panning
@@ -641,97 +641,82 @@ class AnimatedFlightMap {
         }
     }
 
+    // Resolve an airport code or city name to a canonical city name.
+    // e.g. "FCO" → "Rome", "Rome" → "Rome", "GYD" → "Baku"
+    _resolveToCity(code) {
+        if (!code) return code;
+        if (!this.coordinateManager) this.coordinateManager = new FlightDataManager();
+        return this.coordinateManager.airportToCityMap.get(code) || code;
+    }
+
     convertFlightsToCities(journeys) {
         const citySequence = [];
         const addedCities = new Set();
-        
-        // Sort journeys by date
-        journeys.sort((a, b) => new Date(a.date) - new Date(b.date));
-        console.log('After sorting, first journey date:', journeys[0]?.date);
-        console.log('After sorting, last journey date:', journeys[journeys.length - 1]?.date);
-        console.log('Sample of sorted journey dates:', journeys.slice(0, 10).map(j => j.date));
-        
+
+        // Do NOT re-sort here — the data is already correctly ordered by loadData()
+        // which uses _chainSameDayJourneys to handle same-day ordering.
+        // Re-sorting would destroy that ordering because ISO dates ("2023-11-02")
+        // and M/D/YYYY dates ("11/2/2023") parse to different UTC offsets.
+
         // Create a proper journey sequence that maintains chronological order
         this.flightSequence = []; // Store the actual journey sequence for date mapping (keeping name for compatibility)
-        
+
         journeys.forEach((journey, index) => {
             // Treat all journeys the same way visually
             const fromLocation = journey.from || journey.origin;
             const toLocation = journey.to || journey.destination;
             const fromCode = journey.fromCode || journey.origin;
             const toCode = journey.toCode || journey.destination;
-            
-            console.log(`Processing journey ${index}: ${fromCode} -> ${toCode}, date: ${journey.date}, type: ${journey.type}`);
 
-            // Diagnostic: detect malformed or out-of-range dates that could display as unexpected years (e.g. 2039)
-            try {
-                const parsed = new Date(journey.date);
-                const year = parsed && !isNaN(parsed.getFullYear()) ? parsed.getFullYear() : null;
-                if (year === null || year < 1900 || year > 2050) {
-                    console.warn('Unusual journey.date parsed year:', { index, rawDate: journey.date, parsedYear: year, journey });
-                }
-            } catch (e) {
-                console.warn('Error parsing journey.date for diagnostic check', { index, rawDate: journey.date, err: e, journey });
-            }
-            
-            // Add departure city only if it's the first journey OR if the previous journey's destination doesn't match this origin
+            // Resolve airport codes to canonical city names for consistent comparison
+            const fromCityName = this._resolveToCity(fromCode);
+            const toCityName = this._resolveToCity(toCode);
+
+            // Add departure city only if it's the first journey OR if the previous journey's destination doesn't match this origin.
+            // Compare using resolved city names so "FCO" matches "Rome" from a land journey.
             const previousCity = citySequence.length > 0 ? citySequence[citySequence.length - 1] : null;
-            const needsOriginCity = citySequence.length === 0 || (previousCity && previousCity.locationCode !== fromCode);
-            
+            const needsOriginCity = citySequence.length === 0 || (previousCity && previousCity.locationCode !== fromCityName);
+
             if (needsOriginCity && fromCode) {
                 const coords = this.getJourneyCoordinates(journey, 'from');
                 if (coords) {
-                    console.log('=== CREATING ORIGIN CITY (disconnected from previous) ===');
-                    console.log('journey object:', journey);
-                    console.log('journey.date value:', journey.date);
-                    console.log('typeof journey.date:', typeof journey.date);
-                    
                     // Only mark as disconnected if this origin doesn't match the previous destination
-                    const isActuallyDisconnected = previousCity && previousCity.locationCode !== fromCode;
-                    
+                    const isActuallyDisconnected = previousCity && previousCity.locationCode !== fromCityName;
+
                     const city = {
                         name: this.extractLocationName(fromLocation, fromCode),
                         country: this.extractCountry(fromLocation),
                         lat: coords[0],
                         lng: coords[1],
                         airportCode: fromCode,
-                        locationCode: fromCode,
+                        locationCode: fromCityName,
                         flightDate: journey.date,
                         flightIndex: this.flightSequence.length,
                         journeyType: 'flight', // Treat all as flights visually
                         isDisconnected: isActuallyDisconnected // Only mark as disconnected if there's a gap
                     };
-                    console.log('=== CREATED ORIGIN CITY ===');
-                    console.log('city.flightDate:', city.flightDate);
-                    console.log('Adding origin city:', city);
                     citySequence.push(city);
                     addedCities.add(fromCode);
                     this.flightSequence.push(journey);
                 }
             }
-            
+
             // Always add arrival city (this represents the journey destination)
             if (toCode) {
                 const coords = this.getJourneyCoordinates(journey, 'to');
                 if (coords) {
-                    console.log('=== CREATING DESTINATION CITY ===');
-                    console.log('journey object:', journey);
-                    console.log('journey.date value:', journey.date);
-                    console.log('typeof journey.date:', typeof journey.date);
-                    
                     const city = {
                         name: this.extractLocationName(toLocation, toCode),
                         country: this.extractCountry(toLocation),
                         lat: coords[0],
                         lng: coords[1],
                         airportCode: toCode,
-                        locationCode: toCode,
+                        locationCode: toCityName,
                         flightDate: journey.date,
                         flightIndex: this.flightSequence.length,
                         originalFlight: journey,
                         journeyType: 'flight' // Treat all as flights visually
                     };
-                    console.log('=== CREATED DESTINATION CITY ===');
                     citySequence.push(city);
                     this.flightSequence.push(journey);
                 }
@@ -744,8 +729,18 @@ class AnimatedFlightMap {
         for (const city of citySequence) {
             if (deduped.length === 0 || deduped[deduped.length - 1].name !== city.name) {
                 deduped.push(city);
+            } else {
+                // DEBUG: log skipped duplicate
+                console.log('[DEDUP SKIP]', city.name, 'locationCode:', city.locationCode, 'hasOriginalFlight:', !!city.originalFlight);
             }
-            // else: same city name as previous — skip
+        }
+
+        // DEBUG: log city sequence around Rome/Baku/Tbilisi area
+        const bakuIdx = deduped.findIndex(c => c.name === 'Baku');
+        if (bakuIdx >= 0) {
+            const start = Math.max(0, bakuIdx - 2);
+            const end = Math.min(deduped.length, bakuIdx + 4);
+            console.log('[CITY SEQUENCE around Baku]', deduped.slice(start, end).map((c, i) => `${start + i}: ${c.name} (loc:${c.locationCode}, OF:${c.originalFlight ? c.originalFlight.type + '/' + (c.originalFlight.flightNumber || c.originalFlight.mode || '?') : 'NONE'})`));
         }
 
         return deduped;
@@ -1206,13 +1201,15 @@ class AnimatedFlightMap {
         this.showIncrement(distanceKm, timeHours, co2EmissionKg, costSGD, isLandJourney);
 
         // Store per-leg chart data and update chart
-        const _costPerKm = distanceKm > 0 ? costSGD / distanceKm : 0;
+        // When cost is unknown (0), use null for all metrics so the chart bridges the gap
+        const _costPerKm = (costSGD > 0 && distanceKm > 0) ? costSGD / distanceKm : null;
         const _co2PerSGD = costSGD > 0 ? (co2EmissionKg / costSGD) * 1000 : null;
         const _legDate = toCity.originalFlight ? toCity.originalFlight.date : null;
-        toCity.legChartData = { costPerKm: _costPerKm, co2PerSGD: _co2PerSGD, date: _legDate, cost: costSGD };
+        const _cost = costSGD > 0 ? costSGD : null;
+        toCity.legChartData = { costPerKm: _costPerKm, co2PerSGD: _co2PerSGD, date: _legDate, cost: _cost };
         const _legYear = _legDate ? new Date(_legDate).getFullYear().toString() : '';
         const _tripName = `${fromCity.name} → ${toCity.name}`;
-        this.addChartPoint(_legYear, _costPerKm, _co2PerSGD, _legDate, _tripName, costSGD);
+        this.addChartPoint(_legYear, _costPerKm, _co2PerSGD, _legDate, _tripName, _cost);
         
         // Faster animation - reduced timing (min 500ms, max 2000ms)
         // Apply speed multiplier
@@ -2097,10 +2094,11 @@ class AnimatedFlightMap {
                 this.totalCostSGD += costSGD;
 
                 // Store chart data for scrubber sync
-                const _costPerKm = distanceKm > 0 ? costSGD / distanceKm : 0;
+                const _costPerKm = (costSGD > 0 && distanceKm > 0) ? costSGD / distanceKm : null;
                 const _co2PerSGD = costSGD > 0 ? (co2EmissionKg / costSGD) * 1000 : null;
                 const _legDate = toCity.originalFlight ? toCity.originalFlight.date : null;
-                toCity.legChartData = { costPerKm: _costPerKm, co2PerSGD: _co2PerSGD, date: _legDate, cost: costSGD };
+                const _cost = costSGD > 0 ? costSGD : null;
+                toCity.legChartData = { costPerKm: _costPerKm, co2PerSGD: _co2PerSGD, date: _legDate, cost: _cost };
             }
         }
         this.rebuildChart();
@@ -2415,7 +2413,7 @@ class AnimatedFlightMap {
                     try {
                         if (this.map) {
                             meta._hoverHighlight = L.polyline(seg, {
-                                color: '#4CAF50',
+                                color: '#ffee00',
                                 weight: 3,
                                 opacity: 0.95,
                                 interactive: false,
@@ -2591,8 +2589,16 @@ class AnimatedFlightMap {
         const modeRaw = (journey.mode || journey.type || 'Train').toString();
         const mode = modeRaw.charAt(0).toUpperCase() + modeRaw.slice(1);
 
+        // Check if the reverse route exists anywhere in the city sequence
+        const isReturn = this.cities.some((c, i) =>
+            i < this.cities.length - 1 &&
+            c.name === toCity.name &&
+            this.cities[i + 1].name === fromCity.name
+        );
+        const arrow = isReturn ? '⇌' : '→';
+
         // Top line mirrors `.city-name` (same size/weight as city tooltip)
-        const title = `${fromCity.name} ⇌ ${toCity.name}`;
+        const title = `${fromCity.name} ${arrow} ${toCity.name}`;
 
         // Second line mirrors `.city-country` (smaller, muted)
         const details = [];
@@ -2603,9 +2609,16 @@ class AnimatedFlightMap {
             const flightNum = journey.flightNumber || journey.flight || '';
             const airline = journey.airline || '';
             const desc = [flightNum, airline].filter(Boolean).join(' — ');
+            if (!desc) {
+                // DEBUG: log why originalFlight is missing
+                console.warn('[ROUTE TOOLTIP DEBUG]', fromCity.name, '→', toCity.name,
+                    '| toCity.originalFlight:', toCity.originalFlight,
+                    '| toCity.locationCode:', toCity.locationCode,
+                    '| fromCity.locationCode:', fromCity.locationCode);
+            }
             details.push(desc || 'Bus/Train');
         }
-        if (journey.costSGD) details.push(`S$${Math.round(journey.costSGD)}, One Way`);
+        if (journey.costSGD) details.push(`S$${Math.round(journey.costSGD)}${isReturn ? '' : ', One Way'}`);
         if (journey.date) details.push(new Date(journey.date).getFullYear().toString());
 
         const detailsText = details.filter(Boolean).join(' · ');
@@ -3128,12 +3141,12 @@ class AnimatedFlightMap {
                     const path = this.createGreatCirclePath([from.lat, from.lng], [to.lat, to.lng], 60);
                     const segments = this.splitPathAtDateLine(path);
                     this._chartHighlightLines = segments.map(seg =>
-                        L.polyline(seg, { color: '#4CAF50', weight: 3, opacity: 0.95, interactive: false, className: 'route-highlight' }).addTo(this.map)
+                        L.polyline(seg, { color: '#ffee00', weight: 3, opacity: 0.95, interactive: false, className: 'route-highlight' }).addTo(this.map)
                     );
 
                     // Endpoint dots
                     this._chartHighlightDots = [from, to].map(c =>
-                        L.circleMarker([c.lat, c.lng], { radius: 6, color: '#4CAF50', fillColor: '#4CAF50', fillOpacity: 1, interactive: false }).addTo(this.map)
+                        L.circleMarker([c.lat, c.lng], { radius: 6, color: '#ffee00', fillColor: '#4CAF50', fillOpacity: 1, interactive: false }).addTo(this.map)
                     );
 
                     // Zoom to route
@@ -3190,7 +3203,7 @@ class AnimatedFlightMap {
                         tension: 0.35,
                         pointRadius: 1.5,
                         borderWidth: 0.5,
-                        spanGaps: false
+                        spanGaps: true
                     },
                     {
                         label: 'kg CO₂/S$',
@@ -3201,7 +3214,7 @@ class AnimatedFlightMap {
                         tension: 0.35,
                         pointRadius: 1.5,
                         borderWidth: 0.5,
-                        spanGaps: false
+                        spanGaps: true
                     }
                 ]
             },
@@ -3258,7 +3271,7 @@ class AnimatedFlightMap {
                         tension: 0.35,
                         pointRadius: 1.5,
                         borderWidth: 0.5,
-                        spanGaps: false
+                        spanGaps: true
                     }, {
                         label: 'SGD, Real (2025)',
                         data: [],
@@ -3267,7 +3280,7 @@ class AnimatedFlightMap {
                         tension: 0.35,
                         pointRadius: 1.5,
                         borderWidth: 0.5,
-                        spanGaps: false
+                        spanGaps: true
                     }]
                 },
                 options: {

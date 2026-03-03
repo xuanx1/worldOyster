@@ -149,7 +149,7 @@ Helsinki,Tallinn,ferry,32.25,13/8/2023
 Tallinn,Helsinki,ferry,32.25,13/8/2023
 Singapore,Batam,ferry,38,4/9/2023
 Batam,Singapore,ferry,38,5/9/2023
-Abu Dhabi,Sharjah,bus,13.76,11/9/2023
+Abu Dhabi,Sharjah,bus,13.76,16/9/2023
 Milan,Novara,train,13,15/10/2023
 Novara,Milan,train,13,15/10/2023
 Milan,Rome,train,39.09,2/11/2023
@@ -255,3 +255,12 @@ Galle,Colombo,bus,1.72,2/3/2026
 Singapore,Kuala Lumpur,train,28.76,3/4/2026
 Kuala Lumpur,Singapore,train,28.76,5/4/2026
 Chongqing,Chengdu,train,17.66,2/5/2026
+Zurich,Milan,train,45,15/9/2023
+Tel Aviv,Jerusalem,train,11,16/2/2022
+Jerusalem,Tel Aviv,train,11,11/4/2022
+Tel Aviv,Jerusalem,train,11,19/4/2022
+La Linea de la Concepcion,Gibraltar,bus,0,23/6/2023
+Cologne,Amsterdam,bus,82.47,22/12/2023
+Giza,Cairo,car,2,14/4/2024
+Cairo,Giza,car,2,19/4/2024
+Ica,Huacachina,car,2,15/9/2025

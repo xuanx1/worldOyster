@@ -508,40 +508,14 @@ class FlightDataManager {
                     continue;
                 }
                 
-                // Sort same-day journeys by connection logic
-                const ordered = [];
-                const remaining = [...sameDayJourneys];
-                
-                // Start with the journey that connects from previous day
-                const prevDest = this.combinedData.length > 0 
+                // Sort same-day journeys by finding the ordering with fewest gaps.
+                // Groups are small (2-4) so backtracking is trivial.
+                const prevDest = this.combinedData.length > 0
                     ? this.getDestination(this.combinedData[this.combinedData.length - 1])
                     : null;
-                
-                if (prevDest) {
-                    // Find journey that starts from previous destination
-                    const connectedIdx = remaining.findIndex(j => this.getOrigin(j) === prevDest);
-                    if (connectedIdx >= 0) {
-                        ordered.push(remaining.splice(connectedIdx, 1)[0]);
-                    }
-                }
-                
-                // Add remaining journeys, trying to chain them
-                while (remaining.length > 0) {
-                    const lastDest = ordered.length > 0 ? this.getDestination(ordered[ordered.length - 1]) : null;
-                    
-                    if (lastDest) {
-                        const nextIdx = remaining.findIndex(j => this.getOrigin(j) === lastDest);
-                        if (nextIdx >= 0) {
-                            ordered.push(remaining.splice(nextIdx, 1)[0]);
-                            continue;
-                        }
-                    }
-                    
-                    // No connection found, just add the first remaining
-                    ordered.push(remaining.shift());
-                }
-                
-                this.combinedData.push(...ordered);
+
+                const bestOrder = this._chainSameDayJourneys(sameDayJourneys, prevDest);
+                this.combinedData.push(...bestOrder);
             }
                 
             console.log(`Data loaded: ${this.csvData.length} flights, ${this.landJourneyData.length} land journeys`);
@@ -553,20 +527,61 @@ class FlightDataManager {
         }
     }
 
+    // Find the ordering of same-day journeys that produces the fewest gaps.
+    // Uses backtracking (groups are small, typically 2-4 journeys).
+    _chainSameDayJourneys(journeys, prevDest) {
+        let bestResult = null;
+        let bestGaps = Infinity;
+
+        const tryChain = (remaining, chain, lastDest, gaps) => {
+            if (remaining.length === 0) {
+                if (gaps < bestGaps) {
+                    bestGaps = gaps;
+                    bestResult = [...chain];
+                }
+                return;
+            }
+            // Prune: can't beat current best
+            if (gaps >= bestGaps) return;
+
+            for (let i = 0; i < remaining.length; i++) {
+                const j = remaining[i];
+                const origin = this.getOrigin(j);
+                const dest = this.getDestination(j);
+                const isGap = lastDest && origin !== lastDest ? 1 : 0;
+
+                remaining.splice(i, 1);
+                chain.push(j);
+                tryChain(remaining, chain, dest, gaps + isGap);
+                chain.pop();
+                remaining.splice(i, 0, j);
+            }
+        };
+
+        tryChain([...journeys], [], prevDest, 0);
+        return bestResult || journeys;
+    }
+
     // Helper to get origin from a journey (flight or land)
     getOrigin(journey) {
         if (journey.type === 'land') {
             return journey.origin;
         }
-        // For flights, extract city name (before the parentheses)
-        const cityMatch = journey.from.match(/^([^(]+)/);
-        let city = cityMatch ? cityMatch[1].trim() : journey.from;
-        
+        // For flights, prefer airport-to-city mapping for a clean city name
+        const airportCode = this.extractAirportCode(journey.from);
+        if (airportCode) {
+            const mapped = this.airportToCityMap.get(airportCode);
+            if (mapped) return mapped;
+        }
+        // Fallback: extract city name (first part before " / ")
+        const slashIdx = journey.from.indexOf(' / ');
+        let city = slashIdx > 0 ? journey.from.substring(0, slashIdx).trim() : journey.from;
+
         // Normalize Ho Chi Minh (Saigon) to Ho Chi Minh City (Saigon)
         if (city === 'Ho Chi Minh (Saigon)') {
             city = 'Ho Chi Minh City (Saigon)';
         }
-        
+
         return city;
     }
 
@@ -575,15 +590,21 @@ class FlightDataManager {
         if (journey.type === 'land') {
             return journey.destination;
         }
-        // For flights, extract city name (before the parentheses)
-        const cityMatch = journey.to.match(/^([^(]+)/);
-        let city = cityMatch ? cityMatch[1].trim() : journey.to;
-        
+        // For flights, prefer airport-to-city mapping for a clean city name
+        const airportCode = this.extractAirportCode(journey.to);
+        if (airportCode) {
+            const mapped = this.airportToCityMap.get(airportCode);
+            if (mapped) return mapped;
+        }
+        // Fallback: extract city name (first part before " / ")
+        const slashIdx = journey.to.indexOf(' / ');
+        let city = slashIdx > 0 ? journey.to.substring(0, slashIdx).trim() : journey.to;
+
         // Normalize Ho Chi Minh (Saigon) to Ho Chi Minh City (Saigon)
         if (city === 'Ho Chi Minh (Saigon)') {
             city = 'Ho Chi Minh City (Saigon)';
         }
-        
+
         return city;
     }
 
