@@ -263,7 +263,7 @@ window.CITY_TO_COUNTRY = {
     'Vientiane': 'Laos', 'Luang Prabang': 'Laos',
     'Phnom Penh': 'Cambodia', 'Siem Reap': 'Cambodia',
     // Myanmar
-    'Yangon': 'Myanmar', 'Mandalay': 'Myanmar',
+    'Yangon': 'Myanmar', 'Mandalay': 'Myanmar', 'Bago': 'Myanmar',
     'Manila': 'Philippines', 'Cebu': 'Philippines',
     'New Delhi': 'India', 'Delhi': 'India', 'Agra': 'India', 'Jaipur': 'India',
     'Mumbai': 'India', 'Kolkata': 'India', 'Calcutta': 'India', 'Chennai': 'India',
