@@ -134,7 +134,7 @@ window.AIRPORT_TO_COUNTRY = {
     'MNL': 'Philippines',
 
     // Asia - India
-    'DEL': 'India', 'BOM': 'India', 'CCU': 'India',
+    'DEL': 'India', 'BOM': 'India', 'CCU': 'India', 'GAU': 'India',
 
     // Asia - Bangladesh
     'DAC': 'Bangladesh',
@@ -155,6 +155,10 @@ window.AIRPORT_TO_COUNTRY = {
     'TBS': 'Georgia', 'BUS': 'Georgia',
     'GYD': 'Azerbaijan',
     'EVN': 'Armenia',
+    'TAS': 'Uzbekistan',
+
+    // Asia - Bhutan
+    'PBH': 'Bhutan',
 
     // Africa
     'CAI': 'Egypt', 'SPX': 'Egypt',
@@ -266,9 +270,14 @@ window.CITY_TO_COUNTRY = {
     'Yangon': 'Myanmar', 'Mandalay': 'Myanmar', 'Bago': 'Myanmar',
     'Manila': 'Philippines', 'Cebu': 'Philippines',
     'New Delhi': 'India', 'Delhi': 'India', 'Agra': 'India', 'Jaipur': 'India',
-    'Mumbai': 'India', 'Kolkata': 'India', 'Calcutta': 'India', 'Chennai': 'India',
+    'Mumbai': 'India', 'Kolkata': 'India', 'Calcutta': 'India', 'Chennai': 'India', 'Guwahati': 'India',
     'Colombo': 'Sri Lanka', 'Kandy': 'Sri Lanka', 'Galle': 'Sri Lanka', 'Sigiriya': 'Sri Lanka', 'Dambulla': 'Sri Lanka', 'Anuradhapura': 'Sri Lanka',
     'Dhaka': 'Bangladesh',
+    'Paro': 'Bhutan', 'Thimphu': 'Bhutan', 'Punakha': 'Bhutan',
+    'Tashkent': 'Uzbekistan', 'Samarkand': 'Uzbekistan', 'Bukhara': 'Uzbekistan', 'Nukus': 'Uzbekistan',
+    'Shymkent': 'Kazakhstan',
+    'Turkmenabat': 'Turkmenistan', 'Merv': 'Turkmenistan', 'Mary': 'Turkmenistan',
+    'Ashgabat': 'Turkmenistan', 'Darvaza': 'Turkmenistan', 'Dashoguz': 'Turkmenistan',
     'Chiang Mai': 'Thailand','Bangkok': 'Thailand', 'Phuket': 'Thailand',
     'Yogyakarta': 'Indonesia', 'Surakarta': 'Indonesia', 'Jakarta': 'Indonesia', 'Bandung': 'Indonesia',
 

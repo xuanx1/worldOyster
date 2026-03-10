@@ -149,6 +149,9 @@ window.AIRPORT_COORDINATES = {
     'TPE': [25.0777, 121.2320], // Taipei Taoyuan
     'DXB': [25.2532, 55.3657],  // Dubai International
     'KEF': [63.9850, -22.6059], // Keflavik International
+    'GAU': [26.1061, 91.5859],  // Guwahati
+    'PBH': [27.4032, 89.4246],  // Paro, Bhutan
+    'TAS': [41.2571, 69.2817],  // Tashkent
 };
 
 window.AIRPORT_TO_CITY = {
@@ -435,4 +438,7 @@ window.AIRPORT_TO_CITY = {
     'TIA': 'Tirana',
     'TLV': 'Tel Aviv',
     'VTE': 'Vientiane',
+    'GAU': 'Guwahati',
+    'PBH': 'Paro',
+    'TAS': 'Tashkent',
 };
