@@ -1641,7 +1641,14 @@ class AnimatedFlightMap {
     resumeAnimation() {
         // Clear any pending pause flag
         this.pauseAfterCurrentFlight = false;
-        
+
+        // If jumpToCity was used (e.g. user clicked progress bar while paused),
+        // advance past the current city — its leg is already in the chart.
+        if (this._jumpedToCity) {
+            this._jumpedToCity = false;
+            this.currentCityIndex++;
+        }
+
         // Only resume if we haven't completed the journey
         if (this.currentCityIndex < this.cities.length) {
             this.isAnimating = true;
@@ -1999,9 +2006,14 @@ class AnimatedFlightMap {
         if (this.wasAnimating) {
             this.isAnimating = true;
             this.updatePlayPauseButton(); // Update button state
-            
-            // Continue animation from current position without incrementing
-            if (this.currentCityIndex < this.cities.length - 1) {
+
+            // Advance past the current city — jumpToCity already processed the leg
+            // ending here and rebuildChart included it. Without this increment,
+            // animateToNextCity would re-process the same leg and addChartPoint
+            // would push a duplicate data point (back-to-back repeat in charts).
+            this._jumpedToCity = false; // handled here, don't double-advance in resumeAnimation
+            this.currentCityIndex++;
+            if (this.currentCityIndex < this.cities.length) {
                 setTimeout(() => {
                     this.animateToNextCity();
                 }, 100); // Small delay for smooth transition
@@ -2030,7 +2042,11 @@ class AnimatedFlightMap {
 
     jumpToCity(targetIndex) {
         if (targetIndex < 0 || targetIndex >= this.cities.length) return;
-        
+
+        // Flag that jumpToCity was used — the chart has been rebuilt up to
+        // targetIndex, so the next animateToNextCity must skip past it.
+        this._jumpedToCity = true;
+
         // Reset all cities to unvisited
         this.cities.forEach(city => {
             city.visited = false;
