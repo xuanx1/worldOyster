@@ -120,6 +120,7 @@ window.AIRPORT_COORDINATES = {
     'GMP': [37.5583, 126.7906], // Seoul Gimpo
     'PUS': [35.1795, 129.0756], // Busan
     'FNJ': [39.2241, 125.7625], // Pyongyang Sunan
+    'HKG': [22.3080, 113.9185], // Hong Kong
     'MNL': [14.5086, 121.0194], // Manila
     'KUL': [2.7456, 101.7072],  // Kuala Lumpur
     'CGK': [-6.1256, 106.6560], // Jakarta Soekarno-Hatta
@@ -393,6 +394,7 @@ window.AIRPORT_TO_CITY = {
     // Singapore area airports -> Singapore
     'SIN': 'Singapore',
     'TPE': 'Taipei',
+    'HKG': 'Hong Kong',
     'DXB': 'Dubai',
     'KEF': 'Reykjavik',
 

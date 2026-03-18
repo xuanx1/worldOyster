@@ -992,7 +992,7 @@ class AnimatedFlightMap {
         ttNative.className = 'city-native';
         const nativeLookupKey = (city.name || '').trim();
         const _rawNative = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[nativeLookupKey] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(nativeLookupKey)])) || '';
-        ttNative.textContent = (_rawNative && AnimatedFlightMap._stripAccents(_rawNative.trim()) !== AnimatedFlightMap._stripAccents((city.name || '').trim())) ? _rawNative : '';
+        ttNative.textContent = (_rawNative && _rawNative.trim() !== (city.name || '').trim()) ? _rawNative : '';
 
         const ttCountry = document.createElement('div');
         ttCountry.className = 'city-country';
@@ -2766,7 +2766,7 @@ class AnimatedFlightMap {
         uniqueCityArray.forEach((city, index) => {
             setTimeout(() => {
                 const _rawNativeForList = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(city.name)])) || '';
-                const nativeNameForList = (_rawNativeForList && AnimatedFlightMap._stripAccents(_rawNativeForList.trim()) !== AnimatedFlightMap._stripAccents((city.name || '').trim())) ? _rawNativeForList : '';
+                const nativeNameForList = (_rawNativeForList && _rawNativeForList.trim() !== (city.name || '').trim()) ? _rawNativeForList : '';
                 const cityItemHTML = `
                     <div class="city-status">${index + 1}</div>
                     <div class="city-info">
@@ -2890,7 +2890,7 @@ class AnimatedFlightMap {
                     node.querySelector('.city-name').textContent = city.name || '';
                     {
                         const _raw = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(city.name)])) || '';
-                        node.querySelector('.city-native').textContent = (_raw && AnimatedFlightMap._stripAccents(_raw.trim()) !== AnimatedFlightMap._stripAccents((city.name || '').trim())) ? _raw : '';
+                        node.querySelector('.city-native').textContent = (_raw && _raw.trim() !== (city.name || '').trim()) ? _raw : '';
                     }
                     node.querySelector('.city-country').textContent = city.country || '';
                     frag.appendChild(node);
@@ -2916,7 +2916,7 @@ class AnimatedFlightMap {
                     if (nameEl && nameEl.textContent !== data.city.name) nameEl.textContent = data.city.name || '';
                     if (nativeEl) {
                         const _raw = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[data.city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(data.city.name)])) || '';
-                        const _display = (_raw && AnimatedFlightMap._stripAccents(_raw.trim()) !== AnimatedFlightMap._stripAccents((data.city.name || '').trim())) ? _raw : '';
+                        const _display = (_raw && _raw.trim() !== (data.city.name || '').trim()) ? _raw : '';
                         if (nativeEl.textContent !== _display) nativeEl.textContent = _display;
                     }
                     if (countryEl && countryEl.textContent !== (data.city.country || '')) countryEl.textContent = data.city.country || '';
@@ -2938,7 +2938,7 @@ class AnimatedFlightMap {
                     if (nameEl) nameEl.textContent = data.city.name || '';
                     if (nativeEl) {
                         const _raw = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[data.city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(data.city.name)])) || '';
-                        nativeEl.textContent = (_raw && AnimatedFlightMap._stripAccents(_raw.trim()) !== AnimatedFlightMap._stripAccents((data.city.name || '').trim())) ? _raw : '';
+                        nativeEl.textContent = (_raw && _raw.trim() !== (data.city.name || '').trim()) ? _raw : '';
                     }
                     if (countryEl) countryEl.textContent = data.city.country || '';
                     found.setAttribute('data-city-index', data.firstIndex);
@@ -2947,7 +2947,7 @@ class AnimatedFlightMap {
 
                 // Node does not exist — create and insert
                 const _rawNativeForNode = (window.CITY_NATIVE_NAMES && (window.CITY_NATIVE_NAMES[data.city.name] || window.CITY_NATIVE_NAMES[this.normalizeCityDisplayName(data.city.name)])) || '';
-                const nativeNameForNode = (_rawNativeForNode && AnimatedFlightMap._stripAccents(_rawNativeForNode.trim()) !== AnimatedFlightMap._stripAccents((data.city.name || '').trim())) ? _rawNativeForNode : '';
+                const nativeNameForNode = (_rawNativeForNode && _rawNativeForNode.trim() !== (data.city.name || '').trim()) ? _rawNativeForNode : '';
                 const node = document.createElement('div');
                 node.className = 'city-item';
                 node.setAttribute('data-city-key', expectedKey);
