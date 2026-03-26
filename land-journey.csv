@@ -273,6 +273,8 @@ Taipei,Taichung,train,31,5/7/2026
 Taichung,Kaohsiung,train,35,5/7/2026
 Kaohsiung,Taipei,train,63.75,5/7/2026
 Hong Kong,Macau,bus,12,7/8/2026
+Macau,Zhuhai,bus,1,7/8/2026
+Zhuhai,Macau,bus,1,7/8/2026
 Macau,Hong Kong,bus,12,7/8/2026
 Hong Kong,Shenzhen,train,9,8/8/2026
 Shenzhen,Guangzhou,train,6.5,9/8/2026
