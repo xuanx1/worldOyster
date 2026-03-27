@@ -1095,6 +1095,8 @@ class AnimatedFlightMap {
             this.updateCityMarkerStyle(0, 'current');
             this.updateCityList();
             this.updateStatistics();
+            // Trophy notification for first city
+            if (window.countryTrophy) window.countryTrophy.checkCity(this.cities[0]);
             this.currentCityIndex++;
         }
 
@@ -1148,6 +1150,8 @@ class AnimatedFlightMap {
             // Mark destination city as visited when flight arrives
             toCity.visited = true;
             this.updateCityMarkerStyle(this.currentCityIndex, 'current');
+            // Trophy notification for new country
+            if (window.countryTrophy) window.countryTrophy.checkCity(toCity);
             this.currentCityIndex++;
             this.updateProgress();
             this.updateCityList();
@@ -1817,7 +1821,10 @@ class AnimatedFlightMap {
     resetAnimationState() {
         // Stop any current animation
         this.isAnimating = false;
-        
+
+        // Reset trophy notifications
+        if (window.countryTrophy) window.countryTrophy.reset();
+
         // Reset city states
         this.cities.forEach(city => {
             city.visited = false;
@@ -2057,6 +2064,8 @@ class AnimatedFlightMap {
         for (let i = 0; i <= targetIndex; i++) {
             this.cities[i].visited = true;
         }
+        // Sync trophy state to match scrubbed position (no popups)
+        if (window.countryTrophy) window.countryTrophy.syncTo(this.cities.slice(0, targetIndex + 1));
         
         // Set current city
         this.currentCityIndex = targetIndex;
