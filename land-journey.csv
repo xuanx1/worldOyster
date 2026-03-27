@@ -48,7 +48,11 @@ Antwerp,Brussels,bus,10,30/12/2021
 Kyiv,Lviv,train,26,7/1/2022
 Jerusalem,Eilat,bus,15,25/3/2022
 Eilat,Jerusalem,bus,15,26/3/2022
-Jerusalem,Amman,bus,77.93,6/4/2022
+Jerusalem,Ramallah,bus,12,28/3/2022
+Ramallah,Jerusalem,bus,10,28/3/2022
+Jerusalem,Bethlehem,bus,5,6/3/2022
+Bethlehem,Jerusalem,bus,5,6/3/2022
+Jerusalem,Amman,bus,77.93,6/3/2022
 Amman,Petra,bus,18,7/4/2022
 Petra,Amman,bus,18,8/4/2022
 Amman,Jerusalem,bus,77.93,9/4/2022
@@ -61,6 +65,8 @@ Eilat,Taba,bus,15,4/5/2022
 Taba,Cairo,bus,200,4/5/2022
 Larnaca,Kyrenia,bus,1.4,11/5/2022
 Kyrenia,Larnaca,bus,1.4,11/5/2022
+Jerusalem,Jericho,bus,10,15/5/2022
+Jericho, Jerusalem,bus,10,15/5/2022
 Milan,Geneva,bus,48.74,7/7/2022
 Geneva,Milan,bus,48.74,7/7/2022
 Milan,Modena,train,19,11/7/2022

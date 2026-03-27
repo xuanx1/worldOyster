@@ -212,7 +212,7 @@ window.CITY_TO_COUNTRY = {
 
     // Europe - Spain & Portugal
     'Madrid': 'Spain', 'Barcelona': 'Spain', 'Valencia': 'Spain', 'Seville': 'Spain', 'Malaga': 'Spain',
-    'Gibraltar': 'Gibraltar', 'La Linea de la Concepcion': 'Spain',
+    'Gibraltar': 'British Overseas Territory', 'La Linea de la Concepcion': 'Spain',
     'Lisbon': 'Portugal', 'Porto': 'Portugal',
 
     // Europe - Italy
@@ -244,6 +244,7 @@ window.CITY_TO_COUNTRY = {
 
     // Middle East
     'Beirut': 'Lebanon', 'Tripoli': 'Lebanon', 'Jerusalem': 'Israel', 'Tel Aviv': 'Israel', 'Eilat': 'Israel',
+    'Jericho': 'Palestine', 'Ramallah': 'Palestine', 'Bethlehem': 'Palestine',
     'Amman': 'Jordan', 'Petra': 'Jordan', 'Taba': 'Egypt',
 
     // Africa
@@ -260,8 +261,8 @@ window.CITY_TO_COUNTRY = {
     'Beijing': 'China', 'Peking': 'China', 'Tianjin': 'China', 'Shanghai': 'China', 'Chengdu': 'China', 'Chongqing': 'China', 'Wuhan': 'China',
     'Nanyang': 'China', 'Xian': 'China', "Xi'an": 'China', 'Lanzhou': 'China', 'Haikou': 'China',
     'Guangzhou': 'China', 'Shenzhen': 'China', 'Foshan': 'China',
-    'Hong Kong': 'Hong Kong', 'Macau': 'Macau', 'Zhuhai': 'China',
-    'Taipei': 'Taiwan', 'Taichung': 'Taiwan', 'Kaohsiung': 'Taiwan',
+    'Hong Kong': 'China', 'Macau': 'China', 'Zhuhai': 'China',
+    'Taipei': 'ROC (Taiwan)', 'Taichung': 'ROC (Taiwan)', 'Kaohsiung': 'ROC (Taiwan)',
     'Kuala Lumpur': 'Malaysia',
     'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
     'Penang': 'Malaysia', 'Kota Kinabalu': 'Malaysia',
