@@ -217,12 +217,12 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2026-05-28,KB541,"Guwahati / Lokpriya Gopinath Bordoloi (GAU/VEGT)","Paro / Paro (PBH/VQPR)",15:20:00,16:45:00,00:25:00,"Druk Air Corporation (KB/DRK)"," ()",,,0,0,0,,3909,2268,244,0,69.78
 2026-06-01,KB540,"Paro / Paro (PBH/VQPR)","Guwahati / Lokpriya Gopinath Bordoloi (GAU/VEGT)",11:50:00,12:15:00,01:25:00,"Druk Air Corporation (KB/DRK)"," ()",,,0,0,0,,2268,3909,244,0,69.78
 2026-06-01,KB540,"Guwahati / Lokpriya Gopinath Bordoloi (GAU/VEGT)","Singapore / Changi (SIN/WSSS)",13:00:00,20:00:00,04:00:00,"Druk Air Corporation (KB/DRK)"," ()",,,0,0,0,,3909,2672,244,0,823.06
-2026-10-01,AK 722,"Singapore / Changi (SIN/WSSS)","Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)",23:25:00,00:30:00,01:05:00," (/)"," ()",,,0,0,0,,2672,1527,0,0,13.33
-2026-10-02,D7 122,"Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)","Tashkent / Yuzhnyy (TAS/UTTT)",13:20:00,17:50:00,07:30:00," (/)"," ()",,,0,0,0,,1527,2857,0,0,240.89
-2026-10-12,"D7 123","Tashkent / Yuzhnyy (TAS/UTTT)","Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)",19:15:00,05:55:00,07:40:00," (/)"," ()",,,0,0,0,,2857,1527,0,0,240.89
+2026-10-01,AK 722,"Singapore / Changi (SIN/WSSS)","Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)",23:25:00,00:30:00,01:05:00,"Air Asia (AK/AXM)"," ()",,,0,0,0,,2672,1527,0,0,13.33
+2026-10-02,D7 122,"Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)","Tashkent / Yuzhnyy (TAS/UTTT)",13:20:00,17:50:00,07:30:00,"AirAsia X"," ()",,,0,0,0,,1527,2857,0,0,240.89
+2026-10-12,"D7 123","Tashkent / Yuzhnyy (TAS/UTTT)","Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)",19:15:00,05:55:00,07:40:00,"AirAsia X"," ()",,,0,0,0,,2857,1527,0,0,240.89
 2026-10-13,AK703,"Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)","Singapore / Changi (SIN/WSSS)",07:10:00,08:20:00,01:10:00,"Air Asia (AK/AXM)","Airbus A320-200 (A320)",,,0,0,0,,1527,2672,103,2059,13.33
 2026-07-04,TR892,"Singapore / Changi (SIN/WSSS)","Taipei / Taoyuan (TPE/RCTP)",06:10:00,10:45:00,04:35:00,"Scoot (TR/TGW)","Boeing 787-9 (B789)",,,0,0,0,,2672,2996,2695,2088,162.08
 2026-07-05,TR893,"Taipei / Taoyuan (TPE/RCTP)","Singapore / Changi (SIN/WSSS)",23:30:00,04:10:00,04:40:00,"Scoot (TR/TGW)","Boeing 787-9 (B789)",,,0,0,0,,2996,2672,2695,2088,162.08
-2026-08-07,5J 804,"Singapore / Changi (SIN/WSSS)","Manila / Ninoy Aquino International (MNL/RPLL)",01:10:00,05:05:00,03:55:00," (/)"," ()",,,0,0,0,,2672,1898,0,0,117.3
-2026-08-07,5J 110,"Manila / Ninoy Aquino International (MNL/RPLL)","Hong Kong / Hong Kong International (HKG/VHHH)",07:10:00,09:45:00,02:35:00," (/)"," ()",,,0,0,0,,1898,1135,0,0,55.4
+2026-08-07,5J 804,"Singapore / Changi (SIN/WSSS)","Manila / Ninoy Aquino International (MNL/RPLL)",01:10:00,05:05:00,03:55:00,"Cebu Pacific (5J/CEB)"," ()",,,0,0,0,,2672,1898,0,0,117.3
+2026-08-07,5J 110,"Manila / Ninoy Aquino International (MNL/RPLL)","Hong Kong / Hong Kong International (HKG/VHHH)",07:10:00,09:45:00,02:35:00,"Cebu Pacific (5J/CEB)"," ()",,,0,0,0,,1898,1135,0,0,55.4
 2026-08-10,CZ8489,"Guangzhou / Canton-Baiyun (CAN/ZGGG)","Singapore / Changi (SIN/WSSS)",22:40:00,02:50:00,04:10:00,"China Southern Airlines (CZ/CSN)","Airbus A321 (A321)",,,0,0,0,,478,2672,207,28,209
