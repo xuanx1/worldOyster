@@ -30,6 +30,8 @@ Verona,Brescia,bus,10,9/5/2021
 Brescia,Milan,bus,5,9/5/2021
 Milan,Florence,train,21,9/7/2021
 Florence,Rome,train,27,12/7/2021
+Rome,Vatican City,metro,2,13/7/2021
+Vatican City,Rome,metro,2,13/7/2021
 Rome,Naples,train,26,14/7/2021
 Naples,Pompeii,train,12,15/7/2021
 Pompeii,Salerno,train,8,15/7/2021

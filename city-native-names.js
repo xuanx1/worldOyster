@@ -44,6 +44,7 @@
     "Seville": "Sevilla",
     "Valencia": "València",
     "Rome": "Roma",
+    "Vatican City": "Città del Vaticano / Civitas Vaticana",
     "Florence": "Firenze",
     "Venice": "Venezia",
     "Milan": "Milano",
