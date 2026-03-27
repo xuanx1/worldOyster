@@ -16,6 +16,16 @@
     let goldMilestones = new Set(); // tracks which 50-city milestones have been awarded
     let goldBigFive = false;        // Superpower Passport gold
     let silverBigFive = false;       // World Power Tour silver
+    let goldAsean = false;           // ASEAN Complete gold
+    let goldSilkRoad = false;        // Silk Road Scholar gold
+    let goldJetSetYear = false;      // Jet Set Year gold
+    let goldYearRound = false;       // Year-Round Traveller gold
+    let goldFrequentFlyer = false;   // Frequent Flyer (now platinum)
+    let goldNewWorld = false;        // New World Explorer gold
+    let goldEU = false;              // EU Complete gold
+    const continentsPerYear = {};    // year → Set of continents visited
+    const monthsWithTrips = new Set(); // month indices (0-11) with any trip
+    let cityVisitCounts = {};        // cityKey → visit count
     let specialBronzeAwarded = {}; // special location id → true
     let earnedDates = {}; // achievement id → date string when earned
     let panelOpen = false;
@@ -215,7 +225,7 @@
         bronze:   { color: '#CD7F32', bg: 'rgba(205,127,50,0.15)' },
         silver:   { color: '#C0C0C0', bg: 'rgba(192,192,192,0.15)' },
         gold:     { color: '#FFD700', bg: 'rgba(255,215,0,0.15)' },
-        platinum: { color: '#E5E4E2', bg: 'rgba(229,228,226,0.20)' }
+        platinum: { color: '#B76E79', bg: 'rgba(183,110,121,0.20)' }
     };
 
     function trophySVG(color, size) {
@@ -294,7 +304,7 @@
         .trophy-title { font-weight: 600; font-size: 1.1em; text-transform: uppercase; letter-spacing: 0.2em; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .trophy-subtitle { font-size: 0.6em; text-transform: uppercase; letter-spacing: 0.2em; color: #fff; margin-top: 1px; }
 
-        .trophy-notification.tier-platinum { border: 1px solid rgba(229,228,226,0.15); }
+        .trophy-notification.tier-platinum { border: 1px solid rgba(183,110,121,0.30); }
         .trophy-notification.tier-gold { border: 1px solid rgba(255,215,0,0.1); }
         .trophy-notification.tier-silver { border: 1px solid rgba(192,192,192,0.08); }
         .trophy-notification.tier-bronze { border: 1px solid rgba(255,255,255,0.04); }
@@ -629,31 +639,50 @@
             earned: platinumCircumnavigation,
             earnedDate: earnedDates['circum']
         });
+        const yearsElapsed = firstTripDate
+            ? Math.min(10, (new Date() - firstTripDate) / (1000 * 60 * 60 * 24 * 365.25))
+            : 0;
         achievements.push({
             tier: 'platinum', id: '10year',
             name: 'Decade of Travel',
             desc: '10 years of travelling since first trip',
             earned: platinum10Year,
-            earnedDate: earnedDates['10year']
+            earnedDate: earnedDates['10year'],
+            progress: Math.round(yearsElapsed * 10) / 10,
+            total: 10
+        });
+        const maxCityVisits = Object.values(cityVisitCounts).reduce((a, b) => Math.max(a, b), 0);
+        achievements.push({
+            tier: 'platinum', id: 'frequentflyer',
+            name: 'Always Home',
+            desc: 'Return to the same city 100 or more times',
+            earned: goldFrequentFlyer,
+            earnedDate: earnedDates['frequentflyer'],
+            progress: Math.min(maxCityVisits, 100),
+            total: 100
+        });
+        achievements.push({
+            tier: 'platinum', id: 'city500',
+            name: 'Globe Trotter',
+            desc: 'Visit 500 unique cities',
+            earned: goldMilestones.has(500),
+            earnedDate: goldMilestones.has(500) ? earnedDates['city500'] : undefined,
+            progress: Math.min(uniqueCities.size, 500),
+            total: 500
         });
 
-        // Gold — every 50th city milestone
-        const goldNames = { 50: 'Half Century', 100: 'Centurion', 150: 'Globe Trotter',
-            200: 'World Walker', 250: 'Pathfinder', 300: 'Wayfarer' };
-        // Show all earned milestones + the next unearned one
+        // Gold — city milestones 100-400 (highest earned + next unearned)
+        const goldMilestoneNames = { 100: 'Centurion', 200: 'World Walker', 300: 'Wayfarer', 400: 'Pathfinder' };
         const currentCities = uniqueCities.size;
-        const nextMilestone = (Math.floor(currentCities / 50) + 1) * 50;
-        const milestonesToShow = new Set([...goldMilestones]);
-        milestonesToShow.add(nextMilestone);
-        // Always show at least 50 & 100
-        milestonesToShow.add(50);
-        milestonesToShow.add(100);
-        [...milestonesToShow].sort((a, b) => a - b).forEach(m => {
+        const goldMilestoneKeys = [100, 200, 300, 400];
+        const highestGoldEarned = [...goldMilestoneKeys].reverse().find(m => goldMilestones.has(m)) ?? null;
+        const nextGoldMilestone = goldMilestoneKeys.find(m => !goldMilestones.has(m)) ?? null;
+        const goldMilestonesToShow = [...new Set([highestGoldEarned, nextGoldMilestone].filter(m => m !== null))];
+        goldMilestonesToShow.forEach(m => {
             const earned = goldMilestones.has(m);
-            const name = goldNames[m] || `${m} Cities`;
             achievements.push({
                 tier: 'gold', id: `city${m}`,
-                name: name,
+                name: goldMilestoneNames[m],
                 desc: `Visit ${m} unique cities`,
                 earned: earned,
                 earnedDate: earned ? earnedDates[`city${m}`] : undefined,
@@ -673,6 +702,77 @@
             earnedDate: earnedDates['bigfive'],
             progress: bigFiveCount,
             total: 5
+        });
+
+        // Gold — ASEAN Complete
+        const aseanCount = [...ASEAN_COUNTRIES].filter(c => seenCountries.has(c)).length;
+        achievements.push({
+            tier: 'gold', id: 'asean',
+            name: 'ASEAN Complete',
+            desc: 'Visit all 11 ASEAN nations',
+            earned: goldAsean,
+            earnedDate: earnedDates['asean'],
+            progress: aseanCount,
+            total: 11
+        });
+
+        // Gold — Silk Road Scholar
+        const silkRoadCount = [...SILK_ROAD_COUNTRIES].filter(c => seenCountries.has(c)).length;
+        achievements.push({
+            tier: 'gold', id: 'silkroad',
+            name: 'Silk Road Scholar',
+            desc: 'Visit all 7 "Stan" countries',
+            earned: goldSilkRoad,
+            earnedDate: earnedDates['silkroad'],
+            progress: silkRoadCount,
+            total: 7
+        });
+
+        // Gold — EU Complete
+        const euCount = [...EU_COUNTRIES].filter(c => seenCountries.has(c)).length;
+        achievements.push({
+            tier: 'gold', id: 'euComplete',
+            name: 'EU Complete',
+            desc: 'Visit all 27 EU member states',
+            earned: goldEU,
+            earnedDate: earnedDates['euComplete'],
+            progress: euCount,
+            total: 27
+        });
+
+        // Gold — New World Explorer
+        const hasMainNA = [...seenCountries].some(c => COUNTRY_TO_CONTINENT[c] === 'North America' && !CARIBBEAN_COUNTRIES.has(c));
+        const hasSA = (continentCountries['South America']?.size ?? 0) > 0;
+        const hasCarib = [...CARIBBEAN_COUNTRIES].some(c => seenCountries.has(c));
+        const newWorldCount = (hasMainNA ? 1 : 0) + (hasSA ? 1 : 0) + (hasCarib ? 1 : 0);
+        achievements.push({
+            tier: 'gold', id: 'newworld',
+            name: 'New World Explorer',
+            desc: 'Visit North America (mainland), South America & the Caribbean',
+            earned: goldNewWorld,
+            earnedDate: earnedDates['newworld'],
+            progress: newWorldCount,
+            total: 3
+        });
+
+        // Gold — Jet Set Year
+        achievements.push({
+            tier: 'gold', id: 'jetsetyear',
+            name: 'Jet Set Year',
+            desc: 'Visit 3+ continents in the same calendar year',
+            earned: goldJetSetYear,
+            earnedDate: earnedDates['jetsetyear']
+        });
+
+        // Gold — Year-Round Traveller
+        achievements.push({
+            tier: 'gold', id: 'yearround',
+            name: 'Year-Round Traveller',
+            desc: 'Take trips in all 12 calendar months',
+            earned: goldYearRound,
+            earnedDate: earnedDates['yearround'],
+            progress: monthsWithTrips.size,
+            total: 12
         });
 
         // Silver — visa achievements
@@ -1141,7 +1241,7 @@
         'China':        'Middle Kingdom',
         'Israel':       'TAN DEX TUAN',
         'Turkey':       'Istanbul, Not Constantinople',
-        'Italy':        'Second Home',
+        'Italy':        'Dove Vai?',
         'Russia':       'Matryoshka',
         'North Korea':  'Kim Says Hi',
         'India':        'No, I Want The Sticker',
@@ -1151,6 +1251,12 @@
     // and should NOT be auto-awarded simply by visiting the country
     const VISA_MANUAL = new Set(['China']);
     let visaAwarded = {}; // country → true
+
+    // ── Gold achievement country sets ──
+    const ASEAN_COUNTRIES = new Set(['Brunei', 'Cambodia', 'Indonesia', 'Laos', 'Malaysia', 'Myanmar', 'Philippines', 'Singapore', 'Thailand', 'Timor-Leste', 'Vietnam']);
+    const SILK_ROAD_COUNTRIES = new Set(['Kazakhstan', 'Uzbekistan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Pakistan', 'Afghanistan']);
+    const EU_COUNTRIES = new Set(['Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus', 'Czech Republic', 'Denmark', 'Estonia', 'Finland', 'France', 'Germany', 'Greece', 'Hungary', 'Ireland', 'Italy', 'Latvia', 'Lithuania', 'Luxembourg', 'Malta', 'Netherlands', 'Poland', 'Portugal', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden']);
+    const CARIBBEAN_COUNTRIES = new Set(['Cuba', 'Jamaica', 'Haiti', 'Dominican Republic', 'Trinidad and Tobago', 'Bahamas', 'Barbados', 'Grenada', 'Dominica', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines', 'Antigua and Barbuda', 'Bermuda', 'Cayman Islands', 'Turks and Caicos Islands', 'British Virgin Islands', 'Anguilla', 'Montserrat']);
 
     // ── Trophy overrides: city name → trophy country (for territories shown as parent country in city list) ──
     const CITY_TROPHY_OVERRIDE = {
@@ -1173,6 +1279,19 @@
         const cityName = (city.name || '').trim().toLowerCase();
         const cityKey = `${cityName}-${country}`;
         uniqueCities.add(cityKey);
+
+        // Track visit frequency, travel months and continents per year
+        cityVisitCounts[cityKey] = (cityVisitCounts[cityKey] || 0) + 1;
+        if (city.flightDate) {
+            const _d = new Date(city.flightDate);
+            monthsWithTrips.add(_d.getMonth());
+            const _vc = COUNTRY_TO_CONTINENT[country] || null;
+            if (_vc) {
+                const _yr = _d.getFullYear();
+                if (!continentsPerYear[_yr]) continentsPerYear[_yr] = new Set();
+                continentsPerYear[_yr].add(_vc);
+            }
+        }
 
         // Track first trip date
         if (city.flightDate && !firstTripDate) {
@@ -1244,6 +1363,39 @@
                 const contName = CONTINENT_NAMES[continent] || `${continent} Explorer`;
                 queue('silver', contName, `5 countries in ${continent}`);
             }
+
+            // Gold: ASEAN Complete
+            if (!goldAsean && ASEAN_COUNTRIES.has(country) && [...ASEAN_COUNTRIES].every(c => seenCountries.has(c))) {
+                goldAsean = true;
+                earnedDates['asean'] = city.flightDate || null;
+                queue('gold', 'ASEAN Complete', 'All 11 ASEAN nations visited');
+            }
+
+            // Gold: Silk Road Scholar
+            if (!goldSilkRoad && SILK_ROAD_COUNTRIES.has(country) && [...SILK_ROAD_COUNTRIES].every(c => seenCountries.has(c))) {
+                goldSilkRoad = true;
+                earnedDates['silkroad'] = city.flightDate || null;
+                queue('gold', 'Silk Road Scholar', 'All 7 Stan countries visited');
+            }
+
+            // Gold: EU Complete
+            if (!goldEU && EU_COUNTRIES.has(country) && [...EU_COUNTRIES].every(c => seenCountries.has(c))) {
+                goldEU = true;
+                earnedDates['euComplete'] = city.flightDate || null;
+                queue('gold', 'EU Complete', 'All 27 EU member states visited');
+            }
+
+            // Gold: New World Explorer
+            if (!goldNewWorld) {
+                const hasMainNA = [...seenCountries].some(c => COUNTRY_TO_CONTINENT[c] === 'North America' && !CARIBBEAN_COUNTRIES.has(c));
+                const hasSA = (continentCountries['South America']?.size ?? 0) > 0;
+                const hasCarib = [...CARIBBEAN_COUNTRIES].some(c => seenCountries.has(c));
+                if (hasMainNA && hasSA && hasCarib) {
+                    goldNewWorld = true;
+                    earnedDates['newworld'] = city.flightDate || null;
+                    queue('gold', 'New World Explorer', 'North, South America & Caribbean visited');
+                }
+            }
         }
 
         // Special bronze: landmark trophies
@@ -1255,15 +1407,42 @@
             }
         });
 
-        // Gold: every 50th unique city
+        // Gold: Jet Set Year
+        if (!goldJetSetYear && city.flightDate) {
+            const _jetYr = new Date(city.flightDate).getFullYear();
+            if (continentsPerYear[_jetYr] && continentsPerYear[_jetYr].size >= 3) {
+                goldJetSetYear = true;
+                earnedDates['jetsetyear'] = city.flightDate || null;
+                queue('gold', 'Jet Set Year', `3+ continents in ${_jetYr}`);
+            }
+        }
+
+        // Gold: Year-Round Traveller
+        if (!goldYearRound && monthsWithTrips.size === 12) {
+            goldYearRound = true;
+            earnedDates['yearround'] = city.flightDate || null;
+            queue('gold', 'Year-Round Traveller', 'Travelled in all 12 calendar months');
+        }
+
+        // Platinum: Always Home
+        if (!goldFrequentFlyer && cityVisitCounts[cityKey] >= 100) {
+            goldFrequentFlyer = true;
+            earnedDates['frequentflyer'] = city.flightDate || null;
+            queue('platinum', 'Always Home', `${city.name || 'A city'} visited 100+ times`);
+        }
+
+        // City milestones: gold 100-400, platinum 500
         const cityCount = uniqueCities.size;
-        if (cityCount > 0 && cityCount % 50 === 0 && !goldMilestones.has(cityCount)) {
+        if (cityCount >= 100 && cityCount % 100 === 0 && !goldMilestones.has(cityCount)) {
             goldMilestones.add(cityCount);
             earnedDates[`city${cityCount}`] = city.flightDate || null;
-            const names = { 50: 'Half Century', 100: 'Centurion', 150: 'Globe Trotter',
-                200: 'World Walker', 250: 'Pathfinder', 300: 'Wayfarer' };
-            const name = names[cityCount] || `${cityCount} Cities`;
-            queue('gold', name, `${cityCount} cities visited`);
+            if (cityCount === 500) {
+                queue('platinum', 'Globe Trotter', '500 cities visited');
+            } else {
+                const names = { 100: 'Centurion', 200: 'World Walker', 300: 'Wayfarer', 400: 'Pathfinder' };
+                const name = names[cityCount] || `${cityCount} Cities`;
+                queue('gold', name, `${cityCount} cities visited`);
+            }
         }
 
         // Platinum: circumnavigation
@@ -1311,6 +1490,16 @@
         goldMilestones = new Set();
         goldBigFive = false;
         silverBigFive = false;
+        goldAsean = false;
+        goldSilkRoad = false;
+        goldJetSetYear = false;
+        goldYearRound = false;
+        goldFrequentFlyer = false;
+        goldNewWorld = false;
+        goldEU = false;
+        Object.keys(continentsPerYear).forEach(k => delete continentsPerYear[k]);
+        monthsWithTrips.clear();
+        cityVisitCounts = {};
         prevEarnedIds = new Set();
         container.innerHTML = '';
     }
@@ -1350,13 +1539,41 @@
                     visaAwarded[country] = true;
                     earnedDates[`visa-${country}`] = city.flightDate || null;
                 }
+                // Track continents per year and months for new Gold trophies
+                if (city.flightDate && continent) {
+                    const _yr = new Date(city.flightDate).getFullYear();
+                    if (!continentsPerYear[_yr]) continentsPerYear[_yr] = new Set();
+                    continentsPerYear[_yr].add(continent);
+                }
+                if (city.flightDate) monthsWithTrips.add(new Date(city.flightDate).getMonth());
+                if (isNewCountry) {
+                    if (!goldAsean && ASEAN_COUNTRIES.has(country) && [...ASEAN_COUNTRIES].every(c => seenCountries.has(c))) {
+                        goldAsean = true; earnedDates['asean'] = city.flightDate || null;
+                    }
+                    if (!goldSilkRoad && SILK_ROAD_COUNTRIES.has(country) && [...SILK_ROAD_COUNTRIES].every(c => seenCountries.has(c))) {
+                        goldSilkRoad = true; earnedDates['silkroad'] = city.flightDate || null;
+                    }
+                    if (!goldNewWorld) {
+                        const _hasMainNA = [...seenCountries].some(c => COUNTRY_TO_CONTINENT[c] === 'North America' && !CARIBBEAN_COUNTRIES.has(c));
+                        const _hasSA = (continentCountries['South America']?.size ?? 0) > 0;
+                        const _hasCarib = [...CARIBBEAN_COUNTRIES].some(c => seenCountries.has(c));
+                        if (_hasMainNA && _hasSA && _hasCarib) { goldNewWorld = true; earnedDates['newworld'] = city.flightDate || null; }
+                    }
+                    if (!goldEU && EU_COUNTRIES.has(country) && [...EU_COUNTRIES].every(c => seenCountries.has(c))) {
+                        goldEU = true; earnedDates['euComplete'] = city.flightDate || null;
+                    }
+                }
             }
             const cityName = (city.name || '').trim().toLowerCase();
-            if (cityName && country) uniqueCities.add(`${cityName}-${country}`);
+            if (cityName && country) {
+                const _ck = `${cityName}-${country}`;
+                uniqueCities.add(_ck);
+                cityVisitCounts[_ck] = (cityVisitCounts[_ck] || 0) + 1;
+            }
             if (city.flightDate && !firstTripDate) firstTripDate = new Date(city.flightDate);
             // Track gold milestones
             const newCitySize = uniqueCities.size;
-            if (newCitySize > 0 && newCitySize % 50 === 0 && !goldMilestones.has(newCitySize)) {
+            if (newCitySize >= 100 && newCitySize % 100 === 0 && !goldMilestones.has(newCitySize)) {
                 goldMilestones.add(newCitySize);
                 earnedDates[`city${newCitySize}`] = city.flightDate || null;
             }
@@ -1391,6 +1608,24 @@
                 if (currentDate >= tenYearsLater) {
                     platinum10Year = true;
                     earnedDates['10year'] = city.flightDate || null;
+                }
+            }
+            // Gold: Jet Set Year
+            if (!goldJetSetYear && city.flightDate) {
+                const _jetYr = new Date(city.flightDate).getFullYear();
+                if (continentsPerYear[_jetYr] && continentsPerYear[_jetYr].size >= 3) {
+                    goldJetSetYear = true; earnedDates['jetsetyear'] = city.flightDate || null;
+                }
+            }
+            // Gold: Year-Round Traveller
+            if (!goldYearRound && monthsWithTrips.size === 12) {
+                goldYearRound = true; earnedDates['yearround'] = city.flightDate || null;
+            }
+            // Platinum: Frequent Flyer
+            if (!goldFrequentFlyer && cityName && country) {
+                const _fck = `${cityName}-${country}`;
+                if (cityVisitCounts[_fck] >= 100) {
+                    goldFrequentFlyer = true; earnedDates['frequentflyer'] = city.flightDate || null;
                 }
             }
         });
