@@ -1,6 +1,21 @@
 {
   "permissions": {
     "allow": [
+      "Bash(node -e \"new Function\\(require\\(''fs''\\).readFileSync\\(''c:/Users/65963/Desktop/worldOyster/country-trophy.js'', ''utf8''\\)\\); console.log\\(''Syntax OK''\\)\")",
+      "Bash(curl -sL \"https://flagcdn.com/en/codes.json\" -o /tmp/flag_codes.json)",
+      "Bash(node -e \"const codes = JSON.parse\\(require\\(''fs''\\).readFileSync\\(''/tmp/flag_codes.json'',''utf8''\\)\\); console.log\\(Object.keys\\(codes\\).length + '' codes available''\\); console.log\\(Object.entries\\(codes\\).map\\(\\([k,v]\\)=>k\\).join\\('' ''\\)\\)\")",
+      "Bash(curl -sL \"https://flagcdn.com/en/codes.json\" -o \"c:/Users/65963/Desktop/worldOyster/asset/flags/codes.json\")",
+      "Bash(node -e \"const codes = JSON.parse\\(require\\(''fs''\\).readFileSync\\(''c:/Users/65963/Desktop/worldOyster/asset/flags/codes.json'',''utf8''\\)\\); console.log\\(Object.keys\\(codes\\).length + '' codes''\\); Object.entries\\(codes\\).forEach\\(\\([k,v]\\)=>console.log\\(k+'' ''+v\\)\\)\")",
+      "Bash(grep -rn \"https\\\\?://\" c:/Users/65963/Desktop/worldOyster/*.html c:/Users/65963/Desktop/worldOyster/*.js c:/Users/65963/Desktop/worldOyster/*.css)",
+      "Bash(curl -sL \"https://unpkg.com/leaflet@1.9.4/dist/leaflet.css\" -o leaflet.css)",
+      "Bash(curl -sL \"https://unpkg.com/leaflet@1.9.4/dist/leaflet.js\" -o leaflet.js)",
+      "Bash(curl -sL \"https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js\" -o chart.umd.min.js)",
+      "Bash(mkdir -p \"c:/Users/65963/Desktop/worldOyster/asset/vendor/images\")",
+      "Bash(curl -sL \"https://unpkg.com/leaflet@1.9.4/dist/images/layers.png\" -o layers.png)",
+      "Bash(curl -sL \"https://unpkg.com/leaflet@1.9.4/dist/images/layers-2x.png\" -o layers-2x.png)",
+      "Bash(curl -sL \"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png\" -o marker-icon.png)",
+      "Bash(curl -sL \"https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png\" -o marker-icon-2x.png)",
+      "Bash(curl -sL \"https://flagcdn.com/en/codes.json\")",
       "Bash(node -e \":*)"
     ]
   }

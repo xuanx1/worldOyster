@@ -98,10 +98,10 @@ window.AIRPORT_TO_COUNTRY = {
     'FNJ': 'North Korea',
 
     // Asia - Hong Kong
-    'HKG': 'Hong Kong',
+    'HKG': 'China',
 
     // Asia - Taiwan
-    'TPE': 'Taiwan', 'TSA': 'Taiwan',
+    'TPE': 'ROC (Taiwan)', 'TSA': 'ROC (Taiwan)',
 
     // Asia - Singapore
     'SIN': 'Singapore',

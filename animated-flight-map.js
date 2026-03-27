@@ -549,6 +549,30 @@ class AnimatedFlightMap {
         new ReplayAnimationControl({ position: 'topright' }).addTo(this.map);
         new ToggleLinesControl({ position: 'topright' }).addTo(this.map);
         new FollowDotControl({ position: 'topright' }).addTo(this.map);
+
+        // Achievements panel button
+        const AchievementsControl = L.Control.extend({
+            onAdd: function() {
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+                button.innerHTML = '🏆';
+                button.style.backgroundColor = '#333';
+                button.style.color = '#fff';
+                button.style.width = '30px';
+                button.style.height = '30px';
+                button.style.display = 'flex';
+                button.style.alignItems = 'center';
+                button.style.justifyContent = 'center';
+                button.style.cursor = 'pointer';
+                button.style.fontSize = '16px';
+                button.title = 'Achievements';
+                button.onclick = (e) => {
+                    L.DomEvent.stopPropagation(e);
+                    if (window.countryTrophy) window.countryTrophy.togglePanel();
+                };
+                return button;
+            }
+        });
+        new AchievementsControl({ position: 'topright' }).addTo(this.map);
         
         // Set follow dot button to active state since it's enabled by default
         this.updateFollowDotButton();
