@@ -671,13 +671,12 @@
             total: 500
         });
 
-        // Gold — city milestones 100-400 (highest earned + next unearned)
+        // Gold — city milestones 100-400 (all earned + next unearned)
         const goldMilestoneNames = { 100: 'Centurion', 200: 'World Walker', 300: 'Wayfarer', 400: 'Pathfinder' };
         const currentCities = uniqueCities.size;
         const goldMilestoneKeys = [100, 200, 300, 400];
-        const highestGoldEarned = [...goldMilestoneKeys].reverse().find(m => goldMilestones.has(m)) ?? null;
         const nextGoldMilestone = goldMilestoneKeys.find(m => !goldMilestones.has(m)) ?? null;
-        const goldMilestonesToShow = [...new Set([highestGoldEarned, nextGoldMilestone].filter(m => m !== null))];
+        const goldMilestonesToShow = goldMilestoneKeys.filter(m => goldMilestones.has(m) || m === nextGoldMilestone);
         goldMilestonesToShow.forEach(m => {
             const earned = goldMilestones.has(m);
             achievements.push({
@@ -1103,7 +1102,10 @@
     function closePanel() {
         overlay.classList.remove('open');
         panelOpen = false;
-        setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        setTimeout(() => {
+            overlay.style.display = 'none';
+            document.getElementById('achievements-body').innerHTML = '';
+        }, 300);
     }
 
     function togglePanel() {
@@ -1565,7 +1567,7 @@
                 }
             }
             const cityName = (city.name || '').trim().toLowerCase();
-            if (cityName && country) {
+            if (country && country !== 'Unknown') {
                 const _ck = `${cityName}-${country}`;
                 uniqueCities.add(_ck);
                 cityVisitCounts[_ck] = (cityVisitCounts[_ck] || 0) + 1;
