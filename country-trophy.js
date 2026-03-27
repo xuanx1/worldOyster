@@ -14,6 +14,10 @@
     let platinumCircumnavigation = false;
     let platinum10Year = false;
     let goldMilestones = new Set(); // tracks which 50-city milestones have been awarded
+    let goldBigFive = false;        // Superpower Passport gold
+    let silverBigFive = false;       // World Power Tour silver
+    let specialBronzeAwarded = {}; // special location id → true
+    let earnedDates = {}; // achievement id → date string when earned
     let panelOpen = false;
 
     // ── Country flag images (ISO 3166-1 alpha-2 codes → local asset/flags/) ──
@@ -542,6 +546,25 @@
             transition: width 0.3s;
         }
 
+        .ach-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.07);
+            margin: 8px 0;
+        }
+        .ach-earned-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+            flex-shrink: 0;
+        }
+        .ach-date {
+            font-size: 0.45em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
         @media (max-width: 768px) {
             .achievements-panel { width: 100%; max-width: 100%; max-height: 90vh; border-radius: 10px 10px 0 0; }
             .ach-row { padding: 8px 8px; gap: 8px; }
@@ -603,13 +626,15 @@
             tier: 'platinum', id: 'circum',
             name: 'Circumnavigation',
             desc: 'Visit cities on all 6 inhabited continents',
-            earned: platinumCircumnavigation
+            earned: platinumCircumnavigation,
+            earnedDate: earnedDates['circum']
         });
         achievements.push({
             tier: 'platinum', id: '10year',
             name: 'Decade of Travel',
             desc: '10 years of travelling since first trip',
-            earned: platinum10Year
+            earned: platinum10Year,
+            earnedDate: earnedDates['10year']
         });
 
         // Gold — every 50th city milestone
@@ -631,9 +656,23 @@
                 name: name,
                 desc: `Visit ${m} unique cities`,
                 earned: earned,
+                earnedDate: earned ? earnedDates[`city${m}`] : undefined,
                 progress: Math.min(currentCities, m),
                 total: m
             });
+        });
+
+        // Gold — Superpower Passport (requires visa for all 5: Italy/EU, China, USA, India, Russia)
+        const BIG_FIVE_VISA = ['Italy', 'China', 'USA', 'India', 'Russia'];
+        const bigFiveCount = BIG_FIVE_VISA.filter(c => visaAwarded[c]).length;
+        achievements.push({
+            tier: 'gold', id: 'bigfive',
+            name: 'Superpower Passport',
+            desc: 'Obtain visas for the World\'s Top 5 largest economies - China, EU, India, USA, Russia',
+            earned: goldBigFive,
+            earnedDate: earnedDates['bigfive'],
+            progress: bigFiveCount,
+            total: 5
         });
 
         // Silver — visa achievements
@@ -642,21 +681,65 @@
                 tier: 'silver', id: `visa-${country}`,
                 name: label,
                 desc: `Visa obtained for ${country}`,
-                earned: !!visaAwarded[country]
+                earned: !!visaAwarded[country],
+                earnedDate: earnedDates[`visa-${country}`]
             });
         });
+
+        // Silver — World Power Tour
+        const POWER_FIVE = ['France', 'China', 'USA', 'India', 'Russia'];
+        const powerFiveCount = POWER_FIVE.filter(c => seenCountries.has(c)).length;
+        achievements.push({
+            tier: 'silver', id: 'powerfive',
+            name: 'World Power Tour',
+            desc: 'Visit the 5 largest economies (EU, China, USA, India, Russia)',
+            earned: silverBigFive,
+            earnedDate: earnedDates['powerfive'],
+            progress: powerFiveCount,
+            total: 5
+        });
+
+        // Divider between visa achievements and continent silvers
+        achievements.push({ tier: 'silver', id: 'divider-visa-continents', isDivider: true });
+
+        const CONTINENT_NAMES = {
+            'Asia':          'Dragon & Lotus',
+            'Europe':        'Old World Wanderer',
+            'Africa':        'Sahara to Savanna',
+            'North America': 'New World Order',
+            'South America': 'El Dorado Trail',
+            'Oceania':       'Below the Southern Cross'
+        };
 
         // Silver — one per continent
         ALL_CONTINENTS.forEach(cont => {
             const count = continentCountries[cont] ? continentCountries[cont].size : 0;
             achievements.push({
                 tier: 'silver', id: `silver-${cont}`,
-                name: `${cont} Explorer`,
+                name: CONTINENT_NAMES[cont] || `${cont} Explorer`,
                 desc: `Visit 5 countries in ${cont}`,
                 earned: !!silverAwarded[cont],
+                earnedDate: earnedDates[`silver-${cont}`],
                 progress: Math.min(count, 5),
                 total: 5
             });
+        });
+
+        // Bronze — special locations first
+        SPECIAL_BRONZE.forEach(sb => {
+            achievements.push({
+                tier: 'bronze', id: `special-${sb.id}`,
+                name: sb.name,
+                desc: sb.desc,
+                earned: !!specialBronzeAwarded[sb.id],
+                earnedDate: earnedDates[`special-${sb.id}`],
+                isSpecial: true
+            });
+        });
+
+        // Divider between special bronzes and country bronzes
+        achievements.push({
+            tier: 'bronze', id: 'divider-special-countries', isDivider: true
         });
 
         // Bronze — one per visited country + show unvisited from the continent map
@@ -671,6 +754,7 @@
                 name: c,
                 desc: COUNTRY_TO_CONTINENT[c] || '',
                 earned: true,
+                earnedDate: earnedDates[`country-${c}`],
                 isCountry: true
             });
         });
@@ -788,8 +872,20 @@
                         if (iconEl && !a.isCountry) iconEl.innerHTML = trophySVG(tierColor, 20);
                         const badge = row.querySelector('.ach-badge');
                         if (badge) {
-                            badge.className = 'ach-badge earned-badge';
-                            badge.textContent = 'Earned';
+                            const col = document.createElement('div');
+                            col.className = 'ach-earned-col';
+                            const newBadge = document.createElement('span');
+                            newBadge.className = 'ach-badge earned-badge';
+                            newBadge.textContent = 'Earned';
+                            col.appendChild(newBadge);
+                            const dateStr = earnedDates[a.id];
+                            if (dateStr) {
+                                const dateEl = document.createElement('span');
+                                dateEl.className = 'ach-date';
+                                dateEl.textContent = formatTrophyDate(dateStr);
+                                col.appendChild(dateEl);
+                            }
+                            badge.parentNode.replaceChild(col, badge);
                         }
                         // Remove progress bar
                         const prog = row.querySelector('.ach-progress');
@@ -800,7 +896,17 @@
                         const sectionHeader = body.querySelector(`[data-section="${a.tier}"]`);
                         if (sectionHeader) {
                             let insertBefore = null;
-                            let sibling = sectionHeader.nextElementSibling;
+                            // Start search after the appropriate divider so rows never
+                            // get re-inserted above the special/visa sections
+                            let searchFrom = sectionHeader;
+                            if (a.isCountry) {
+                                const divider = body.querySelector('[data-ach-id="divider-special-countries"]');
+                                if (divider) searchFrom = divider;
+                            } else if (a.tier === 'silver' && a.id.startsWith('silver-')) {
+                                const divider = body.querySelector('[data-ach-id="divider-visa-continents"]');
+                                if (divider) searchFrom = divider;
+                            }
+                            let sibling = searchFrom.nextElementSibling;
                             while (sibling && sibling.dataset.achTier === a.tier) {
                                 if (sibling.classList.contains('unearned')) {
                                     insertBefore = sibling;
@@ -830,15 +936,27 @@
         prevEarnedIds = currentEarnedIds;
     }
 
+    function formatTrophyDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
     function buildRowsHtml(items, tierConf, newlyEarned) {
         let html = '';
         items.forEach(a => {
+            if (a.isDivider) {
+                html += `<div class="ach-divider" data-ach-id="${a.id}" data-ach-tier="${a.tier}"></div>`;
+                return;
+            }
             const earnedClass = a.earned ? 'earned' : 'unearned';
             const isNew = newlyEarned.has(a.id);
             const glowClass = isNew ? ' just-earned' : '';
             const glowStyle = isNew ? `--glow-color:${tierConf.color}55;--glow-bg:${tierConf.bg};` : '';
+            const dateLabel = a.earned && a.earnedDate ? formatTrophyDate(a.earnedDate) : '';
             const badgeHtml = a.earned
-                ? '<span class="ach-badge earned-badge">Earned</span>'
+                ? `<div class="ach-earned-col"><span class="ach-badge earned-badge">Earned</span>${dateLabel ? `<span class="ach-date">${dateLabel}</span>` : ''}</div>`
                 : '<span class="ach-badge locked-badge">Locked</span>';
 
             let progressHtml = '';
@@ -905,17 +1023,133 @@
     });
 
     // ── Visa achievements (silver) — triggered just before bronze when first visiting the country ──
+    // ── Special bronze achievements — landmark/location trophies ──
+    const SPECIAL_BRONZE = [
+        // ── Europe ──
+        {
+            id: 'versailles',
+            name: 'Palace of Versailles',
+            desc: 'Visit Versailles Palace',
+            match: city => (city.name || '').trim().toLowerCase() === 'versailles'
+        },
+        {
+            id: 'rovaniemi',
+            name: 'Chasing the Aurora',
+            desc: 'Visit the Hometown of Santa Claus',
+            match: city => (city.name || '').trim().toLowerCase() === 'rovaniemi'
+        },
+        {
+            id: 'athos',
+            name: 'Diamonitirion',
+            desc: 'Set foot on Mount Athos',
+            match: city => (city.name || '').trim().toLowerCase() === 'daphni'
+        },
+        // ── Asia ──
+        {
+            id: 'amritsar',
+            name: 'Golden Temple',
+            desc: 'Visit the Golden Temple in Amritsar',
+            match: city => (city.name || '').trim().toLowerCase() === 'amritsar'
+        },
+        {
+            id: 'baikonur',
+            name: 'We Have Liftoff',
+            desc: 'Visit the Baikonur Cosmodrome, the Birthplace of the Space Age',
+            match: city => (city.name || '').trim().toLowerCase() === 'baikonur'
+        },
+        {
+            id: 'ulaanbaatar',
+            name: 'Eternal Blue Sky',
+            desc: "Visit Ulaanbaatar, the Home of Genghis Khan's Legacy",
+            match: city => (city.name || '').trim().toLowerCase() === 'ulaanbaatar'
+        },
+        {
+            id: 'mandalay',
+            name: 'Last of the Burmese Kings',
+            desc: 'Visit the Last Royal Capital of Myanmar',
+            match: city => (city.name || '').trim().toLowerCase() === 'mandalay'
+        },
+        {
+            id: 'xian',
+            name: 'Terracotta Army',
+            desc: "Visit the Terracotta Warriors",
+            match: city => ["xi'an", 'xian'].includes((city.name || '').trim().toLowerCase())
+        },
+        {
+            id: 'beijing',
+            name: 'Dragon Throne',
+            desc: 'Visit the Forbidden City',
+            match: city => (city.name || '').trim().toLowerCase() === 'beijing'
+        },
+        {
+            id: 'agra',
+            name: 'Eternal Love',
+            desc: 'Visit the Taj Mahal',
+            match: city => (city.name || '').trim().toLowerCase() === 'agra'
+        },
+        // ── Middle East ──
+        {
+            id: 'petra',
+            name: 'Rose-Red City',
+            desc: 'Visit Petra',
+            match: city => (city.name || '').trim().toLowerCase() === 'petra'
+        },
+        {
+            id: 'jerusalem',
+            name: 'City of Three Faiths',
+            desc: 'Visit Jerusalem\'s Old City',
+            match: city => (city.name || '').trim().toLowerCase() === 'jerusalem'
+        },
+        // ── Africa ──
+        {
+            id: 'sahara',
+            name: 'Into the Great Void',
+            desc: 'Visit the Sahara Desert',
+            match: city => (city.name || '').trim().toLowerCase() === 'tamanrasset'
+        },
+        {
+            id: 'luxor',
+            name: 'Cradle of Civilisation',
+            desc: 'Visit Valley of the Kings',
+            match: city => (city.name || '').trim().toLowerCase() === 'luxor'
+        },
+        // ── North America ──
+        {
+            id: 'nyc',
+            name: 'Financial Capital of the World',
+            desc: 'Visit New York City',
+            match: city => (city.name || '').trim().toLowerCase() === 'new york'
+        },
+        // ── South America ──
+        {
+            id: 'cusco',
+            name: 'Navel of the World',
+            desc: 'Visit Machu Picchu',
+            match: city => ['cusco', 'cuzco'].includes((city.name || '').trim().toLowerCase())
+        },
+        {
+            id: 'uyuni',
+            name: 'Mirror of the Sky',
+            desc: 'Visit the Bolivia Salt Flats',
+            match: city => (city.name || '').trim().toLowerCase() === 'uyuni'
+        }
+    ];
+
     const VISA_COUNTRIES = {
-        'Algeria':      'Algeria Visa',
-        'USA':          'USA Visa (Study/Work)',
-        'Israel':       'Israel Visa (Study)',
-        'Turkey':       'Turkey Visa (Study)',
-        'Italy':        'EU Visa (Study)',
-        'Russia':       'Russia Visa (1st Visa Ever)',
-        'North Korea':  'North Korea Visa',
-        'India':        'India Visa',
-        'Turkmenistan': 'Turkmenistan Visa'
+        'Algeria':      'Desert Rose',
+        'USA':          'Empire State of Mind',
+        'China':        'Middle Kingdom',
+        'Israel':       'TAN DEX TUAN',
+        'Turkey':       'Istanbul, Not Constantinople',
+        'Italy':        'Second Home',
+        'Russia':       'Matryoshka',
+        'North Korea':  'Kim Says Hi',
+        'India':        'No, I Want The Sticker',
+        'Turkmenistan': 'Gates of Hell'
     };
+    // Countries in VISA_COUNTRIES that require an explicit visa sticker/stamp
+    // and should NOT be auto-awarded simply by visiting the country
+    const VISA_MANUAL = new Set(['China']);
     let visaAwarded = {}; // country → true
 
     // ── Trophy overrides: city name → trophy country (for territories shown as parent country in city list) ──
@@ -955,25 +1189,77 @@
                 seenContinents.add(continent);
             }
 
-            // Silver visa — triggers just before bronze
-            if (VISA_COUNTRIES[country] && !visaAwarded[country]) {
+            // Silver visa — triggers just before bronze (skip manual-only entries)
+            if (VISA_COUNTRIES[country] && !visaAwarded[country] && !VISA_MANUAL.has(country)) {
                 visaAwarded[country] = true;
+                earnedDates[`visa-${country}`] = city.flightDate || null;
                 queue('silver', VISA_COUNTRIES[country], `Visa obtained for ${country}`);
+
+                // Gold: Superpower Passport (visa required for all 5 incl. China)
+                if (!goldBigFive) {
+                    const BIG_FIVE_VISA = ['Italy', 'China', 'USA', 'India', 'Russia'];
+                    if (BIG_FIVE_VISA.every(c => visaAwarded[c])) {
+                        goldBigFive = true;
+                        earnedDates['bigfive'] = city.flightDate || null;
+                        queue('gold', 'Superpower Passport', 'Visas for the 5 largest economies');
+                    }
+                }
             }
 
+            earnedDates[`country-${country}`] = city.flightDate || null;
             queue('bronze', country, `Country #${seenCountries.size}`);
+
+            // Silver: World Power Tour
+            if (!silverBigFive) {
+                const POWER_FIVE = ['France', 'China', 'USA', 'India', 'Russia'];
+                if (POWER_FIVE.every(c => seenCountries.has(c))) {
+                    silverBigFive = true;
+                    earnedDates['powerfive'] = city.flightDate || null;
+                    queue('silver', 'World Power Tour', 'Visited the 5 largest economies');
+                }
+            }
+
+            // Gold: Superpower Passport (visa required for all 5 incl. China)
+            if (!goldBigFive) {
+                const BIG_FIVE_VISA = ['Italy', 'China', 'USA', 'India', 'Russia'];
+                if (BIG_FIVE_VISA.every(c => visaAwarded[c])) {
+                    goldBigFive = true;
+                    earnedDates['bigfive'] = city.flightDate || null;
+                    queue('gold', 'Superpower Passport', 'Visas for the 5 largest economies');
+                }
+            }
 
             // Silver: 5 countries in one continent
             if (continent && continentCountries[continent].size === 5 && !silverAwarded[continent]) {
                 silverAwarded[continent] = true;
-                queue('silver', `${continent} Explorer`, `5 countries in ${continent}`);
+                earnedDates[`silver-${continent}`] = city.flightDate || null;
+                const CONTINENT_NAMES = {
+                    'Asia':          'Dragon & Lotus',
+                    'Europe':        'Old World Wanderer',
+                    'Africa':        'Sahara to Savanna',
+                    'North America': 'New World Order',
+                    'South America': 'El Dorado Trail',
+                    'Oceania':       'Below the Southern Cross'
+                };
+                const contName = CONTINENT_NAMES[continent] || `${continent} Explorer`;
+                queue('silver', contName, `5 countries in ${continent}`);
             }
         }
+
+        // Special bronze: landmark trophies
+        SPECIAL_BRONZE.forEach(sb => {
+            if (!specialBronzeAwarded[sb.id] && sb.match(city)) {
+                specialBronzeAwarded[sb.id] = true;
+                earnedDates[`special-${sb.id}`] = city.flightDate || null;
+                queue('bronze', sb.name, sb.desc);
+            }
+        });
 
         // Gold: every 50th unique city
         const cityCount = uniqueCities.size;
         if (cityCount > 0 && cityCount % 50 === 0 && !goldMilestones.has(cityCount)) {
             goldMilestones.add(cityCount);
+            earnedDates[`city${cityCount}`] = city.flightDate || null;
             const names = { 50: 'Half Century', 100: 'Centurion', 150: 'Globe Trotter',
                 200: 'World Walker', 250: 'Pathfinder', 300: 'Wayfarer' };
             const name = names[cityCount] || `${cityCount} Cities`;
@@ -986,6 +1272,7 @@
             ALL_CONTINENTS.forEach(c => { if (!seenContinents.has(c)) allPresent = false; });
             if (allPresent) {
                 platinumCircumnavigation = true;
+                earnedDates['circum'] = city.flightDate || null;
                 queue('platinum', 'Circumnavigation', 'Visited all 6 continents');
             }
         }
@@ -997,6 +1284,7 @@
             tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 10);
             if (currentDate >= tenYearsLater) {
                 platinum10Year = true;
+                earnedDates['10year'] = city.flightDate || null;
                 queue('platinum', 'Decade of Travel', `10 years since ${firstTripDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`);
             }
         }
@@ -1016,9 +1304,13 @@
         isShowing = false;
         silverAwarded = {};
         visaAwarded = {};
+        specialBronzeAwarded = {};
+        earnedDates = {};
         platinumCircumnavigation = false;
         platinum10Year = false;
         goldMilestones = new Set();
+        goldBigFive = false;
+        silverBigFive = false;
         prevEarnedIds = new Set();
         container.innerHTML = '';
     }
@@ -1033,38 +1325,75 @@
             const cNameLower = (city.name || '').trim().toLowerCase();
             if (CITY_TROPHY_OVERRIDE[cNameLower]) country = CITY_TROPHY_OVERRIDE[cNameLower];
             if (country && country !== 'Unknown') {
+                const isNewCountry = !seenCountries.has(country);
                 seenCountries.add(country);
+                if (isNewCountry) earnedDates[`country-${country}`] = city.flightDate || null;
                 const continent = COUNTRY_TO_CONTINENT[country] || null;
                 if (continent) {
                     if (!continentCountries[continent]) continentCountries[continent] = new Set();
                     continentCountries[continent].add(country);
                     seenContinents.add(continent);
-                    if (continentCountries[continent].size >= 5) silverAwarded[continent] = true;
+                    if (!silverAwarded[continent] && continentCountries[continent].size >= 5) {
+                        silverAwarded[continent] = true;
+                        earnedDates[`silver-${continent}`] = city.flightDate || null;
+                    }
+                    if (!platinumCircumnavigation && seenContinents.size === ALL_CONTINENTS.size) {
+                        let allPresent = true;
+                        ALL_CONTINENTS.forEach(c => { if (!seenContinents.has(c)) allPresent = false; });
+                        if (allPresent) {
+                            platinumCircumnavigation = true;
+                            earnedDates['circum'] = city.flightDate || null;
+                        }
+                    }
                 }
-                if (VISA_COUNTRIES[country]) visaAwarded[country] = true;
+                if (VISA_COUNTRIES[country] && !visaAwarded[country] && !VISA_MANUAL.has(country)) {
+                    visaAwarded[country] = true;
+                    earnedDates[`visa-${country}`] = city.flightDate || null;
+                }
             }
             const cityName = (city.name || '').trim().toLowerCase();
             if (cityName && country) uniqueCities.add(`${cityName}-${country}`);
             if (city.flightDate && !firstTripDate) firstTripDate = new Date(city.flightDate);
-        });
-        // Mark all passed gold milestones
-        for (let m = 50; m <= uniqueCities.size; m += 50) {
-            goldMilestones.add(m);
-        }
-        if (seenContinents.size === ALL_CONTINENTS.size) {
-            let allPresent = true;
-            ALL_CONTINENTS.forEach(c => { if (!seenContinents.has(c)) allPresent = false; });
-            if (allPresent) platinumCircumnavigation = true;
-        }
-        if (firstTripDate) {
-            const lastCity = cities[cities.length - 1];
-            if (lastCity && lastCity.flightDate) {
-                const currentDate = new Date(lastCity.flightDate);
+            // Track gold milestones
+            const newCitySize = uniqueCities.size;
+            if (newCitySize > 0 && newCitySize % 50 === 0 && !goldMilestones.has(newCitySize)) {
+                goldMilestones.add(newCitySize);
+                earnedDates[`city${newCitySize}`] = city.flightDate || null;
+            }
+            // Track bigfive (visa required for all 5 incl. China)
+            if (!goldBigFive) {
+                const BIG_FIVE_VISA = ['Italy', 'China', 'USA', 'India', 'Russia'];
+                if (BIG_FIVE_VISA.every(c => visaAwarded[c])) {
+                    goldBigFive = true;
+                    earnedDates['bigfive'] = city.flightDate || null;
+                }
+            }
+            // Track powerfive
+            if (!silverBigFive) {
+                const POWER_FIVE = ['France', 'China', 'USA', 'India', 'Russia'];
+                if (POWER_FIVE.every(c => seenCountries.has(c))) {
+                    silverBigFive = true;
+                    earnedDates['powerfive'] = city.flightDate || null;
+                }
+            }
+            // Sync special bronzes
+            SPECIAL_BRONZE.forEach(sb => {
+                if (!specialBronzeAwarded[sb.id] && sb.match(city)) {
+                    specialBronzeAwarded[sb.id] = true;
+                    earnedDates[`special-${sb.id}`] = city.flightDate || null;
+                }
+            });
+            // 10-year anniversary
+            if (firstTripDate && city.flightDate && !platinum10Year) {
+                const currentDate = new Date(city.flightDate);
                 const tenYearsLater = new Date(firstTripDate);
                 tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 10);
-                if (currentDate >= tenYearsLater) platinum10Year = true;
+                if (currentDate >= tenYearsLater) {
+                    platinum10Year = true;
+                    earnedDates['10year'] = city.flightDate || null;
+                }
             }
-        }
+        });
     }
 
     window.countryTrophy = { checkCity, reset, syncTo, togglePanel };

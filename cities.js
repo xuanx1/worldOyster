@@ -179,6 +179,7 @@ window.CITY_COORDINATES = {
     'Mumbai': [19.0760, 72.8777],
     'Delhi': [28.7041, 77.1025],
     'Agra': [27.1767, 78.0081],
+    'Amritsar': [31.6340, 74.8723],
     'Kolkata': [22.6549, 88.4469],
     'Calcutta': [22.6549, 88.4469],
     'Bangalore': [12.9716, 77.5946],
@@ -205,6 +206,8 @@ window.CITY_COORDINATES = {
     'Punakha': [27.5921, 89.8643],
     'Tashkent': [41.2995, 69.2401],
     'Shymkent': [42.3417, 69.5967],
+    'Baikonur': [45.9648, 63.3052],
+    'Ulaanbaatar': [47.8864, 106.9057],
     'Samarkand': [39.6542, 66.9597],
     'Bukhara': [39.7747, 64.4286],
     'Nukus': [42.4628, 59.6032],
@@ -289,6 +292,7 @@ window.CITY_COORDINATES = {
     'Wellington': [-41.2924, 174.7787],
 
     // Africa
+    'Tamanrasset': [22.7858, 5.5228],
     'Cape Town': [-33.9249, 18.4241],
     'Johannesburg': [-26.2041, 28.0473],
     'Nairobi': [-1.2864, 36.8172],
