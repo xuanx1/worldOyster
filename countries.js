@@ -260,7 +260,7 @@ window.CITY_TO_COUNTRY = {
     'Beijing': 'China', 'Peking': 'China', 'Tianjin': 'China', 'Shanghai': 'China', 'Chengdu': 'China', 'Chongqing': 'China', 'Wuhan': 'China',
     'Nanyang': 'China', 'Xian': 'China', "Xi'an": 'China', 'Lanzhou': 'China', 'Haikou': 'China',
     'Guangzhou': 'China', 'Shenzhen': 'China', 'Foshan': 'China',
-    'Hong Kong': 'Hong Kong', 'Macau': 'Macau',
+    'Hong Kong': 'Hong Kong', 'Macau': 'Macau', 'Zhuhai': 'China',
     'Taipei': 'Taiwan', 'Taichung': 'Taiwan', 'Kaohsiung': 'Taiwan',
     'Kuala Lumpur': 'Malaysia',
     'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',

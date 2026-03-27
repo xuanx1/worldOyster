@@ -3992,10 +3992,10 @@ class AnimatedFlightMap {
             'metro': 0.03,       // Subway/metro
             'subway': 0.03,      // Alternative metro term
             'tram': 0.03,        // Tram/streetcar
-            'walk': 0,           // Walking
-            'walking': 0,        // Alternative walking term
-            'bike': 0,           // Bicycle
-            'bicycle': 0,        // Alternative bicycle term
+            'walk': 0.01,           // Walking
+            'walking': 0.01,        // Alternative walking term
+            'bike': 0.02,           // Bicycle
+            'bicycle': 0.02,        // Alternative bicycle term
             'scooter': 0.02,     // Electric scooter
             'motorcycle': 0.09   // Motorcycle
         };

@@ -261,7 +261,7 @@ Zurich,Milan,train,45,15/9/2023
 Tel Aviv,Jerusalem,train,11,16/2/2022
 Jerusalem,Tel Aviv,train,11,11/4/2022
 Tel Aviv,Jerusalem,train,11,19/4/2022
-La Linea de la Concepcion,Gibraltar,car,7,23/6/2023
+La Linea de la Concepcion,Gibraltar,walk,0,23/6/2023
 Cologne,Amsterdam,bus,82.47,22/12/2023
 Giza,Cairo,car,2,14/4/2024
 Cairo,Giza,car,2,19/4/2024
@@ -273,6 +273,8 @@ Taipei,Taichung,train,31,5/7/2026
 Taichung,Kaohsiung,train,35,5/7/2026
 Kaohsiung,Taipei,train,63.75,5/7/2026
 Hong Kong,Macau,bus,12,7/8/2026
+Macau,Zhuhai,walk,0,7/8/2026
+Zhuhai,Macau,walk,0,7/8/2026
 Macau,Hong Kong,bus,12,7/8/2026
 Hong Kong,Shenzhen,train,9,8/8/2026
 Shenzhen,Guangzhou,train,6.5,9/8/2026

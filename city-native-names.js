@@ -145,6 +145,7 @@
     "Taichung": "臺中",
     "Kaohsiung": "高雄",
     "Macau": "澳門",
+    "Zhuhai": "珠海",
     "Foshan": "佛山",
      "Sapporo": "札幌",
     "Tokyo": "東京",
