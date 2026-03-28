@@ -119,6 +119,37 @@
         return `<img src="asset/flags/${iso}.png" width="${s}" height="${Math.round(s * 0.75)}" alt="${country}" style="vertical-align:middle;border-radius:2px;">`;
     }
 
+    // ── Achievement icon (SVG files in asset/icons/) ──
+    // Cache fetched SVG content for reuse
+    const _svgCache = {};
+    function achIcon(achId, color, size) {
+        const s = size || 20;
+        const spanId = `ach-icon-${achId}-${Math.random().toString(36).slice(2, 8)}`;
+        // Start with trophy fallback, replace with SVG once loaded
+        setTimeout(() => {
+            const el = document.getElementById(spanId);
+            if (!el) return;
+            const apply = (svgText) => {
+                // Inject color and size into the SVG
+                let svg = svgText
+                    .replace(/width="[^"]*"/, `width="${s}"`)
+                    .replace(/height="[^"]*"/, `height="${s}"`)
+                    .replace(/currentColor/g, color);
+                el.innerHTML = svg;
+            };
+            if (_svgCache[achId]) { apply(_svgCache[achId]); return; }
+            fetch(`asset/icons/${achId}.svg`).then(r => {
+                if (!r.ok) return;
+                return r.text();
+            }).then(txt => {
+                if (!txt) return;
+                _svgCache[achId] = txt;
+                apply(txt);
+            }).catch(() => {});
+        }, 0);
+        return `<span id="${spanId}" style="display:inline-flex;align-items:center;justify-content:center;width:${s}px;height:${s}px;">${trophySVG(color, s)}</span>`;
+    }
+
     // ── Audio ──
     const trophySound = new Audio('asset/audio/trophy.mp3');
     trophySound.volume = 0.7;
@@ -592,10 +623,10 @@
 
         const el = document.createElement('div');
         el.className = `trophy-notification tier-${trophy.tier}`;
-        // Bronze country trophies show flag, others show trophy icon
+        // Bronze country trophies show flag, non-country trophies show bespoke icon
         const iconHtml = trophy.tier === 'bronze' && COUNTRY_ISO[trophy.title]
             ? `<div class="trophy-icon" style="background:${tier.bg}">${flagImg(trophy.title, 26)}</div>`
-            : `<div class="trophy-icon" style="background:${tier.bg}">${trophySVG(tier.color)}</div>`;
+            : `<div class="trophy-icon" style="background:${tier.bg}">${trophy.achId ? achIcon(trophy.achId, tier.color, 26) : trophySVG(tier.color)}</div>`;
         el.innerHTML = `
             ${iconHtml}
             <div class="trophy-body">
@@ -618,8 +649,8 @@
         }, holdTime);
     }
 
-    function queue(tier, title, subtitle) {
-        trophyQueue.push({ tier, title, subtitle });
+    function queue(tier, title, subtitle, achId) {
+        trophyQueue.push({ tier, title, subtitle, achId });
         if (!isShowing) showNext();
     }
 
@@ -967,7 +998,7 @@
                         const nameEl = row.querySelector('.ach-name');
                         if (nameEl) nameEl.style.color = tierColor;
                         const iconEl = row.querySelector('.ach-trophy-icon');
-                        if (iconEl && !a.isCountry) iconEl.innerHTML = trophySVG(tierColor, 20);
+                        if (iconEl && !a.isCountry) iconEl.innerHTML = achIcon(a.id, tierColor, 20);
                         const badge = row.querySelector('.ach-badge');
                         if (badge) {
                             const col = document.createElement('div');
@@ -1063,9 +1094,10 @@
                 progressHtml = `<div class="ach-progress"><div class="ach-progress-fill" style="width:${pct}%;background:${tierConf.color}"></div></div>`;
             }
 
+            const iconColor = a.earned ? tierConf.color : '#444';
             const iconHtml = a.isCountry
-                ? flagImg(a.name, 20) || trophySVG(a.earned ? tierConf.color : '#444', 20)
-                : trophySVG(a.earned ? tierConf.color : '#444', 20);
+                ? flagImg(a.name, 20) || trophySVG(iconColor, 20)
+                : achIcon(a.id, iconColor, 20);
 
             html += `<div class="ach-row ${earnedClass}${glowClass}" data-ach-id="${a.id}" data-ach-tier="${a.tier}" style="${glowStyle}">
                 <div class="ach-trophy-icon" style="background:${tierConf.bg}">
@@ -1129,7 +1161,7 @@
         // ── Europe ──
         {
             id: 'versailles',
-            name: 'Palace of Versailles',
+            name: 'Treaty of Versailles',
             desc: 'Visit Versailles Palace',
             match: city => (city.name || '').trim().toLowerCase() === 'versailles'
         },
@@ -1326,7 +1358,7 @@
                 if (POWER_FIVE.every(c => seenCountries.has(c))) {
                     silverBigFive = true;
                     earnedDates['powerfive'] = city.flightDate || null;
-                    queue('silver', 'World Power Tour', 'Visited the 5 largest economies');
+                    queue('silver', 'World Power Tour', 'Visited the 5 largest economies', 'powerfive');
                 }
             }
 
@@ -1336,7 +1368,7 @@
                 if (BIG_FIVE_VISA.every(c => visaAwarded[c])) {
                     goldBigFive = true;
                     earnedDates['bigfive'] = city.flightDate || null;
-                    queue('gold', 'Superpower Passport', 'Visas for the 5 largest economies');
+                    queue('gold', 'Superpower Passport', 'Visas for the 5 largest economies', 'bigfive');
                 }
             }
 
@@ -1353,28 +1385,28 @@
                     'Oceania':       'Below the Southern Cross'
                 };
                 const contName = CONTINENT_NAMES[continent] || `${continent} Explorer`;
-                queue('silver', contName, `5 countries in ${continent}`);
+                queue('silver', contName, `5 countries in ${continent}`, `silver-${continent}`);
             }
 
             // Gold: ASEAN Complete
             if (!goldAsean && ASEAN_COUNTRIES.has(country) && [...ASEAN_COUNTRIES].every(c => seenCountries.has(c))) {
                 goldAsean = true;
                 earnedDates['asean'] = city.flightDate || null;
-                queue('gold', 'ASEAN Complete', 'All 11 ASEAN nations visited');
+                queue('gold', 'ASEAN Complete', 'All 11 ASEAN nations visited', 'asean');
             }
 
             // Gold: Silk Road Scholar
             if (!goldSilkRoad && SILK_ROAD_COUNTRIES.has(country) && [...SILK_ROAD_COUNTRIES].every(c => seenCountries.has(c))) {
                 goldSilkRoad = true;
                 earnedDates['silkroad'] = city.flightDate || null;
-                queue('gold', 'Silk Road Scholar', 'All 7 Stan countries visited');
+                queue('gold', 'Silk Road Scholar', 'All 7 Stan countries visited', 'silkroad');
             }
 
             // Gold: EU Complete
             if (!goldEU && EU_COUNTRIES.has(country) && [...EU_COUNTRIES].every(c => seenCountries.has(c))) {
                 goldEU = true;
                 earnedDates['euComplete'] = city.flightDate || null;
-                queue('gold', 'EU Complete', 'All 27 EU member states visited');
+                queue('gold', 'EU Complete', 'All 27 EU member states visited', 'euComplete');
             }
 
             // Gold: New World Explorer
@@ -1385,7 +1417,7 @@
                 if (hasMainNA && hasSA && hasCarib) {
                     goldNewWorld = true;
                     earnedDates['newworld'] = city.flightDate || null;
-                    queue('gold', 'New World Explorer', 'North, South America & Caribbean visited');
+                    queue('gold', 'New World Explorer', 'North, South America & Caribbean visited', 'newworld');
                 }
             }
         }
@@ -1395,7 +1427,7 @@
         if (VISA_COUNTRIES[country] && !visaAwarded[country] && !VISA_MANUAL.has(country) && (!_visaAfter || (city.flightDate && new Date(city.flightDate) >= _visaAfter))) {
             visaAwarded[country] = true;
             earnedDates[`visa-${country}`] = city.flightDate || null;
-            queue('silver', VISA_COUNTRIES[country], `Visa obtained for ${country}`);
+            queue('silver', VISA_COUNTRIES[country], `Visa obtained for ${country}`, `visa-${country}`);
 
             // Gold: Superpower Passport (visa required for all 5 incl. China)
             if (!goldBigFive) {
@@ -1403,7 +1435,7 @@
                 if (BIG_FIVE_VISA.every(c => visaAwarded[c])) {
                     goldBigFive = true;
                     earnedDates['bigfive'] = city.flightDate || null;
-                    queue('gold', 'Superpower Passport', 'Visas for the 5 largest economies');
+                    queue('gold', 'Superpower Passport', 'Visas for the 5 largest economies', 'bigfive');
                 }
             }
         }
@@ -1413,7 +1445,7 @@
             if (!specialBronzeAwarded[sb.id] && sb.match(city)) {
                 specialBronzeAwarded[sb.id] = true;
                 earnedDates[`special-${sb.id}`] = city.flightDate || null;
-                queue('bronze', sb.name, sb.desc);
+                queue('bronze', sb.name, sb.desc, `special-${sb.id}`);
             }
         });
 
@@ -1423,7 +1455,7 @@
             if (continentsPerYear[_jetYr] && continentsPerYear[_jetYr].size >= 3) {
                 goldJetSetYear = true;
                 earnedDates['jetsetyear'] = city.flightDate || null;
-                queue('gold', 'Jet Set Year', `3+ continents in ${_jetYr}`);
+                queue('gold', 'Jet Set Year', `3+ continents in ${_jetYr}`, 'jetsetyear');
             }
         }
 
@@ -1431,14 +1463,14 @@
         if (!goldYearRound && monthsWithTrips.size === 12) {
             goldYearRound = true;
             earnedDates['yearround'] = city.flightDate || null;
-            queue('gold', 'Year-Round Traveller', 'Travelled in all 12 calendar months');
+            queue('gold', 'Year-Round Traveller', 'Travelled in all 12 calendar months', 'yearround');
         }
 
         // Platinum: Always Home
         if (!goldFrequentFlyer && cityVisitCounts[cityKey] >= 100) {
             goldFrequentFlyer = true;
             earnedDates['frequentflyer'] = city.flightDate || null;
-            queue('platinum', 'Always Home', `${city.name || 'A city'} visited 100+ times`);
+            queue('platinum', 'Always Home', `${city.name || 'A city'} visited 100+ times`, 'frequentflyer');
         }
 
         // City milestones: gold 100-400, platinum 500
@@ -1447,11 +1479,11 @@
             goldMilestones.add(cityCount);
             earnedDates[`city${cityCount}`] = city.flightDate || null;
             if (cityCount === 500) {
-                queue('platinum', 'Globe Trotter', '500 cities visited');
+                queue('platinum', 'Globe Trotter', '500 cities visited', 'city500');
             } else {
                 const names = { 100: 'Centurion', 200: 'World Walker', 300: 'Wayfarer', 400: 'Pathfinder' };
                 const name = names[cityCount] || `${cityCount} Cities`;
-                queue('gold', name, `${cityCount} cities visited`);
+                queue('gold', name, `${cityCount} cities visited`, `city${cityCount}`);
             }
         }
 
@@ -1462,7 +1494,7 @@
             if (allPresent) {
                 platinumCircumnavigation = true;
                 earnedDates['circum'] = city.flightDate || null;
-                queue('platinum', 'Circumnavigation', 'Visited all 6 continents');
+                queue('platinum', 'Circumnavigation', 'Visited all 6 continents', 'circum');
             }
         }
 
@@ -1474,7 +1506,7 @@
             if (currentDate >= tenYearsLater) {
                 platinum10Year = true;
                 earnedDates['10year'] = city.flightDate || null;
-                queue('platinum', 'Decade of Travel', `10 years since ${firstTripDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`);
+                queue('platinum', 'Decade of Travel', `10 years since ${firstTripDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`, '10year');
             }
         }
 

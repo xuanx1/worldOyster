@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -1 \"c:/Users/65963/Desktop/worldOyster/asset/icons/\"*.svg)",
+      "Bash(ls \"c:/Users/65963/Desktop/worldOyster/asset/icons/\"*.svg)",
+      "WebFetch(domain:unpkg.com)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/circum.svg\":*)",
+      "Bash(__NEW_LINE_d188c728ea7fc9ae__ cat:*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/10year.svg\":*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/frequentflyer.svg\":*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/city500.svg\":*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/city100.svg\":*)",
+      "Bash(__NEW_LINE_ea84e902f8de0aa0__ cat:*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/city200.svg\":*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/city300.svg\":*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/city400.svg\":*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/bigfive.svg\":*)",
+      "Bash(__NEW_LINE_cb23e11380c6d525__ cat:*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/asean.svg\":*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/silkroad.svg\":*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/euComplete.svg\":*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/special-agra.svg\":*)",
+      "Bash(__NEW_LINE_2528090263bf133d__ cat:*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/special-petra.svg\":*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/special-jerusalem.svg\":*)",
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/special-sahara.svg\":*)"
+    ]
+  }
+}
