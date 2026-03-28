@@ -363,9 +363,11 @@
         }
 
         .achievements-panel {
-            background: linear-gradient(180deg, #2c2c2c, #222);
+            background: rgba(40, 40, 40, 0.4);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
             border-radius: 10px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.08);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
             width: 620px;
             max-width: 92vw;
             max-height: 80vh;
@@ -418,10 +420,10 @@
             padding: 16px 22px 22px;
             flex: 1;
         }
-        .achievements-body::-webkit-scrollbar { width: 8px; }
-        .achievements-body::-webkit-scrollbar-track { background: #333; }
-        .achievements-body::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-        .achievements-body::-webkit-scrollbar-thumb:hover { background: #666; }
+        .achievements-body::-webkit-scrollbar { width: 6px; }
+        .achievements-body::-webkit-scrollbar-track { background: #2a2a2a; border-radius: 3px; }
+        .achievements-body::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
+        .achievements-body::-webkit-scrollbar-thumb:hover { background: #777; }
 
         /* World progress bar */
         .world-progress {

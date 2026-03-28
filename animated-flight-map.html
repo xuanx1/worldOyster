@@ -186,13 +186,14 @@
         .card-container {
             width: 700px;
             height: 700px;
-            background: #2c2c2c;
+            background: transparent;
             border-radius: 10px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.06);
             display: flex;
             flex-direction: column;
             position: relative;
             z-index: 2;
+            overflow: hidden;
         }
 
         @media (max-width: 768px) {
@@ -236,12 +237,15 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #82e585 0%, #45a049 100%);
+            background: rgba(100, 200, 100, 0.75);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
             padding: 15px 20px;
-            opacity: 0.95;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 10px 10px 0 0;
+            position: relative;
+            z-index: 2;
         }
 
         @media (max-width: 768px) {
@@ -258,6 +262,8 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.1em;
+            line-height: 1.3;
+            height: 1.3em;
         }
         .header-slogan {
             color: rgba(255,255,255,0.75);
@@ -266,17 +272,23 @@
             letter-spacing: 0.18em;
             text-transform: uppercase;
             margin-top: 3px;
-            min-height: 1em;
+            height: 1em;
+            line-height: 1em;
         }
 
         .main-container {
-            height: 400px;
-            position: relative;
-            background: #1a1a1a;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0f0f0f;
+            z-index: 0;
         }
 
         @media (max-width: 768px) {
             .main-container {
+                position: relative;
                 height: 33.33vh;
             }
         }
@@ -296,14 +308,15 @@
 
 
         .progress-bar {
-            position: absolute;
-            bottom: 0;
+            position: relative;
             left: 0;
             right: 0;
             height: 3px;
             background: rgba(0, 0, 0, 0.3);
-            z-index: 1000;
+            z-index: 3;
             overflow: hidden;
+            flex-shrink: 0;
+            margin-top: auto;
         }
 
         .progress-fill {
@@ -371,12 +384,19 @@
         }
 
         .city-list-container {
-            flex: 1;
-            background: #333;
-            padding: 7px;
+            flex: 0 0 auto;
+            background: rgba(40, 40, 40, 0.4);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            padding: 4px 7px;
             border-radius: 0 0 10px 10px;
-            border-top: 1px solid #444;
-            overflow: hidden; /* Prevent any overflow */
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         @media (max-width: 768px) {
@@ -391,7 +411,7 @@
             color: #4CAF50;
             font-size: 1.2em;
             font-weight: 600;
-            margin-bottom: 20px;
+            margin-bottom: 6px;
             text-align: center;
         }
 
@@ -405,38 +425,16 @@
         .city-list-wrapper {
             position: relative;
             max-height: 180px;
-            overflow: hidden; /* Prevent any scrolling on wrapper */
-        }
-
-        .city-list-wrapper::before,
-        .city-list-wrapper::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            right: 0;
-            height: 10px;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        .city-list-wrapper::before {
-            top: 0;
-            background: linear-gradient(to bottom, #333 0%, transparent 100%);
-        }
-
-        .city-list-wrapper::after {
-            bottom: 0;
-            background: linear-gradient(to top, #333 0%, transparent 100%);
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
         }
 
         @media (max-width: 768px) {
             .city-list-wrapper {
                 max-height: none;
-            }
-
-            .city-list-wrapper::before,
-            .city-list-wrapper::after {
-                display: none;
+                -webkit-mask-image: none;
+                mask-image: none;
             }
         }
 
@@ -448,7 +446,7 @@
             overflow-y: auto;
             overflow-x: hidden;
             width: 100%;
-            padding: 10px 8px;
+            padding: 4px 8px;
         }
 
         @media (max-width: 768px) {
@@ -809,6 +807,8 @@
             display: none;
         }
 
+        .leaflet-top { padding-top: 72px !important; }
+
         .leaflet-control-zoom {
             background: #333;
             border: 1px solid #666;
@@ -1008,6 +1008,8 @@
                 height: 26px !important;
                 font-size: 12px !important;
             }
+
+            .leaflet-top { padding-top: 5px !important; }
         }
 
         /* Mobile scrollable container */
@@ -1121,8 +1123,10 @@
             margin-top: auto;
             width: 360px;
             height: 290px;
-            background: #333333;
-            border: 1px solid #2a2a2a;
+            background: rgba(40, 40, 40, 0.4);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             padding: 12px 0;
@@ -1131,15 +1135,17 @@
             flex-direction: column;
             overflow: hidden;
         }
-        
+
         /* Price/inflation chart sits above the efficiency chart; identical styling
            height reduced and container allowed to expand to full available width */
         #priceChartContainer {
             margin-top: auto;
             width: 360px;
             height: 200px; /* reduced height */
-            background: #333333;
-            border: 1px solid #2a2a2a;
+            background: rgba(40, 40, 40, 0.4);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 10px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             padding: 12px 0;
@@ -1308,6 +1314,368 @@
                 display: none;
             }
         }
+
+        /* ── Widget Dashboard Section ── */
+        .widgets-section {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: fit-content;
+            max-width: 1248px;
+            z-index: 100;
+            border-radius: 16px 16px 0 0;
+            background: rgba(40, 40, 40, 0.4);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .widgets-section.open {
+            max-height: 85vh;
+            overflow-y: auto;
+            -webkit-mask-image: linear-gradient(to bottom, black 0%, black 94%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 0%, black 94%, transparent 100%);
+        }
+        .widgets-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 99;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .widgets-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        /* Minimal scrollbar for widgets panel (matches city list) */
+        .widgets-section::-webkit-scrollbar { display: none; }
+        .widgets-section { scrollbar-width: none; }
+        .return-visits-list::-webkit-scrollbar { width: 6px; }
+        .return-visits-list::-webkit-scrollbar-track { background: #2a2a2a; border-radius: 3px; }
+        .return-visits-list::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
+        .return-visits-list::-webkit-scrollbar-thumb:hover { background: #777; }
+        .neighbors-list::-webkit-scrollbar { width: 6px; }
+        .neighbors-list::-webkit-scrollbar-track { background: #2a2a2a; border-radius: 3px; }
+        .neighbors-list::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
+        .neighbors-list::-webkit-scrollbar-thumb:hover { background: #777; }
+        #spendingHeatmap::-webkit-scrollbar { height: 6px; }
+        #spendingHeatmap::-webkit-scrollbar-track { background: #2a2a2a; border-radius: 3px; }
+        #spendingHeatmap::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
+        #spendingHeatmap::-webkit-scrollbar-thumb:hover { background: #777; }
+        .widgets-toggle {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            background: rgba(40, 40, 40, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid #555;
+            border-radius: 20px;
+            padding: 6px 18px;
+            color: #ccc;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .widgets-toggle:hover { background: rgba(60, 60, 60, 0.9); color: #fff; }
+        .widgets-toggle.open { bottom: calc(85vh + 10px); }
+
+        .widgets-inner {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            padding: 24px 24px 24px;
+            max-width: 1200px;
+        }
+
+        .widget-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            padding: 16px;
+            min-height: 180px;
+            overflow: visible;
+        }
+        .widget-card.wide { grid-column: span 2; }
+        .widget-card.full { grid-column: span 3; }
+        .widget-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .widget-title {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: #4CAF50;
+            margin-bottom: 12px;
+        }
+
+        /* Spending Heatmap */
+        .heatmap-year { margin-bottom: 10px; }
+        .heatmap-year-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #8b949e;
+            margin-bottom: 4px;
+        }
+        #spendingHeatmap { overflow: hidden; }
+        .heatmap-tooltip {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            background: linear-gradient(180deg, rgba(44,44,44,0.98), rgba(32,32,32,0.98));
+            border-radius: 8px;
+            padding: 8px 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.04);
+            pointer-events: none;
+            text-align: center;
+            z-index: 10;
+            white-space: nowrap;
+        }
+        .hm-tip-date { font-size: 10px; color: #999; letter-spacing: 0.1em; }
+        .hm-tip-val { font-size: 14px; font-weight: 600; color: #4CAF50; margin-top: 2px; }
+
+        /* Choropleth */
+        /* Choropleth layout */
+        .choropleth-wrapper {
+            display: flex;
+            gap: 12px;
+            height: 320px;
+        }
+        .choropleth-map {
+            flex: 1;
+            min-width: 0;
+            border-radius: 6px;
+        }
+        .choropleth-ranking {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 280px;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .choropleth-ranking::-webkit-scrollbar { width: 6px; }
+        .choropleth-ranking::-webkit-scrollbar-track { background: #2a2a2a; border-radius: 3px; }
+        .choropleth-ranking::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
+        .cr-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+        .cr-row:hover { background: rgba(255, 255, 255, 0.06); }
+        .cr-rank { font-size: 10px; color: #555; width: 18px; text-align: right; flex-shrink: 0; }
+        .cr-country { font-size: 12px; color: #ccc; width: 120px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cr-row:hover .cr-country { color: #fff; }
+        .cr-bar-bg { flex: 1; height: 5px; background: #333; border-radius: 3px; overflow: hidden; }
+        .cr-bar-fill { height: 100%; border-radius: 3px; }
+        .cr-val { font-size: 11px; font-weight: 600; width: 50px; text-align: right; flex-shrink: 0; }
+
+        /* Records Cards */
+        .records-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .record-card {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 10px 12px;
+            background: linear-gradient(180deg, rgba(44,44,44,0.98), rgba(32,32,32,0.98));
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+        }
+        .record-icon {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .record-icon svg { width: 20px; height: 20px; }
+        .record-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .record-label { font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 500; margin-bottom: 4px; }
+        .record-value { font-weight: 600; font-size: 14px; color: #fff; letter-spacing: 0.05em; line-height: 1.3; }
+        .record-route { font-size: 10px; color: #4CAF50; letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+        .record-date { font-size: 9px; color: #666; letter-spacing: 0.05em; }
+
+        /* Unvisited Neighbors */
+        .neighbors-legend {
+            display: flex;
+            gap: 21px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .neighbors-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #b6b6b6;
+            line-height: 0.5;
+        }
+        .neighbors-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 0;
+            flex-shrink: 0;
+            align-self: center;
+        }
+        .neighbors-dot.visited { background: rgba(76, 175, 80, 0.6); }
+        .neighbors-dot.unvisited { background: rgba(255, 183, 77, 0.8); }
+        .neighbors-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 10px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        .neighbor-tag {
+            font-size: 10px;
+            background: rgba(255, 183, 77, 0.1);
+            border: 1px solid rgba(255, 183, 77, 0.25);
+            border-radius: 4px;
+            padding: 2px 6px;
+            color: #ffb74d;
+        }
+
+        /* Return Visits */
+        .return-visits-list { overflow-y: auto; }
+        .rv-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .rv-rank { font-size: 10px; color: #555; width: 18px; text-align: right; flex-shrink: 0; }
+        .rv-info { flex: 0 0 100px; min-width: 0; }
+        .rv-city { font-size: 11px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .rv-country { font-size: 9px; color: #666; }
+        .rv-bar-bg { flex: 1; height: 5px; background: #333; border-radius: 3px; overflow: hidden; }
+        .rv-bar-fill { height: 100%; background: #4CAF50; border-radius: 3px; }
+        .rv-count { font-size: 11px; color: #4CAF50; font-weight: 600; width: 28px; text-align: right; flex-shrink: 0; }
+
+        /* Longest Stays */
+        .longest-stays-list { overflow-y: auto; }
+        .ls-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .ls-rank { font-size: 10px; color: #555; width: 18px; text-align: right; flex-shrink: 0; }
+        .ls-info { flex: 0 0 100px; min-width: 0; }
+        .ls-name { font-size: 11px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ls-bar-bg { flex: 1; height: 5px; background: #333; border-radius: 3px; overflow: hidden; }
+        .ls-bar-fill { height: 100%; background: #4CAF50; border-radius: 3px; }
+        .ls-days { font-size: 11px; color: #4CAF50; font-weight: 600; width: 60px; text-align: right; flex-shrink: 0; white-space: nowrap; }
+
+        /* Top Airlines */
+        .top-airlines-list { overflow-y: auto; }
+        .ta-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .ta-rank { font-size: 10px; color: #555; width: 18px; text-align: right; flex-shrink: 0; }
+        .ta-info { flex: 0 0 100px; min-width: 0; }
+        .ta-name { font-size: 11px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ta-bar-bg { flex: 1; height: 5px; background: #333; border-radius: 3px; overflow: hidden; }
+        .ta-bar-fill { height: 100%; background: #4CAF50; border-radius: 3px; }
+        .ta-count { font-size: 11px; color: #4CAF50; font-weight: 600; width: 28px; text-align: right; flex-shrink: 0; }
+
+        /* Widget map tooltips */
+        .widget-map-tooltip {
+            background: rgba(30, 30, 30, 0.9) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 6px !important;
+            color: #eee !important;
+            font-size: 11px !important;
+            padding: 6px 10px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+        }
+        .widget-map-tooltip::before { border-top-color: rgba(30, 30, 30, 0.9) !important; }
+
+        /* Journey Timeline */
+        .timeline-legend {
+            display: flex;
+            gap: 21px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .timeline-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #b6b6b6;
+            line-height: 0.5;
+        }
+        .timeline-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 0;
+            flex-shrink: 0;
+            align-self: center;
+            vertical-align: middle;
+        }
+
+        /* Journey Timeline — no extra padding, SVG fills width */
+        .widget-card:has(#journeyTimeline) { min-height: 0; }
+        #journeyTimeline svg { width: 100%; height: auto; display: block; }
+
+        /* Duration Trend */
+        .widget-card:has(#durationTrend) { display: flex; flex-direction: column; min-height: 0; }
+        #durationTrend { position: relative; }
+        .duration-tooltip {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            background: linear-gradient(180deg, rgba(44,44,44,0.98), rgba(32,32,32,0.98));
+            border-radius: 8px;
+            padding: 8px 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.04);
+            pointer-events: none;
+            text-align: center;
+            z-index: 10;
+            white-space: nowrap;
+        }
+        .duration-tip-year { font-weight: 600; font-size: 12px; color: #4CAF50; text-transform: uppercase; letter-spacing: 0.2em; }
+        .duration-tip-avg { font-size: 14px; font-weight: 600; color: #fff; margin: 2px 0; }
+        .duration-tip-detail { font-size: 9px; color: #999; letter-spacing: 0.1em; }
+        #durationTrend { flex: 1; display: flex; align-items: stretch; }
+        #durationTrend svg { width: 100%; height: 100%; display: block; }
+
+        @media (max-width: 768px) {
+            .widgets-toggle { display: none !important; }
+            .widgets-overlay { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -1370,11 +1738,12 @@
             <div class="map-container">
                 <div class="year-overlay" id="yearOverlay">---</div>
                 <div id="map"></div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                    <div class="progress-scrubber" id="progressScrubber"></div>
-                </div>
             </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-scrubber" id="progressScrubber"></div>
         </div>
 
         <div class="city-list-container">
@@ -1437,6 +1806,60 @@
         </div>
     </div>
 
+    <div class="widgets-backdrop" id="widgetsBackdrop"></div>
+    <button class="widgets-toggle" id="widgetsToggle">Insights</button>
+    <div class="widgets-section" id="widgetsSection">
+        <div class="widgets-inner">
+            <!-- Row 1: Timeline (full width) -->
+            <div class="widget-card full">
+                <div class="widget-title">Journey Timeline</div>
+                <div id="journeyTimeline"></div>
+            </div>
+
+            <!-- Row 2: Records (wide) + Duration Trend -->
+            <div class="widget-card wide">
+                <div class="widget-title">Records</div>
+                <div id="recordsCards"></div>
+            </div>
+            <div class="widget-card">
+                <div class="widget-title">Avg Duration / Year</div>
+                <div id="durationTrend"></div>
+            </div>
+
+            <!-- Row 3: Cost by Country (full) -->
+            <div class="widget-card full">
+                <div class="widget-title">Cost by Country</div>
+                <div id="costChoropleth"></div>
+            </div>
+
+            <!-- Row 4: Spending Heatmap (wide) + stacked Return Visits / Longest Stays -->
+            <div class="widget-card wide">
+                <div class="widget-title">Spending Heatmap</div>
+                <div id="spendingHeatmap"></div>
+            </div>
+            <div class="widget-stack">
+                <div class="widget-card">
+                    <div class="widget-title">Return Visits</div>
+                    <div id="returnVisits"></div>
+                </div>
+                <div class="widget-card">
+                    <div class="widget-title">Longest Stays</div>
+                    <div id="longestStays"></div>
+                </div>
+                <div class="widget-card">
+                    <div class="widget-title">Most Flown Airlines</div>
+                    <div id="topAirlines"></div>
+                </div>
+            </div>
+
+            <!-- Row 5: Unvisited Neighbors (full) -->
+            <div class="widget-card full">
+                <div class="widget-title">Unvisited Neighbours</div>
+                <div id="unvisitedNeighbors"></div>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         Made with <span class="footer-heart">❤</span> for travelling | 
         <a href="https://github.com/xuanx1/worldOyster" target="_blank" rel="noopener noreferrer">Source Code</a>
@@ -1451,5 +1874,28 @@
     <script src="city-native-names.js"></script>
     <script src="country-trophy.js"></script>
     <script src="animated-flight-map.js"></script>
+    <script src="spending-heatmap.js"></script>
+    <script src="cost-choropleth.js"></script>
+    <script src="duration-trend.js"></script>
+    <script src="records-cards.js"></script>
+    <script src="unvisited-neighbors.js"></script>
+    <script src="return-visits.js"></script>
+    <script src="longest-stays.js"></script>
+    <script src="top-airlines.js"></script>
+    <script src="journey-timeline.js"></script>
+    <script>
+    // Toggle widget dashboard
+    function toggleWidgets() {
+        const section = document.getElementById('widgetsSection');
+        const btn = document.getElementById('widgetsToggle');
+        const backdrop = document.getElementById('widgetsBackdrop');
+        section.classList.toggle('open');
+        btn.classList.toggle('open');
+        backdrop.classList.toggle('open');
+        btn.textContent = section.classList.contains('open') ? 'Close' : 'Insights';
+    }
+    document.getElementById('widgetsToggle').addEventListener('click', toggleWidgets);
+    document.getElementById('widgetsBackdrop').addEventListener('click', toggleWidgets);
+    </script>
 </body>
 </html>

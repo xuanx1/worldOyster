@@ -23,7 +23,16 @@
       "Bash(__NEW_LINE_2528090263bf133d__ cat:*)",
       "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/special-petra.svg\":*)",
       "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/special-jerusalem.svg\":*)",
-      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/special-sahara.svg\":*)"
+      "Bash(\"c:/Users/65963/Desktop/worldOyster/asset/icons/special-sahara.svg\":*)",
+      "Bash(grep -l \"svg\" /c/Users/65963/Desktop/worldOyster/*.js)",
+      "Bash(ls -1 asset/icons/*.svg)",
+      "Bash(curl -sL -o \"c:/Users/65963/Desktop/worldOyster/asset/ne_110m_land.geojson\" \"https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_land.geojson\")",
+      "Bash(curl -sL -o \"c:/Users/65963/Desktop/worldOyster/asset/ne_110m_countries.geojson\" \"https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson\")",
+      "Bash(python3 -c \"import sys,json; d=json.loads\\(sys.stdin.read\\(\\)+'''']}''''\\); f=d[''''features''''][0]; print\\(list\\(f[''''properties''''].keys\\(\\)\\)[:20]\\); print\\({k:f[''''properties''''][k] for k in [''''NAME'''',''''NAME_LONG'''',''''ADMIN'''',''''ISO_A2'''',''''ISO_A3''''] if k in f[''''properties'''']}\\)\")",
+      "Bash(node -e \"const fs=require\\(''fs''\\); const d=JSON.parse\\(fs.readFileSync\\(''c:/Users/65963/Desktop/worldOyster/asset/ne_110m_countries.geojson'',''utf8''\\)\\); const f=d.features[0]; console.log\\(Object.keys\\(f.properties\\).slice\\(0,15\\)\\); console.log\\(''NAME:'', f.properties.NAME, ''ADMIN:'', f.properties.ADMIN, ''NAME_LONG:'', f.properties.NAME_LONG\\); d.features.slice\\(0,10\\).forEach\\(x=>console.log\\(x.properties.NAME\\)\\);\")",
+      "Bash(node -e \"const fs=require\\(''''fs''''\\); const d=JSON.parse\\(fs.readFileSync\\(''''c:/Users/65963/Desktop/worldOyster/asset/ne_110m_countries.geojson'''',''''utf8''''\\)\\); const names=d.features.map\\(f=>f.properties.NAME\\).sort\\(\\); console.log\\(names.join\\(''''\\\\n''''\\)\\);\")",
+      "Bash(ls c:/Users/65963/Desktop/worldOyster/asset/*.geojson)",
+      "Bash(ls c:/Users/65963/Desktop/worldOyster/*.js)"
     ]
   }
 }
