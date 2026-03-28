@@ -314,6 +314,10 @@
             box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
         }
 
+        .progress-fill.no-transition {
+            transition: none;
+        }
+
         .progress-scrubber {
             position: absolute;
             top: -4px;
@@ -359,6 +363,7 @@
             border-radius: 50%;
             top: -7px;
             transform: translateX(-50%);
+            transition: none;
         }
 
         .progress-bar:hover .progress-scrubber {

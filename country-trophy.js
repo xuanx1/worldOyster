@@ -301,7 +301,7 @@
         .trophy-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
         .trophy-tier { font-size: 0.5em; text-transform: uppercase; letter-spacing: 0.25em; font-weight: 700; }
         .trophy-label { font-size: 0.55em; text-transform: uppercase; letter-spacing: 0.2em; color: #999; font-weight: 500; }
-        .trophy-title { font-weight: 600; font-size: 1.1em; text-transform: uppercase; letter-spacing: 0.2em; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .trophy-title { font-weight: 600; font-size: 1.1em; text-transform: uppercase; letter-spacing: 0.2em; line-height: 1.3; word-break: break-word; }
         .trophy-subtitle { font-size: 0.6em; text-transform: uppercase; letter-spacing: 0.2em; color: #fff; margin-top: 1px; }
 
         .trophy-notification.tier-platinum { border: 1px solid rgba(183,110,121,0.30); }
@@ -511,9 +511,7 @@
             text-transform: uppercase;
             letter-spacing: 0.12em;
             line-height: 1.3;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            word-break: break-word;
         }
         .ach-desc {
             font-size: 0.6em;
@@ -607,7 +605,8 @@
             </div>
         `;
         container.appendChild(el);
-        playSound();
+        // Skip sound for bronze country-visited trophies
+        if (!(trophy.tier === 'bronze' && COUNTRY_ISO[trophy.title])) playSound();
 
         requestAnimationFrame(() => { requestAnimationFrame(() => { el.classList.add('show'); }); });
 
@@ -791,7 +790,7 @@
         achievements.push({
             tier: 'silver', id: 'powerfive',
             name: 'World Power Tour',
-            desc: 'Visit the 5 largest economies (EU, China, USA, India, Russia)',
+            desc: 'Visit the World\'s Top 5 largest economies - China, EU, India, USA, Russia',
             earned: silverBigFive,
             earnedDate: earnedDates['powerfive'],
             progress: powerFiveCount,
@@ -1222,6 +1221,12 @@
             desc: 'Visit New York City',
             match: city => (city.name || '').trim().toLowerCase() === 'new york'
         },
+        {
+            id: 'nola',
+            name: 'Birthplace of Jazz',
+            desc: 'Visit New Orleans',
+            match: city => (city.name || '').trim().toLowerCase() === 'new orleans'
+        },
         // ── South America ──
         {
             id: 'cusco',
@@ -1252,6 +1257,8 @@
     // Countries in VISA_COUNTRIES that require an explicit visa sticker/stamp
     // and should NOT be auto-awarded simply by visiting the country
     const VISA_MANUAL = new Set(['China']);
+    // Countries whose visa trophy should only auto-award from a specific date
+    const VISA_AFTER_DATE = { 'Turkey': new Date('2024-02-08') };
     let visaAwarded = {}; // country → true
 
     // ── Gold achievement country sets ──
@@ -1308,23 +1315,6 @@
                 if (!continentCountries[continent]) continentCountries[continent] = new Set();
                 continentCountries[continent].add(country);
                 seenContinents.add(continent);
-            }
-
-            // Silver visa — triggers just before bronze (skip manual-only entries)
-            if (VISA_COUNTRIES[country] && !visaAwarded[country] && !VISA_MANUAL.has(country)) {
-                visaAwarded[country] = true;
-                earnedDates[`visa-${country}`] = city.flightDate || null;
-                queue('silver', VISA_COUNTRIES[country], `Visa obtained for ${country}`);
-
-                // Gold: Superpower Passport (visa required for all 5 incl. China)
-                if (!goldBigFive) {
-                    const BIG_FIVE_VISA = ['Italy', 'China', 'USA', 'India', 'Russia'];
-                    if (BIG_FIVE_VISA.every(c => visaAwarded[c])) {
-                        goldBigFive = true;
-                        earnedDates['bigfive'] = city.flightDate || null;
-                        queue('gold', 'Superpower Passport', 'Visas for the 5 largest economies');
-                    }
-                }
             }
 
             earnedDates[`country-${country}`] = city.flightDate || null;
@@ -1396,6 +1386,24 @@
                     goldNewWorld = true;
                     earnedDates['newworld'] = city.flightDate || null;
                     queue('gold', 'New World Explorer', 'North, South America & Caribbean visited');
+                }
+            }
+        }
+
+        // Silver visa — runs on every visit so date-gated visas (e.g. Turkey) trigger on later flights
+        const _visaAfter = VISA_AFTER_DATE[country];
+        if (VISA_COUNTRIES[country] && !visaAwarded[country] && !VISA_MANUAL.has(country) && (!_visaAfter || (city.flightDate && new Date(city.flightDate) >= _visaAfter))) {
+            visaAwarded[country] = true;
+            earnedDates[`visa-${country}`] = city.flightDate || null;
+            queue('silver', VISA_COUNTRIES[country], `Visa obtained for ${country}`);
+
+            // Gold: Superpower Passport (visa required for all 5 incl. China)
+            if (!goldBigFive) {
+                const BIG_FIVE_VISA = ['Italy', 'China', 'USA', 'India', 'Russia'];
+                if (BIG_FIVE_VISA.every(c => visaAwarded[c])) {
+                    goldBigFive = true;
+                    earnedDates['bigfive'] = city.flightDate || null;
+                    queue('gold', 'Superpower Passport', 'Visas for the 5 largest economies');
                 }
             }
         }
@@ -1537,7 +1545,8 @@
                         }
                     }
                 }
-                if (VISA_COUNTRIES[country] && !visaAwarded[country] && !VISA_MANUAL.has(country)) {
+                const _vaD = VISA_AFTER_DATE[country];
+                if (VISA_COUNTRIES[country] && !visaAwarded[country] && !VISA_MANUAL.has(country) && (!_vaD || (city.flightDate && new Date(city.flightDate) >= _vaD))) {
                     visaAwarded[country] = true;
                     earnedDates[`visa-${country}`] = city.flightDate || null;
                 }

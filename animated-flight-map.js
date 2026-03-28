@@ -4,6 +4,7 @@ class AnimatedFlightMap {
         this.cities = [];
         this.currentCityIndex = 0;
         this.isAnimating = false;
+        this._animationGen = 0; // generation counter — stale animation chains with old gen bail out
         this.animationSpeed = 2000; // milliseconds per flight
         this.speedMultiplier = 1; // 1x, 10x, or 20x speed
         this.flightDot = null;
@@ -361,6 +362,11 @@ class AnimatedFlightMap {
     }
 
     createFlightDot() {
+        // Remove existing dot from map to prevent duplicates
+        if (this.flightDot && this.map && this.map.hasLayer(this.flightDot)) {
+            this.map.removeLayer(this.flightDot);
+        }
+
         const dotIcon = L.divIcon({
             className: 'flight-dot',
             html: '<div style="width: 16px; height: 16px; background: #FFD700; border-radius: 50%; border: 3px solid #FFF; box-shadow: 0 0 10px rgba(255, 215, 0, 0.8); animation: pulse 2s infinite;"></div>',
@@ -368,19 +374,22 @@ class AnimatedFlightMap {
             iconAnchor: [8, 8]
         });
 
-        // Add pulse animation style
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes pulse {
-                0% { transform: scale(1); opacity: 1; }
-                50% { transform: scale(1.3); opacity: 0.7; }
-                100% { transform: scale(1); opacity: 1; }
-            }
-            .flight-dot {
-                z-index: 1000;
-            }
-        `;
-        document.head.appendChild(style);
+        // Add pulse animation style (only once)
+        if (!document.getElementById('flight-dot-style')) {
+            const style = document.createElement('style');
+            style.id = 'flight-dot-style';
+            style.textContent = `
+                @keyframes pulse {
+                    0% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.3); opacity: 0.7; }
+                    100% { transform: scale(1); opacity: 1; }
+                }
+                .flight-dot {
+                    z-index: 1000;
+                }
+            `;
+            document.head.appendChild(style);
+        }
 
         this.flightDot = L.marker([0, 0], { icon: dotIcon });
     }
@@ -632,15 +641,15 @@ class AnimatedFlightMap {
     
     getYearSlogan(year) {
         const slogans = {
-            2017: 'Return to the Origin',
+            2017: 'Back to Where It Began',
             2018: 'The Nation Calls',
             2019: 'Beyond the Horizon',
             2020: 'Grounded, Almost',
             2021: 'The Far West',
             2022: 'Middle East\'s First Foray',
             2023: 'Chasing Schengen',
-            2024: 'Every Continent Calls',
-            2025: 'The Americas Await',
+            2024: 'Six Continents, One Year',
+            2025: 'New World, Who Dis',
             2026: 'The Southeast Asian Network',
         };
         return slogans[year] || '';
@@ -1145,6 +1154,9 @@ class AnimatedFlightMap {
             return;
         }
 
+        // Capture generation so stale chains from previous scrubs bail out
+        const gen = this._animationGen;
+
         const fromCity = this.cities[this.currentCityIndex - 1];
         const toCity = this.cities[this.currentCityIndex];
 
@@ -1163,31 +1175,37 @@ class AnimatedFlightMap {
         // Always create flight path for all cities (including disconnected ones)
         // This ensures continuous visual line throughout the journey
         this.animateFlightPath(fromCity, toCity, () => {
+            // Stale chain — a scrub/jump started a new generation; abandon this callback
+            if (gen !== this._animationGen) return;
+
             // Animation complete callback - show and mark destination city when arrived
             if (this.cityMarkers[this.currentCityIndex]) {
                 this.cityMarkers[this.currentCityIndex].marker.addTo(this.map);
             }
-            
+
             // Update current trip year in header
             this.updateCurrentTripYear(this.currentCityIndex);
-            
+
             // Mark destination city as visited when flight arrives
             toCity.visited = true;
             this.updateCityMarkerStyle(this.currentCityIndex, 'current');
             // Trophy notification for new country
             if (window.countryTrophy) window.countryTrophy.checkCity(toCity);
-            this.currentCityIndex++;
             this.updateProgress();
             this.updateCityList();
             this.updateStatistics();
-            
+            this.currentCityIndex++;
+
             // Continue to next city after a brief pause
             setTimeout(() => {
+                // Stale chain check again (scrub could happen during the 500ms pause)
+                if (gen !== this._animationGen) return;
+
                 // Check if we should pause after this flight completed
                 if (this.checkForPendingPause()) {
                     return; // Stop here, animation is now paused
                 }
-                
+
                 if (this.isAnimating) {
                     this.animateToNextCity();
                 }
@@ -1196,6 +1214,9 @@ class AnimatedFlightMap {
     }
 
     animateFlightPath(fromCity, toCity, callback) {
+        // Capture generation so this entire flight animation dies if a scrub happens
+        const gen = this._animationGen;
+
         // Create great circle path for all journeys (same visual treatment)
         const path = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng]);
         const journey = toCity.originalFlight;
@@ -1302,6 +1323,13 @@ class AnimatedFlightMap {
         let startTime = performance.now();
 
         const animate = (currentTime) => {
+            // If a scrub/jump started a new generation, this animation is stale — die
+            if (gen !== this._animationGen) {
+                this.currentAnimationPath = null;
+                this.currentPathLines = null;
+                return;
+            }
+
             // Hover freeze — skip frame without completing; track pause duration
             if (this._hoverFrozen) {
                 if (!this._hoverFreezeStart) this._hoverFreezeStart = currentTime;
@@ -1315,20 +1343,19 @@ class AnimatedFlightMap {
             }
 
             if (!this.isAnimating) {
-                // Complete the path if animation was stopped (paused)
-                if (this.currentAnimationPath) {
-                    // Add remaining path to continuous line
-                    this.allPathCoordinates.push(...path);
-                    if (this.continuousPath && this.linesVisible) {
-                        this.continuousPath.setLatLngs(this.allPathCoordinates);
-                    }
-                }
-
-                // Clear current animation references
+                // Paused mid-flight — freeze the dot and path exactly where they are.
+                // Record when we paused so resume can offset startTime.
+                const pausedAt = performance.now();
+                this._pausedAnimateState = {
+                    resume: () => {
+                        // Shift startTime forward by the pause duration so progress picks up where it left off
+                        startTime += (performance.now() - pausedAt);
+                        requestAnimationFrame(animate);
+                    },
+                    gen
+                };
                 this.currentAnimationPath = null;
                 this.currentPathLines = null;
-
-                callback();
                 return;
             }
 
@@ -1340,6 +1367,12 @@ class AnimatedFlightMap {
             const currentStep = Math.floor(easedProgress * (path.length - 1));
 
             if (progress >= 1) {
+                // Final gen check before completing — scrub could have happened during this frame
+                if (gen !== this._animationGen) {
+                    this.currentAnimationPath = null;
+                    this.currentPathLines = null;
+                    return;
+                }
                 // Animation complete - add full segment to continuous path
                 this.flightDot.setLatLng(path[path.length - 1]);
 
@@ -1575,7 +1608,9 @@ class AnimatedFlightMap {
         }
         
         // Auto-restart animation after a brief pause (loop the animation)
+        const gen = this._animationGen;
         setTimeout(() => {
+            if (gen !== this._animationGen) return;
             this.resetAnimationState();
             this.startAnimation();
         }, 2000); // 2 second pause before restarting
@@ -1584,9 +1619,11 @@ class AnimatedFlightMap {
     restartAnimation() {
         // Use the new reset method for consistency
         this.resetAnimationState();
-        
+
         // Restart the animation
+        const gen = this._animationGen;
         setTimeout(() => {
+            if (gen !== this._animationGen) return;
             this.startAnimation();
         }, 1000);
     }
@@ -1641,8 +1678,9 @@ class AnimatedFlightMap {
     }
 
     pauseAnimation() {
-        // Instead of immediately stopping, set a flag to pause after current flight
-        this.pauseAfterCurrentFlight = true;
+        // Stop immediately mid-flight
+        this.isAnimating = false;
+        this.pauseAfterCurrentFlight = false;
         this.updatePlayPauseButton();
     }
 
@@ -1674,8 +1712,21 @@ class AnimatedFlightMap {
         // advance past the current city — its leg is already in the chart.
         if (this._jumpedToCity) {
             this._jumpedToCity = false;
+            this._pausedAnimateState = null; // scrub invalidates mid-flight pause
             this.currentCityIndex++;
         }
+
+        // Resume mid-flight if we were paused during a flight animation
+        if (this._pausedAnimateState && this._pausedAnimateState.gen === this._animationGen) {
+            const state = this._pausedAnimateState;
+            this._pausedAnimateState = null;
+            this.isAnimating = true;
+            this.updatePlayPauseButton();
+            // Re-enter the animation frame loop, adjusting for pause duration
+            state.resume();
+            return;
+        }
+        this._pausedAnimateState = null;
 
         // Only resume if we haven't completed the journey
         if (this.currentCityIndex < this.cities.length) {
@@ -1832,12 +1883,14 @@ class AnimatedFlightMap {
     replayAnimation() {
         // Reset all animation state
         this.resetAnimationState();
-        
+
         // Hide replay button and show skip button
         this.hideReplayButton();
-        
+
         // Start the animation from the beginning
+        const gen = this._animationGen;
         setTimeout(() => {
+            if (gen !== this._animationGen) return;
             this.startAnimation();
         }, 500);
     }
@@ -1999,43 +2052,72 @@ class AnimatedFlightMap {
     startDrag(e) {
         e.preventDefault();
         this.isDragging = true;
+        this._lastDragTarget = -1;
+        this._dragRAF = null;
         this.scrubberElement.classList.add('dragging');
-        
-        // Pause animation while dragging
+        const fill = document.getElementById('progressFill');
+        if (fill) fill.classList.add('no-transition');
+
+        // Pause animation while dragging — cancel in-flight animation immediately
         this.wasAnimating = this.isAnimating;
         if (this.isAnimating) {
+
+            this._animationGen++; // kill any pending setTimeout callbacks from old chain
             this.isAnimating = false;
         }
     }
 
     handleDrag(e) {
         if (!this.isDragging || !this.progressBarElement) return;
-        
+
         const rect = this.progressBarElement.getBoundingClientRect();
         const x = e.clientX - rect.left;
-        
+
         // Calculate progress as a percentage of the progress bar's actual width
         const progressPercentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-        
-        // Update scrubber and progress fill position
+
+        // Update scrubber and progress fill position immediately (lightweight)
         this.updateScrubberPosition(progressPercentage);
-        
+
         // Calculate which city this corresponds to
-        const targetCityIndex = Math.floor((progressPercentage / 100) * this.cities.length);
-        
-        // Jump to that position in the journey
-        this.jumpToCity(targetCityIndex);
+        const targetCityIndex = Math.min(
+            Math.floor((progressPercentage / 100) * this.cities.length),
+            this.cities.length - 1
+        );
+
+        // Skip if we haven't moved to a different city
+        if (targetCityIndex === this._lastDragTarget) return;
+        this._lastDragTarget = targetCityIndex;
+
+        // Debounce the heavy visual rebuild — only the last pending call runs
+        if (this._dragRAF) cancelAnimationFrame(this._dragRAF);
+        this._dragRAF = requestAnimationFrame(() => {
+            this._dragRAF = null;
+            this.jumpToCity(targetCityIndex);
+        });
     }
 
     stopDrag() {
         if (!this.isDragging) return;
-        
+
+        // Flush any pending debounced jumpToCity so state is up-to-date before resume
+        if (this._dragRAF) {
+            cancelAnimationFrame(this._dragRAF);
+            this._dragRAF = null;
+            if (this._lastDragTarget >= 0 && this._lastDragTarget < this.cities.length) {
+                this.jumpToCity(this._lastDragTarget);
+            }
+        }
+
         this.isDragging = false;
         this.scrubberElement.classList.remove('dragging');
-        
+        const fill = document.getElementById('progressFill');
+        if (fill) fill.classList.remove('no-transition');
+
         // Resume animation if it was running before scrubbing
         if (this.wasAnimating) {
             this.isAnimating = true;
+    
             this.updatePlayPauseButton(); // Update button state
 
             // Advance past the current city — jumpToCity already processed the leg
@@ -2045,7 +2127,9 @@ class AnimatedFlightMap {
             this._jumpedToCity = false; // handled here, don't double-advance in resumeAnimation
             this.currentCityIndex++;
             if (this.currentCityIndex < this.cities.length) {
+                const gen = this._animationGen;
                 setTimeout(() => {
+                    if (gen !== this._animationGen) return;
                     this.animateToNextCity();
                 }, 100); // Small delay for smooth transition
             }
@@ -2054,25 +2138,49 @@ class AnimatedFlightMap {
 
     handleProgressBarClick(e) {
         if (this.isDragging) return;
-        
+
+        // Stop any in-flight animation before jumping
+        this.wasAnimating = this.isAnimating;
+        this.isAnimating = false;
+        this._animationGen++;
+
         const rect = this.progressBarElement.getBoundingClientRect();
         const x = e.clientX - rect.left;
-        
+
         // Calculate progress as a percentage of the progress bar's actual width
         const progressPercentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
-        
+
         // Update scrubber and progress fill position
         this.updateScrubberPosition(progressPercentage);
-        
+
         // Calculate which city this corresponds to
         const targetCityIndex = Math.floor((progressPercentage / 100) * this.cities.length);
-        
+
         // Jump to that position in the journey
         this.jumpToCity(targetCityIndex);
+
+        // Resume animation if it was running
+        if (this.wasAnimating) {
+            this.isAnimating = true;
+    
+            this._jumpedToCity = false;
+            this.currentCityIndex++;
+            if (this.currentCityIndex < this.cities.length) {
+                const gen = this._animationGen;
+                setTimeout(() => {
+                    if (gen !== this._animationGen) return;
+                    this.animateToNextCity();
+                }, 100);
+            }
+        }
     }
 
     jumpToCity(targetIndex) {
         if (targetIndex < 0 || targetIndex >= this.cities.length) return;
+
+        // Cancel any in-flight animation so its callback doesn't fire and move the dot
+        this._animationGen++; // invalidate all animation frames and pending setTimeout callbacks
+        this._pausedAnimateState = null; // discard any mid-flight pause
 
         // Flag that jumpToCity was used — the chart has been rebuilt up to
         // targetIndex, so the next animateToNextCity must skip past it.
@@ -2110,8 +2218,7 @@ class AnimatedFlightMap {
         
         // Update the visual state
         this.clearMap();
-        this.drawVisitedPaths();
-        this.addCityMarkers(); // Add this before positioning dot to ensure markers are visible
+        this.drawVisitedPaths(); // also calls addCityMarkers internally
         this.positionDotAtCurrentCity();
         this.updateCityList();
         this.updateStatistics();
@@ -2172,20 +2279,13 @@ class AnimatedFlightMap {
     positionDotAtCurrentCity() {
         if (this.currentCityIndex >= 0 && this.currentCityIndex < this.cities.length) {
             const currentCity = this.cities[this.currentCityIndex];
-            
-            // Create or update the flight dot
+
+            // Reuse the existing flight dot (created in createFlightDot)
             if (!this.flightDot) {
-                this.flightDot = L.circleMarker([currentCity.lat, currentCity.lng], {
-                    color: '#FFD700',
-                    fillColor: '#FFD700',
-                    fillOpacity: 0.8,
-                    radius: 8,
-                    weight: 2
-                });
-            } else {
-                this.flightDot.setLatLng([currentCity.lat, currentCity.lng]);
+                this.createFlightDot();
             }
-            
+            this.flightDot.setLatLng([currentCity.lat, currentCity.lng]);
+
             // Add to map if not already there
             if (!this.map.hasLayer(this.flightDot)) {
                 this.flightDot.addTo(this.map);
@@ -2696,22 +2796,22 @@ class AnimatedFlightMap {
     }
 
     clearMap() {
-        // Remove flight dot
-        if (this.flightDot && this.map.hasLayer(this.flightDot)) {
-            this.map.removeLayer(this.flightDot);
-        }
-        
-        // Remove current flight path
-        if (this.flightPath && this.map.hasLayer(this.flightPath)) {
-            this.map.removeLayer(this.flightPath);
-        }
-        
-        // Remove city markers
-        this.cityMarkers.forEach(cityMarker => {
-            if (cityMarker && cityMarker.marker && this.map.hasLayer(cityMarker.marker)) {
-                this.map.removeLayer(cityMarker.marker);
-            }
+        // Nuclear cleanup — remove every non-tile layer from the map so no ghost
+        // polylines, markers, or highlights survive across scrub/jump calls.
+        this.map.eachLayer(layer => {
+            // Keep tile layers (the base map) and Leaflet controls
+            if (layer._url !== undefined || layer._tiles !== undefined) return;
+            try { this.map.removeLayer(layer); } catch (e) {}
         });
+
+        // Reset all tracked references so drawVisitedPaths rebuilds from scratch
+        this.continuousPath = null;
+        this.continuousPathSegments = [];
+        this.visitedPaths = [];
+        this.routeInteractivePolylines = [];
+        this.currentAnimationPath = null;
+        this.currentPathLines = null;
+        this.allPathCoordinates = [];
         this.cityMarkers = [];
     }
 
