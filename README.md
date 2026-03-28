@@ -3,7 +3,9 @@ An animated journey map visualising my travel history and its environmental impa
 
 <img width="1290" height="2796" alt="127 0 0 1_5500_animated-flight-map html(iPhone 14 Pro Max)" src="https://github.com/user-attachments/assets/c9d5f456-c813-4c4e-9d26-a936f76b22ec" />
 
-![Screenshot 2026-02-16 145934](https://github.com/user-attachments/assets/7ebe332f-89ab-46f6-b75d-4e7251f8d4bc)
+![Screenshot 2026-03-28 215025](https://github.com/user-attachments/assets/98246798-5803-4a36-8876-85bfd2dcb69c)
+
+![Screenshot 2026-03-28 214925](https://github.com/user-attachments/assets/1bc32aae-1e90-455b-8e72-449ad8723fe3)
 
 ---
 
