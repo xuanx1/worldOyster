@@ -95,7 +95,10 @@
             scrollWheelZoom: false,
             dragging: true,
             doubleClickZoom: false,
-            touchZoom: false
+            touchZoom: false,
+            worldCopyJump: true,
+            maxBounds: [[-85, -Infinity], [85, Infinity]],
+            maxBoundsViscosity: 1.0
         });
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
