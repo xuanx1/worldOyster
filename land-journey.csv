@@ -48,20 +48,23 @@ Dusseldorf,Cologne,train,15,29/12/2021
 Cologne,Antwerp,bus,25,30/12/2021
 Antwerp,Brussels,bus,10,30/12/2021
 Kyiv,Lviv,train,26,7/1/2022
+Tel Aviv,Jerusalem,train,11,16/2/2022
 Jerusalem,Eilat,bus,15,25/3/2022
 Eilat,Jerusalem,bus,15,26/3/2022
 Jerusalem,Ramallah,bus,12,28/3/2022
 Ramallah,Jerusalem,bus,10,28/3/2022
-Jerusalem,Bethlehem,bus,5,6/3/2022
-Bethlehem,Jerusalem,bus,5,6/3/2022
-Jerusalem,Amman,bus,77.93,6/3/2022
+Jerusalem,Bethlehem,bus,5,6/4/2022
+Bethlehem,Jerusalem,bus,5,6/4/2022
+Jerusalem,Amman,bus,3.68,6/4/2022
 Amman,Petra,bus,18,7/4/2022
 Petra,Amman,bus,18,8/4/2022
-Amman,Jerusalem,bus,77.93,9/4/2022
+Amman,Jerusalem,bus,0,9/4/2022
+Jerusalem,Tel Aviv,train,11,11/4/2022
 New York,Philadelphia,train,21,13/4/2022
 Philadelphia,New York,train,21,13/4/2022
 New York,"Washington, D.C.",bus,39,15/4/2022
 "Washington, D.C.",New York,bus,39,15/4/2022
+Tel Aviv,Jerusalem,train,11,19/4/2022
 Jerusalem,Eilat,bus,15,3/5/2022
 Eilat,Taba,bus,15,4/5/2022
 Taba,Cairo,bus,200,4/5/2022
@@ -266,9 +269,6 @@ Singapore,Kuala Lumpur,train,28.76,3/4/2026
 Kuala Lumpur,Singapore,train,28.76,5/4/2026
 Chongqing,Chengdu,train,17.66,2/5/2026
 Zurich,Milan,train,45,15/9/2023
-Tel Aviv,Jerusalem,train,11,16/2/2022
-Jerusalem,Tel Aviv,train,11,11/4/2022
-Tel Aviv,Jerusalem,train,11,19/4/2022
 La Linea de la Concepcion,Gibraltar,walk,0,23/6/2023
 Cologne,Amsterdam,bus,82.47,22/12/2023
 Giza,Cairo,car,2,14/4/2024

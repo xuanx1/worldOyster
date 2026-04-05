@@ -113,6 +113,7 @@
     "Bishkek": "Бишкек",
     "Almaty": "Алматы",
     "Astana": "Астана",
+    "Ulaanbaatar": "Улаанбаатар",
     "Ouranoupoli": "Ουρανούπολη",
     "Daphni": "Δάφνη",
     "Tirana": "Tiranë",

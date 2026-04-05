@@ -138,14 +138,16 @@
         }
 
         // Trip bars
-        trips.forEach(t => {
+        trips.forEach((t, idx) => {
             const x1 = xPos(t.start);
             const dur = Math.max(t.end - t.start, 86400000); // min 1 day width
             const x2 = xPos(new Date(t.start.getTime() + dur));
             const w = Math.max(x2 - x1, 3);
             const color = CONTINENT_COLORS[t.primaryContinent] || '#666';
-            const title = `${t.start.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})} - ${t.end.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}\n${t.countriesArr.join(', ')}\n${t.legs} legs`;
-            svg += `<rect x="${x1}" y="${barY}" width="${w}" height="${barH}" rx="3" fill="${color}" opacity="0.8"><title>${title}</title></rect>`;
+            const dateRange = `${t.start.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})} – ${t.end.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}`;
+            const countries = t.countriesArr.join(', ');
+            svg += `<rect x="${x1}" y="${barY}" width="${w}" height="${barH}" rx="3" fill="${color}" opacity="0.8"
+                data-tip-label="${dateRange}" data-tip-val="${countries} (${t.legs} legs)"/>`;
         });
 
         svg += `</svg>`;
@@ -159,6 +161,21 @@
         legend += '</div>';
 
         container.innerHTML = svg + legend;
+
+        // Styled tooltip
+        const tip = document.createElement('div');
+        tip.className = 'widget-row-tooltip';
+        document.body.appendChild(tip);
+        const svgEl = container.querySelector('svg');
+        svgEl.addEventListener('mousemove', function (e) {
+            const bar = e.target.closest('rect[data-tip-label]');
+            if (!bar) { tip.style.display = 'none'; return; }
+            tip.innerHTML = `<div class="tip-label">${bar.dataset.tipLabel}</div><div class="tip-val">${bar.dataset.tipVal}</div>`;
+            tip.style.display = 'block';
+            tip.style.left = e.clientX + 'px';
+            tip.style.top = (e.clientY - 12) + 'px';
+        });
+        svgEl.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
     }
 
     waitForData(render);

@@ -3313,8 +3313,19 @@ class AnimatedFlightMap {
                         L.circleMarker([c.lat, c.lng], { radius: 6, color: '#ffee00', fillColor: '#4CAF50', fillOpacity: 1, interactive: false }).addTo(this.map)
                     );
 
-                    // Zoom to route
-                    this.map.fitBounds(L.latLngBounds([from.lat, from.lng], [to.lat, to.lng]), { padding: [40, 40], maxZoom: 6, animate: true, duration: 0.5 });
+                    // Zoom to route — account for header (top) and city list (bottom)
+                    const header = document.querySelector('.header');
+                    const cityList = document.querySelector('.city-list-container');
+                    const topPad = (header ? header.offsetHeight : 0) + 20;
+                    const bottomPad = (cityList ? cityList.offsetHeight : 0) + 20;
+                    const routeBounds = this._chartHighlightLines.reduce((b, line) => {
+                        const lb = line.getBounds();
+                        return b ? b.extend(lb) : lb;
+                    }, null);
+                    this.map.stop();
+                    requestAnimationFrame(() => {
+                        this.map.flyToBounds(routeBounds, { paddingTopLeft: [20, topPad], paddingBottomRight: [20, bottomPad], maxZoom: 9, duration: 0.6 });
+                    });
                 }
             }
         } catch (err) {}

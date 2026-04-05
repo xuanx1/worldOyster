@@ -68,6 +68,21 @@
         return `rgb(${r},${g},${b})`;
     }
 
+    function attachRowTooltip(container, selector) {
+        const tip = document.createElement('div');
+        tip.className = 'widget-row-tooltip';
+        document.body.appendChild(tip);
+        container.addEventListener('mousemove', function (e) {
+            const row = e.target.closest(selector);
+            if (!row) { tip.style.display = 'none'; return; }
+            tip.innerHTML = `<div class="tip-label">${row.dataset.tipLabel}</div><div class="tip-val">${row.dataset.tipVal}</div>`;
+            tip.style.display = 'block';
+            tip.style.left = e.clientX + 'px';
+            tip.style.top = (e.clientY - 12) + 'px';
+        });
+        container.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+    }
+
     function render() {
         const container = document.getElementById('costChoropleth');
         if (!container) return;
@@ -188,7 +203,7 @@
                 const color = heatColor(t);
                 const valFmt = val >= 1000 ? 'S$' + (val / 1000).toFixed(1) + 'k' : 'S$' + val.toFixed(0);
                 const pct = (val / maxSpend) * 100;
-                rankHtml += `<div class="cr-row" title="${country} — S$${val.toLocaleString(undefined, {maximumFractionDigits: 0})} total spend">
+                rankHtml += `<div class="cr-row" data-tip-label="${country}" data-tip-val="${valFmt} total spend">
                     <span class="cr-rank">${i + 1}</span>
                     <span class="cr-country">${country}</span>
                     <div class="cr-bar-bg"><div class="cr-bar-fill" style="width:${pct}%;background:${color}"></div></div>
@@ -197,6 +212,7 @@
             });
             rankHtml += '</div>';
             wrapper.insertAdjacentHTML('beforeend', rankHtml);
+            attachRowTooltip(wrapper.querySelector('.choropleth-ranking'), '.cr-row');
         }
 
         setTimeout(() => map.invalidateSize(), 600);

@@ -120,32 +120,21 @@
         const tooltip = document.createElement('div');
         tooltip.className = 'heatmap-tooltip';
         tooltip.style.display = 'none';
-        container.style.position = 'relative';
-        container.appendChild(tooltip);
+        document.body.appendChild(tooltip);
 
-        container.addEventListener('mouseover', function (e) {
+        container.addEventListener('mousemove', function (e) {
             const cell = e.target.closest('.hm-cell');
-            if (!cell) return;
+            if (!cell) { tooltip.style.display = 'none'; return; }
             const date = cell.dataset.date;
             const val = cell.dataset.val;
             tooltip.innerHTML = `<div class="hm-tip-date">${date}</div><div class="hm-tip-val">S$${parseInt(val).toLocaleString()}</div>`;
             tooltip.style.display = 'block';
-
-            const rect = cell.getBoundingClientRect();
-            const containerRect = container.getBoundingClientRect();
-            tooltip.style.left = (rect.left - containerRect.left + rect.width / 2) + 'px';
-            tooltip.style.top = (rect.top - containerRect.top - 8) + 'px';
-
-            cell.setAttribute('opacity', '0.7');
-            cell.style.outline = '1px solid rgba(255,255,255,0.4)';
+            tooltip.style.left = e.clientX + 'px';
+            tooltip.style.top = (e.clientY - 12) + 'px';
         });
 
-        container.addEventListener('mouseout', function (e) {
-            const cell = e.target.closest('.hm-cell');
-            if (!cell) return;
+        container.addEventListener('mouseleave', function () {
             tooltip.style.display = 'none';
-            cell.removeAttribute('opacity');
-            cell.style.outline = '1px solid rgba(255,255,255,0.04)';
         });
     }
 

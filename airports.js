@@ -153,6 +153,7 @@ window.AIRPORT_COORDINATES = {
     'GAU': [26.1061, 91.5859],  // Guwahati
     'PBH': [27.4032, 89.4246],  // Paro, Bhutan
     'TAS': [41.2571, 69.2817],  // Tashkent
+    'UBN': [47.8431, 106.7664], // Ulaanbaatar
 };
 
 window.AIRPORT_TO_CITY = {
@@ -443,4 +444,5 @@ window.AIRPORT_TO_CITY = {
     'GAU': 'Guwahati',
     'PBH': 'Paro',
     'TAS': 'Tashkent',
+    'UBN': 'Ulaanbaatar',
 };

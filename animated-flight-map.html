@@ -237,7 +237,7 @@
         }
 
         .header {
-            background: rgba(100, 200, 100, 0.75);
+            background: rgba(30, 30, 30, 0.55);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
             padding: 15px 20px;
@@ -256,7 +256,7 @@
         }
 
         .header h1 {
-            color: #ffffff;
+            color: #4CAF50;
             margin: 0;
             font-size: 1.2em;
             font-weight: 600;
@@ -806,6 +806,7 @@
         .leaflet-control-attribution {
             display: none;
         }
+        .leaflet-container { outline: none !important; border: none !important; background: #0f0f0f !important; }
 
         .leaflet-top { padding-top: 72px !important; }
 
@@ -1433,7 +1434,7 @@
         }
         #spendingHeatmap { overflow: hidden; }
         .heatmap-tooltip {
-            position: absolute;
+            position: fixed;
             transform: translate(-50%, -100%);
             background: linear-gradient(180deg, rgba(44,44,44,0.98), rgba(32,32,32,0.98));
             border-radius: 8px;
@@ -1442,11 +1443,29 @@
             border: 1px solid rgba(255,255,255,0.04);
             pointer-events: none;
             text-align: center;
-            z-index: 10;
+            z-index: 999999;
             white-space: nowrap;
         }
         .hm-tip-date { font-size: 10px; color: #999; letter-spacing: 0.1em; }
         .hm-tip-val { font-size: 14px; font-weight: 600; color: #4CAF50; margin-top: 2px; }
+
+        .widget-row-tooltip {
+            position: fixed;
+            transform: translate(-50%, -100%);
+            background: linear-gradient(180deg, rgba(44,44,44,0.98), rgba(32,32,32,0.98));
+            border-radius: 8px;
+            padding: 8px 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.08);
+            pointer-events: none;
+            z-index: 99999;
+            white-space: nowrap;
+            font-size: 11px;
+            color: #ccc;
+            display: none;
+        }
+        .widget-row-tooltip .tip-label { font-size: 10px; color: #999; letter-spacing: 0.1em; text-transform: uppercase; }
+        .widget-row-tooltip .tip-val { font-size: 13px; font-weight: 600; color: #4CAF50; margin-top: 2px; }
 
         /* Choropleth */
         /* Choropleth layout */
@@ -1490,7 +1509,7 @@
         /* Records Cards */
         .records-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 10px;
         }
         .record-card {
@@ -1570,8 +1589,8 @@
             padding: 4px 0;
             border-bottom: 1px solid #2a2a2a;
         }
-        .rv-rank { font-size: 10px; color: #555; width: 18px; text-align: right; flex-shrink: 0; }
-        .rv-info { flex: 0 0 100px; min-width: 0; }
+        .rv-rank { font-size: 10px; color: #555; min-width: 14px; text-align: left; flex-shrink: 0; margin-right: 6px; }
+        .rv-info { flex: 1; min-width: 0; }
         .rv-city { font-size: 11px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .rv-country { font-size: 9px; color: #666; }
         .rv-bar-bg { flex: 1; height: 5px; background: #333; border-radius: 3px; overflow: hidden; }
@@ -1587,8 +1606,8 @@
             padding: 4px 0;
             border-bottom: 1px solid #2a2a2a;
         }
-        .ls-rank { font-size: 10px; color: #555; width: 18px; text-align: right; flex-shrink: 0; }
-        .ls-info { flex: 0 0 100px; min-width: 0; }
+        .ls-rank { font-size: 10px; color: #555; margin-right: 6px; }
+        .ls-info { flex: 1; min-width: 0; }
         .ls-name { font-size: 11px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .ls-bar-bg { flex: 1; height: 5px; background: #333; border-radius: 3px; overflow: hidden; }
         .ls-bar-fill { height: 100%; background: #4CAF50; border-radius: 3px; }
@@ -1603,8 +1622,8 @@
             padding: 4px 0;
             border-bottom: 1px solid #2a2a2a;
         }
-        .ta-rank { font-size: 10px; color: #555; width: 18px; text-align: right; flex-shrink: 0; }
-        .ta-info { flex: 0 0 100px; min-width: 0; }
+        .ta-rank { font-size: 10px; color: #555; margin-right: 6px; }
+        .ta-info { flex: 1; min-width: 0; }
         .ta-name { font-size: 11px; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .ta-bar-bg { flex: 1; height: 5px; background: #333; border-radius: 3px; overflow: hidden; }
         .ta-bar-fill { height: 100%; background: #4CAF50; border-radius: 3px; }
@@ -1896,6 +1915,62 @@
     }
     document.getElementById('widgetsToggle').addEventListener('click', toggleWidgets);
     document.getElementById('widgetsBackdrop').addEventListener('click', toggleWidgets);
+
+    (function syncStackToHeatmap() {
+        const heatmapCard = document.getElementById('spendingHeatmap')?.closest('.widget-card');
+        const stack = document.querySelector('.widget-stack');
+        if (!heatmapCard || !stack) return;
+
+        const wCfg = [
+            { id: 'returnVisits',  rowSel: '.rv-row', getData: () => window._rvData, render: n => window._rvRender && window._rvRender(n) },
+            { id: 'longestStays',  rowSel: '.ls-row', getData: () => window._lsData, render: n => window._lsRender && window._lsRender(n) },
+            { id: 'topAirlines',   rowSel: '.ta-row', getData: () => window._taData, render: n => window._taRender && window._taRender(n) },
+        ];
+
+        function measureRowHeight(cfg) {
+            const row = document.querySelector('#' + cfg.id + ' ' + cfg.rowSel);
+            return row ? row.offsetHeight : null;
+        }
+
+        function cardOverhead(card) {
+            const title = card.querySelector('.widget-title');
+            const style = getComputedStyle(card);
+            return parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) + (title ? title.offsetHeight : 0);
+        }
+
+        function sync() {
+            if (!window._rvRender || !window._lsRender || !window._taRender) return;
+
+            // Render 1 item each just to measure
+            wCfg.forEach(w => w.render(1));
+
+            const hh = heatmapCard.offsetHeight;
+            if (!hh) return;
+
+            const stackCards = Array.from(stack.querySelectorAll('.widget-card'));
+            const gaps = (stackCards.length - 1) * parseFloat(getComputedStyle(stack).gap || 16);
+            const perCardH = (hh - gaps) / stackCards.length;
+
+            stackCards.forEach(c => c.style.minHeight = '');
+
+            wCfg.forEach((w, i) => {
+                const card = stackCards[i];
+                const rowH = measureRowHeight(w);
+                if (!rowH) return;
+                const overhead = cardOverhead(card);
+                const available = perCardH - overhead;
+                const n = Math.max(1, Math.min(Math.floor(available / rowH), (w.getData() || []).length));
+                w.render(n);
+                // Fill any remaining pixel gap
+                const deficit = perCardH - card.offsetHeight;
+                if (deficit > 0) card.style.minHeight = (card.offsetHeight + deficit) + 'px';
+            });
+        }
+
+        setTimeout(sync, 800);
+        new ResizeObserver(sync).observe(document.getElementById('spendingHeatmap'));
+        document.getElementById('widgetsSection').addEventListener('transitionend', sync);
+    })();
     </script>
 </body>
 </html>

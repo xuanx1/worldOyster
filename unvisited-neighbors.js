@@ -272,11 +272,25 @@
         legend += '<div class="neighbors-list">';
         unvisited.forEach(c => {
             const borderedBy = unvisitedNeighborMap[c] || [];
-            const tip = borderedBy.length ? `${c} — borders ${borderedBy.join(', ')}` : c;
-            legend += `<span class="neighbor-tag" title="${tip}">${c}</span>`;
+            const tipVal = borderedBy.length ? borderedBy.join(', ') : '—';
+            legend += `<span class="neighbor-tag" data-tip-label="${c}" data-tip-val="${tipVal}">${c}</span>`;
         });
         legend += '</div>';
         container.insertAdjacentHTML('beforeend', legend);
+
+        const tip = document.createElement('div');
+        tip.className = 'widget-row-tooltip';
+        document.body.appendChild(tip);
+        const tagList = container.querySelector('.neighbors-list');
+        tagList.addEventListener('mousemove', function (e) {
+            const tag = e.target.closest('.neighbor-tag');
+            if (!tag) { tip.style.display = 'none'; return; }
+            tip.innerHTML = `<div class="tip-label">${tag.dataset.tipLabel}</div><div class="tip-val">${tag.dataset.tipVal}</div>`;
+            tip.style.display = 'block';
+            tip.style.left = e.clientX + 'px';
+            tip.style.top = (e.clientY - 12) + 'px';
+        });
+        tagList.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
 
         setTimeout(() => map.invalidateSize(), 600);
     }

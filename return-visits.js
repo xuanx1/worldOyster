@@ -63,20 +63,24 @@
             .sort((a, b) => b.count - a.count);
     }
 
+    let _data = [];
+    let _tooltipAttached = false;
+
     function render() {
         const container = document.getElementById('returnVisits');
         if (!container) return;
 
-        const repeats = collectVisits();
-        if (!repeats.length) {
+        if (!_data.length) _data = collectVisits();
+        if (!_data.length) {
             container.innerHTML = '<div style="color:#666;font-size:12px;">No repeat visits yet</div>';
             return;
         }
 
-        const maxCount = repeats[0].count;
+        const limit = window._rvLimit || 5;
+        const maxCount = _data[0].count;
         let html = '<div class="return-visits-list">';
 
-        repeats.slice(0, 15).forEach((city, i) => {
+        _data.slice(0, limit).forEach((city, i) => {
             const pct = (city.count / maxCount) * 100;
             html += `<div class="rv-row">
                 <span class="rv-rank">${i + 1}</span>
@@ -93,5 +97,11 @@
         container.innerHTML = html;
     }
 
-    waitForData(render);
+    waitForData(function () {
+        _data = collectVisits();
+        window._rvData = _data;
+        window._rvLimit = 1;
+        window._rvRender = function (n) { window._rvLimit = n; render(); };
+        render();
+    });
 })();

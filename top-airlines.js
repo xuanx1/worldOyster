@@ -27,25 +27,42 @@
             .sort((a, b) => b.count - a.count);
     }
 
+    function attachRowTooltip(container, selector) {
+        const tip = document.createElement('div');
+        tip.className = 'widget-row-tooltip';
+        document.body.appendChild(tip);
+        container.addEventListener('mousemove', function (e) {
+            const row = e.target.closest(selector);
+            if (!row) { tip.style.display = 'none'; return; }
+            tip.innerHTML = `<div class="tip-label">${row.dataset.tipLabel}</div><div class="tip-val">${row.dataset.tipVal}</div>`;
+            tip.style.display = 'block';
+            tip.style.left = e.clientX + 'px';
+            tip.style.top = (e.clientY - 12) + 'px';
+        });
+        container.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+    }
+
+    let _data = [];
+
     function render() {
         const container = document.getElementById('topAirlines');
         if (!container) return;
 
-        const airlines = collectAirlines();
-        if (!airlines.length) {
+        if (!_data.length) _data = collectAirlines();
+        if (!_data.length) {
             container.innerHTML = '<div style="color:#666;font-size:12px;">No data</div>';
             return;
         }
 
-        const max = airlines[0].count;
+        const limit = window._taLimit || 5;
+        const max = _data[0].count;
         let html = '<div class="top-airlines-list">';
 
-        airlines.slice(0, 10).forEach((a, i) => {
+        _data.slice(0, limit).forEach((a, i) => {
             const pct = (a.count / max) * 100;
-            html += `<div class="ta-row" title="${a.airline} — ${a.count} flights">
-                <span class="ta-rank">${i + 1}</span>
+            html += `<div class="ta-row" data-tip-label="${a.airline}" data-tip-val="x${a.count} flights">
                 <div class="ta-info">
-                    <div class="ta-name">${a.airline}</div>
+                    <div class="ta-name"><span class="ta-rank">${i + 1}</span>${a.airline}</div>
                 </div>
                 <div class="ta-bar-bg"><div class="ta-bar-fill" style="width:${pct}%"></div></div>
                 <span class="ta-count">x${a.count}</span>
@@ -56,5 +73,13 @@
         container.innerHTML = html;
     }
 
-    waitForData(render);
+    waitForData(function () {
+        _data = collectAirlines();
+        window._taData = _data;
+        window._taLimit = 1;
+        window._taRender = function (n) { window._taLimit = n; render(); };
+        render();
+        const container = document.getElementById('topAirlines');
+        if (container) attachRowTooltip(container, '.ta-row');
+    });
 })();

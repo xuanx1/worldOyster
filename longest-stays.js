@@ -52,36 +52,53 @@
             .sort((a, b) => b.days - a.days);
     }
 
+    function attachRowTooltip(container, selector) {
+        const tip = document.createElement('div');
+        tip.className = 'widget-row-tooltip';
+        document.body.appendChild(tip);
+        container.addEventListener('mousemove', function (e) {
+            const row = e.target.closest(selector);
+            if (!row) { tip.style.display = 'none'; return; }
+            tip.innerHTML = `<div class="tip-label">${row.dataset.tipLabel}</div><div class="tip-val">${row.dataset.tipVal}</div>`;
+            tip.style.display = 'block';
+            tip.style.left = e.clientX + 'px';
+            tip.style.top = (e.clientY - 12) + 'px';
+        });
+        container.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+    }
+
+    let _data = [];
+
+    function fmtDays(d) {
+        const y = Math.floor(d / 365);
+        const m = Math.floor((d % 365) / 30);
+        const dd = d % 30;
+        let s = '';
+        if (y) s += y + 'y ';
+        if (m) s += m + 'm ';
+        s += dd + 'd';
+        return s;
+    }
+
     function render() {
         const container = document.getElementById('longestStays');
         if (!container) return;
 
-        const stays = collectStays();
-        if (!stays.length) {
+        if (!_data.length) _data = collectStays();
+        if (!_data.length) {
             container.innerHTML = '<div style="color:#666;font-size:12px;">No data</div>';
             return;
         }
 
-        const maxDays = stays[0].days;
+        const limit = window._lsLimit || 5;
+        const maxDays = _data[0].days;
         let html = '<div class="longest-stays-list">';
 
-        function fmtDays(d) {
-            const y = Math.floor(d / 365);
-            const m = Math.floor((d % 365) / 30);
-            const dd = d % 30;
-            let s = '';
-            if (y) s += y + 'y ';
-            if (m) s += m + 'm ';
-            s += dd + 'd';
-            return s;
-        }
-
-        stays.slice(0, 10).forEach((s, i) => {
+        _data.slice(0, limit).forEach((s, i) => {
             const pct = (s.days / maxDays) * 100;
-            html += `<div class="ls-row" title="${s.country} — ${s.days} days total">
-                <span class="ls-rank">${i + 1}</span>
+            html += `<div class="ls-row" data-tip-label="${s.country}" data-tip-val="${fmtDays(s.days)}">
                 <div class="ls-info">
-                    <div class="ls-name">${s.country}</div>
+                    <div class="ls-name"><span class="ls-rank">${i + 1}</span>${s.country}</div>
                 </div>
                 <div class="ls-bar-bg"><div class="ls-bar-fill" style="width:${pct}%"></div></div>
                 <span class="ls-days">${fmtDays(s.days)}</span>
@@ -92,5 +109,13 @@
         container.innerHTML = html;
     }
 
-    waitForData(render);
+    waitForData(function () {
+        _data = collectStays();
+        window._lsData = _data;
+        window._lsLimit = 1;
+        window._lsRender = function (n) { window._lsLimit = n; render(); };
+        render();
+        const container = document.getElementById('longestStays');
+        if (container) attachRowTooltip(container, '.ls-row');
+    });
 })();

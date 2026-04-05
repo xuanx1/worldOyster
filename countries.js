@@ -156,6 +156,7 @@ window.AIRPORT_TO_COUNTRY = {
     'GYD': 'Azerbaijan',
     'EVN': 'Armenia',
     'TAS': 'Uzbekistan',
+    'UBN': 'Mongolia',
 
     // Asia - Bhutan
     'PBH': 'Bhutan',
