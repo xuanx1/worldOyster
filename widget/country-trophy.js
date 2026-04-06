@@ -635,7 +635,7 @@
             ${iconHtml}
             <div class="trophy-body">
                 <div class="trophy-tier" style="color:${tier.color}">${tierLabel} ${_t('trophy')}</div>
-                <div class="trophy-title" style="color:${tier.color}">${trophy.title}</div>
+                <div class="trophy-title" style="color:${tier.color}">${window.translateCountry ? window.translateCountry(trophy.title) : trophy.title}</div>
                 <div class="trophy-subtitle">${trophy.subtitle}</div>
             </div>
         `;
@@ -820,7 +820,7 @@
             achievements.push({
                 tier: 'silver', id: `visa-${country}`,
                 name: VISA_I18N[country] ? t(VISA_I18N[country]) : label,
-                desc: t('achVisaDesc').replace('{country}', country),
+                desc: t('achVisaDesc').replace('{country}', window.translateCountry ? window.translateCountry(country) : country),
                 earned: !!visaAwarded[country],
                 earnedDate: earnedDates[`visa-${country}`]
             });
@@ -1138,7 +1138,7 @@
                     ${iconHtml}
                 </div>
                 <div class="ach-info">
-                    <div class="ach-name" style="color:${a.earned ? tierConf.color : '#666'}">${a.name}</div>
+                    <div class="ach-name" style="color:${a.earned ? tierConf.color : '#666'}">${a.isCountry && window.translateCountry ? window.translateCountry(a.name) : a.name}</div>
                     <div class="ach-desc">${a.desc}</div>
                 </div>
                 ${progressHtml}
@@ -1526,7 +1526,8 @@
         if (!goldFrequentFlyer && cityVisitCounts[cityKey] >= 100) {
             goldFrequentFlyer = true;
             earnedDates['frequentflyer'] = city.flightDate || null;
-            queue('platinum', _t('achAlwaysHomeName'), `${city.name || 'A city'} visited 100+ times`, 'frequentflyer');
+            const _cityN = window.translateCity ? window.translateCity(city.name || '') : (city.name || 'A city');
+            queue('platinum', _t('achAlwaysHomeName'), `${_cityN} visited 100+ times`, 'frequentflyer');
         }
 
         // City milestones: gold 100-400, platinum 500

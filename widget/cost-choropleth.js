@@ -158,7 +158,8 @@
 
                         if (s) {
                             const valFmt = s >= 1000 ? 'S$' + (s / 1000).toFixed(1) + 'k' : 'S$' + s.toFixed(0);
-                            layer.bindTooltip(`<b>${appName}</b><br>${valFmt}`, {
+                            const _dn = window.translateCountry ? window.translateCountry(appName) : appName;
+                            layer.bindTooltip(`<b>${_dn}</b><br>${valFmt}`, {
                                 className: 'widget-map-tooltip',
                                 sticky: true
                             });
@@ -204,9 +205,10 @@
                 const valFmt = val >= 1000 ? 'S$' + (val / 1000).toFixed(1) + 'k' : 'S$' + val.toFixed(0);
                 const pct = (val / maxSpend) * 100;
                 const _ts = window.i18n ? window.i18n.t('totalSpend') : 'total spend';
-                rankHtml += `<div class="cr-row" data-tip-label="${country}" data-tip-val="${valFmt} ${_ts}">
+                const _cn = window.translateCountry ? window.translateCountry(country) : country;
+                rankHtml += `<div class="cr-row" data-tip-label="${_cn}" data-tip-val="${valFmt} ${_ts}">
                     <span class="cr-rank">${i + 1}</span>
-                    <span class="cr-country">${country}</span>
+                    <span class="cr-country">${_cn}</span>
                     <div class="cr-bar-bg"><div class="cr-bar-fill" style="width:${pct}%;background:${color}"></div></div>
                     <span class="cr-val" style="color:${color}">${valFmt}</span>
                 </div>`;

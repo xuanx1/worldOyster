@@ -97,9 +97,10 @@
 
         _data.slice(0, limit).forEach((s, i) => {
             const pct = (s.days / maxDays) * 100;
-            html += `<div class="ls-row" data-tip-label="${s.country}" data-tip-val="${fmtDays(s.days)}">
+            const _cn = window.translateCountry ? window.translateCountry(s.country) : s.country;
+            html += `<div class="ls-row" data-tip-label="${_cn}" data-tip-val="${fmtDays(s.days)}">
                 <div class="ls-info">
-                    <div class="ls-name"><span class="ls-rank">${i + 1}</span>${s.country}</div>
+                    <div class="ls-name"><span class="ls-rank">${i + 1}</span>${_cn}</div>
                 </div>
                 <div class="ls-bar-bg"><div class="ls-bar-fill" style="width:${pct}%"></div></div>
                 <span class="ls-days">${fmtDays(s.days)}</span>

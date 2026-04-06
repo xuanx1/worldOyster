@@ -1023,30 +1023,20 @@
             }
         }
 
-        /* Footer */
-        .footer {
-            display: none;
+        /* Footer (inline in bottom bar) */
+        .bottom-bar-footer {
+            color: #999;
+            font-size: 0.75em;
+            white-space: nowrap;
         }
 
-        @media (max-width: 768px) {
-            .footer {
-                display: block;
-                text-align: center;
-                padding: 12px 15px;
-                color: #999;
-                font-size: 0.8em;
-                flex-shrink: 0;
-                order: 99;
-            }
-        }
-
-        .footer a {
+        .bottom-bar-footer a {
             color: #4CAF50;
             text-decoration: none;
             transition: color 0.3s ease;
         }
 
-        .footer a:hover {
+        .bottom-bar-footer a:hover {
             color: #66bb6a;
         }
 
@@ -1346,6 +1336,18 @@
             font-family: inherit;
         }
         .widgets-toggle:hover { background: rgba(60, 60, 60, 0.9); color: #fff; }
+
+        #exportButton::before {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 5px;
+            vertical-align: -1px;
+            background: currentColor;
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='7 10 12 15 17 10'/%3E%3Cline x1='12' y1='15' x2='12' y2='3'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='7 10 12 15 17 10'/%3E%3Cline x1='12' y1='15' x2='12' y2='3'/%3E%3C/svg%3E") center/contain no-repeat;
+        }
 
         .bottom-bar {
             position: fixed;
@@ -1829,6 +1831,10 @@
             <button class="lang-btn" data-lang="ru" title="Русский"><img src="asset/flags/ru.png" alt="RU"></button>
             <button class="lang-btn" data-lang="es" title="Español"><img src="asset/flags/es.png" alt="ES"></button>
         </div>
+        <span class="bottom-bar-footer">
+            <span data-i18n="madeWith">Made with</span> <span class="footer-heart">❤</span> <span data-i18n="forTravelling">for travelling</span> |
+            <a href="https://github.com/xuanx1/worldOyster" target="_blank" rel="noopener noreferrer" data-i18n="sourceCode">Source Code</a>
+        </span>
     </div>
     <div class="widgets-section" id="widgetsSection">
         <div class="widgets-inner">
@@ -1882,12 +1888,10 @@
         </div>
     </div>
 
-    <footer class="footer">
-        <span data-i18n="madeWith">Made with</span> <span class="footer-heart">❤</span> <span data-i18n="forTravelling">for travelling</span> |
-        <a href="https://github.com/xuanx1/worldOyster" target="_blank" rel="noopener noreferrer" data-i18n="sourceCode">Source Code</a>
-    </footer>
+
 
     <script src="translations.js"></script>
+    <script src="data/country-names-i18n.js"></script>
     <script src="asset/vendor/chart.umd.min.js"></script>
     <script src="asset/vendor/leaflet.js"></script>
     <script src="data/airports.js"></script>
@@ -1895,6 +1899,7 @@
     <script src="data/countries.js"></script>
     <script src="data/flight-data.js"></script>
     <script src="data/city-native-names.js"></script>
+    <script src="data/city-names-i18n.js"></script>
     <script src="widget/country-trophy.js"></script>
     <script src="animated-flight-map.js"></script>
     <script src="widget/spending-heatmap.js"></script>

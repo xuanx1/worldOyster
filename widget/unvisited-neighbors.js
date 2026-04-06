@@ -396,13 +396,16 @@
 
                     if (visited.has(appName)) {
                         const _vLabel = window.i18n ? window.i18n.t('visited') : 'Visited';
-                        layer.on('mouseover', function (e) { showMapTip(`<b>${appName}</b><br>${_vLabel}`, e); this.setStyle({ weight: 2, fillOpacity: 0.7 }); this.bringToFront(); });
+                        const _dn = window.translateCountry ? window.translateCountry(appName) : appName;
+                        layer.on('mouseover', function (e) { showMapTip(`<b>${_dn}</b><br>${_vLabel}`, e); this.setStyle({ weight: 2, fillOpacity: 0.7 }); this.bringToFront(); });
                         layer.on('mousemove', moveMapTip);
                         layer.on('mouseout', function () { hideMapTip(); this.setStyle({ weight: 1, fillOpacity: 0.45 }); });
                     } else if (unvisitedNeighborMap[appName]) {
                         const borderedBy = unvisitedNeighborMap[appName];
                         const _bLabel = window.i18n ? window.i18n.t('borders') : 'Borders';
-                        layer.on('mouseover', function (e) { showMapTip(`<b>${appName}</b><br>${_bLabel}: ${borderedBy.join(', ')}`, e); this.setStyle({ weight: 2.5, fillOpacity: 0.8 }); this.bringToFront(); });
+                        const _dn2 = window.translateCountry ? window.translateCountry(appName) : appName;
+                        const _bordersTranslated = borderedBy.map(function(b){ return window.translateCountry ? window.translateCountry(b) : b; }).join(', ');
+                        layer.on('mouseover', function (e) { showMapTip(`<b>${_dn2}</b><br>${_bLabel}: ${_bordersTranslated}`, e); this.setStyle({ weight: 2.5, fillOpacity: 0.8 }); this.bringToFront(); });
                         layer.on('mousemove', moveMapTip);
                         layer.on('mouseout', function () { hideMapTip(); this.setStyle({ weight: 1.5, fillOpacity: 0.5 }); });
                     }
@@ -445,13 +448,14 @@
                         let tipHtml;
                         const _vLabel = window.i18n ? window.i18n.t('visited') : 'Visited';
                         const _bLabel = window.i18n ? window.i18n.t('borders') : 'Borders';
+                        const _tcn = window.translateCountry ? window.translateCountry(country) : country;
                         if (isVisited) {
-                            tipHtml = `<b>${country}</b><br>${_vLabel}`;
+                            tipHtml = `<b>${_tcn}</b><br>${_vLabel}`;
                         } else if (isNeighbour) {
-                            const borderedBy = unvisitedNeighborMap[country] || [];
-                            tipHtml = `<b>${country}</b><br>${_bLabel}: ${borderedBy.join(', ')}`;
+                            const borderedBy = (unvisitedNeighborMap[country] || []).map(function(b){ return window.translateCountry ? window.translateCountry(b) : b; });
+                            tipHtml = `<b>${_tcn}</b><br>${_bLabel}: ${borderedBy.join(', ')}`;
                         } else {
-                            tipHtml = `<b>${country}</b>`;
+                            tipHtml = `<b>${_tcn}</b>`;
                         }
 
                         if (!countryLayers[country]) countryLayers[country] = [];
@@ -474,8 +478,9 @@
         legend += '<div class="neighbors-list">';
         unvisited.forEach(c => {
             const borderedBy = unvisitedNeighborMap[c] || [];
-            const tipVal = borderedBy.length ? borderedBy.join(', ') : '—';
-            legend += `<span class="neighbor-tag" data-tip-label="${c}" data-tip-val="${tipVal}">${_flag(c, 16)} ${c}</span>`;
+            const tipVal = borderedBy.length ? borderedBy.map(function(b){ return window.translateCountry ? window.translateCountry(b) : b; }).join(', ') : '—';
+            const _cn = window.translateCountry ? window.translateCountry(c) : c;
+            legend += `<span class="neighbor-tag" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${tipVal}">${_flag(c, 16)} ${_cn}</span>`;
         });
         legend += '</div>';
         container.insertAdjacentHTML('beforeend', legend);
@@ -542,7 +547,7 @@
             tip.style.display = 'block';
             tip.style.left = e.clientX + 'px';
             tip.style.top = (e.clientY - 12) + 'px';
-            highlightCountry(tag.dataset.tipLabel);
+            highlightCountry(tag.dataset.country);
         });
         tagList.addEventListener('mouseleave', () => { tip.style.display = 'none'; unhighlightCountry(); });
 

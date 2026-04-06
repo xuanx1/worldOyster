@@ -85,8 +85,8 @@
             html += `<div class="rv-row">
                 <span class="rv-rank">${i + 1}</span>
                 <div class="rv-info">
-                    <div class="rv-city">${city.displayName}</div>
-                    <div class="rv-country">${city.country}</div>
+                    <div class="rv-city">${window.translateCity ? window.translateCity(city.displayName) : city.displayName}</div>
+                    <div class="rv-country">${window.translateCountry ? window.translateCountry(city.country) : city.country}</div>
                 </div>
                 <div class="rv-bar-bg"><div class="rv-bar-fill" style="width:${pct}%"></div></div>
                 <span class="rv-count">${city.count}x</span>

@@ -145,7 +145,7 @@
             const w = Math.max(x2 - x1, 3);
             const color = CONTINENT_COLORS[t.primaryContinent] || '#666';
             const dateRange = `${t.start.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})} – ${t.end.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}`;
-            const countries = t.countriesArr.join(', ');
+            const countries = t.countriesArr.map(function(c){ return window.translateCountry ? window.translateCountry(c) : c; }).join(', ');
             const _t = window.i18n ? window.i18n.t : function(k){return k;};
             svg += `<rect x="${x1}" y="${barY}" width="${w}" height="${barH}" rx="3" fill="${color}" opacity="0.8"
                 data-tip-label="${dateRange}" data-tip-val="${countries} (${t.legs} ${_t('legs')})"/>`;
