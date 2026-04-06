@@ -159,6 +159,7 @@ class AnimatedFlightMap {
                 this._yearTypeTimer = null;
                 h1.innerHTML = yearStr + '<span class="title-cursor fade-out"></span>';
                 if (slogan && sloganStr) this._typewriteSlogan(sloganStr);
+                this._startTickerTape(sloganStr);
                 return;
             }
             i++;
@@ -183,6 +184,163 @@ class AnimatedFlightMap {
             i++;
             slogan.innerHTML = text.substring(0, i) + '<span class="title-cursor"></span>';
         }, 40);
+    }
+
+    _computeTickerFacts() {
+        const data = this.flightData || [];
+        if (!data.length) return [];
+        const facts = [];
+        const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        const DAYS = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+
+        // Parse all dates
+        const dates = data.map(j => new Date(j.date)).filter(d => !isNaN(d)).sort((a, b) => a - b);
+
+        // LONGEST GAP
+        let maxGap = 0, gapStart = null, gapEnd = null;
+        for (let i = 1; i < dates.length; i++) {
+            const gap = (dates[i] - dates[i - 1]) / 86400000;
+            if (gap > maxGap) { maxGap = Math.round(gap); gapStart = dates[i - 1]; gapEnd = dates[i]; }
+        }
+        const t = window.i18n ? window.i18n.t : (k => k);
+        const Q = s => `<span class="tl">${s}</span>`;
+        const A = s => `<span class="tv">${s}</span>`;
+        const translateCity = window.translateCity || (n => n);
+        const cityLabel = name => translateCity(name || '').toUpperCase() || (name || '').toUpperCase();
+        const tMonths = t('months') || MONTHS;
+
+        if (maxGap > 0 && gapStart) {
+            facts.push(`${Q(t('tickerLongestGap'))} ${A(`${maxGap} ${t('tickerDays')} (${tMonths[gapStart.getMonth()]}–${tMonths[gapEnd.getMonth()]} ${gapEnd.getFullYear()})`)}`);
+        }
+
+        // AVERAGE GAP
+        if (dates.length > 1) {
+            const totalDays = (dates[dates.length - 1] - dates[0]) / 86400000;
+            const avgGap = Math.round(totalDays / (dates.length - 1));
+            facts.push(`${Q(t('tickerAvgGap'))} ${A(`${avgGap} ${t('tickerDays')}`)}`);
+        }
+
+        // MOST FLIGHTS IN A SINGLE DAY
+        const byDate = {};
+        dates.forEach(d => { const k = d.toISOString().slice(0, 10); byDate[k] = (byDate[k] || 0) + 1; });
+        const maxDay = Object.entries(byDate).sort((a, b) => b[1] - a[1])[0];
+        if (maxDay && maxDay[1] > 1) {
+            const d = new Date(maxDay[0]);
+            facts.push(`${Q(t('tickerMostFlightsDay'))} ${A(`${maxDay[1]} (${d.getDate()} ${tMonths[d.getMonth()]} ${d.getFullYear()})`)}`);
+        }
+
+        // FAVOURITE TRAVEL MONTH
+        const byMonth = {};
+        dates.forEach(d => { const m = d.getMonth(); byMonth[m] = (byMonth[m] || 0) + 1; });
+        const favMonth = Object.entries(byMonth).sort((a, b) => b[1] - a[1])[0];
+        if (favMonth) facts.push(`${Q(t('tickerFavMonth'))} ${A(`${tMonths[parseInt(favMonth[0])]} (${favMonth[1]} ${t('tickerFlights')})`)}`);
+
+        // WEEKDAY vs WEEKEND
+        let weekday = 0;
+        dates.forEach(d => { const day = d.getDay(); if (day >= 1 && day <= 5) weekday++; });
+        const pct = Math.round((weekday / dates.length) * 100);
+        facts.push(`${Q(t('tickerWeekday'))} ${A(`${pct}%`)}`);
+
+        // GEOGRAPHIC — needs city coords
+        const coords = (this.cities || []).filter(c => c.lat && c.lng);
+        if (coords.length) {
+            const north = coords.reduce((a, b) => b.lat > a.lat ? b : a);
+            const south = coords.reduce((a, b) => b.lat < a.lat ? b : a);
+            facts.push(`${Q(t('tickerNorthernmost'))} ${A(`${cityLabel(north.name || '')} ${north.lat.toFixed(1)}°${north.lat >= 0 ? 'N' : 'S'}`)}`);
+            facts.push(`${Q(t('tickerSouthernmost'))} ${A(`${cityLabel(south.name || '')} ${Math.abs(south.lat).toFixed(1)}°${south.lat >= 0 ? 'N' : 'S'}`)}`);
+
+            let eqCross = 0;
+            for (let i = 1; i < coords.length; i++) {
+                if ((coords[i].lat >= 0) !== (coords[i - 1].lat >= 0)) eqCross++;
+            }
+            if (eqCross > 0) facts.push(`${Q(t('tickerEquator'))} ${A(eqCross)}`);
+
+            let minDist = Infinity, pairA = '', pairB = '';
+            for (let i = 0; i < coords.length; i++) {
+                for (let j = i + 1; j < coords.length; j++) {
+                    if (coords[i].name === coords[j].name) continue;
+                    const d = this.calculateDistance(coords[i].lat, coords[i].lng, coords[j].lat, coords[j].lng);
+                    if (d > 0 && d < minDist) { minDist = d; pairA = coords[i].name; pairB = coords[j].name; }
+                }
+            }
+            if (minDist < Infinity) facts.push(`${Q(t('tickerClosestPair'))} ${A(`${cityLabel(pairA)}–${cityLabel(pairB)} ${Math.round(minDist)}KM`)}`);
+
+            let maxLngJump = 0, tzFrom = '', tzTo = '';
+            for (let i = 1; i < coords.length; i++) {
+                const jump = Math.abs(coords[i].lng - coords[i - 1].lng);
+                if (jump > maxLngJump) { maxLngJump = jump; tzFrom = coords[i - 1].name; tzTo = coords[i].name; }
+            }
+            if (maxLngJump > 0) {
+                const hours = Math.round(maxLngJump / 15);
+                facts.push(`${Q(t('tickerTimezone'))} ${A(`${hours}H (${cityLabel(tzFrom)}→${cityLabel(tzTo)})`)}`);
+            }
+        }
+
+        return facts;
+    }
+
+    _startTickerTape() {
+        let tape = document.querySelector('.header-ticker');
+        if (!tape) {
+            tape = document.createElement('div');
+            tape.className = 'header-ticker';
+            document.querySelector('.header').appendChild(tape);
+            // Re-render ticker on language change
+            window.addEventListener('langchange', () => {
+                this._tickerFacts = null;
+                this._startTickerTape();
+            });
+        }
+
+        this._tickerFacts = this._computeTickerFacts();
+
+        const text = '◈ ' + this._tickerFacts.join(' ◈ ') + ' ◈ ';
+        // Duplicate so the second copy fills the gap when the first scrolls off
+        tape.innerHTML = `<span class="ticker-text">${text}${text}</span>`;
+        // Measure the width of one copy, animate by exactly that distance
+        requestAnimationFrame(() => {
+            const el = tape.querySelector('.ticker-text');
+            if (!el) return;
+            const halfW = el.scrollWidth / 2;
+            const speed = 60; // px per second
+            const duration = halfW / speed;
+            el.style.animationDuration = duration + 's';
+            tape.classList.add('visible');
+        });
+    }
+
+    _spawnTickerTapeEmojis(year) {
+        const YEAR_EMOJIS = {
+            2017: ['✈️','🇸🇬','🌏','🛫','🗺️'],
+            2018: ['🇲🇾','🌴','🏖️','✈️','🌊'],
+            2019: ['🌍','🗺️','✈️','🏔️','🌄'],
+            2020: ['😷','🏠','🌐','📦','🛋️'],
+            2021: ['🇺🇸','🗽','🌎','🏜️','🎰'],
+            2022: ['🕌','🏜️','🌙','🇯🇴','🇮🇱'],
+            2023: ['🇪🇺','🏰','🗼','🍷','🎭'],
+            2024: ['🌍','🌎','🌏','🛫','🦁'],
+            2025: ['🌎','🗽','🏔️','🌵','🦅'],
+            2026: ['🌏','🏯','🌴','🍜','🛵'],
+        };
+        const emojis = YEAR_EMOJIS[year] || ['✈️','🌍','🗺️','🛫','🌟'];
+        const header = document.querySelector('.header');
+        if (!header) return;
+        const rect = header.getBoundingClientRect();
+
+        for (let i = 0; i < 18; i++) {
+            const el = document.createElement('span');
+            el.className = 'ticker-tape-emoji';
+            el.textContent = emojis[i % emojis.length];
+            el.style.cssText = `
+                left: ${rect.left + Math.random() * rect.width}px;
+                top: ${rect.top}px;
+                animation-delay: ${Math.random() * 0.6}s;
+                animation-duration: ${1.2 + Math.random() * 0.8}s;
+                font-size: ${14 + Math.floor(Math.random() * 10)}px;
+            `;
+            document.body.appendChild(el);
+            el.addEventListener('animationend', () => el.remove());
+        }
     }
 
 

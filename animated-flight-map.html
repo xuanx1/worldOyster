@@ -218,6 +218,12 @@
             }
         }
 
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
         .header h1 {
             color: #4CAF50;
             margin: 0;
@@ -225,8 +231,8 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            line-height: 1.3;
-            height: 1.3em;
+            line-height: 1;
+            white-space: nowrap;
         }
         .header-slogan {
             color: rgba(255,255,255,0.75);
@@ -234,9 +240,41 @@
             font-weight: 400;
             letter-spacing: 0.18em;
             text-transform: uppercase;
-            margin-top: 3px;
-            height: 1em;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        .header-ticker {
+            margin-top: 10px;
+            margin-left: -20px;
+            margin-right: -20px;
+            height: 0;
             line-height: 1em;
+            position: relative;
+            overflow: hidden;
+            font-size: 0.55em;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+            transition: height 0.5s ease, margin-top 0.5s ease;
+        }
+        .header-ticker.visible {
+            height: 1em;
+        }
+        .header-ticker .tl { color: #4CAF50; font-weight: 700; }
+        .header-ticker .tv { color: #fff; font-weight: 700; }
+        .header-ticker .ticker-text {
+            display: inline-block;
+            white-space: nowrap;
+            color: #4CAF50;
+            animation: ticker-scroll 30s linear infinite;
+        }
+        .header-ticker:hover .ticker-text {
+            animation-play-state: paused;
+        }
+        @keyframes ticker-scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
         }
 
         .main-container {
@@ -1739,8 +1777,10 @@
 
     <div class="card-container">
         <div class="header">
-            <h1>---</h1>
-            <div class="header-slogan"></div>
+            <div class="header-top">
+                <h1>---</h1>
+                <div class="header-slogan"></div>
+            </div>
         </div>
 
         <div class="main-container">

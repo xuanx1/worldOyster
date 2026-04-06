@@ -260,11 +260,26 @@
 
             // Stats
             complete: 'Complete',
+            country: 'Country',
 
             // Time abbreviations
             yearAbbr: 'y',
             monthAbbr: 'm',
-            dayAbbr: 'd'
+            dayAbbr: 'd',
+
+            // Ticker tape
+            tickerLongestGap: 'LONGEST TIME WITHOUT FLYING:',
+            tickerAvgGap: 'AVERAGE GAP BETWEEN TRIPS:',
+            tickerMostFlightsDay: 'MOST FLIGHTS IN A SINGLE DAY:',
+            tickerFavMonth: 'FAVOURITE TRAVEL MONTH:',
+            tickerWeekday: 'WEEKDAY FLIGHTS:',
+            tickerNorthernmost: 'NORTHERNMOST POINT:',
+            tickerSouthernmost: 'SOUTHERNMOST POINT:',
+            tickerEquator: 'EQUATOR CROSSINGS:',
+            tickerClosestPair: 'CLOSEST PAIR:',
+            tickerTimezone: 'BIGGEST TIMEZONE SHIFT:',
+            tickerDays: 'DAYS',
+            tickerFlights: 'FLIGHTS'
         },
 
         ar: {
@@ -492,10 +507,24 @@
             busOrTrain: 'حافلة/قطار',
 
             complete: 'اكتمل',
+            country: 'دولة',
 
             yearAbbr: 'س',
             monthAbbr: 'ش',
-            dayAbbr: 'ي'
+            dayAbbr: 'ي',
+
+            tickerLongestGap: 'أطول فترة بدون طيران:',
+            tickerAvgGap: 'متوسط الفجوة بين الرحلات:',
+            tickerMostFlightsDay: 'أكثر رحلات في يوم واحد:',
+            tickerFavMonth: 'شهر السفر المفضل:',
+            tickerWeekday: 'رحلات أيام العمل:',
+            tickerNorthernmost: 'أقصى نقطة شمالاً:',
+            tickerSouthernmost: 'أقصى نقطة جنوباً:',
+            tickerEquator: 'عبور خط الاستواء:',
+            tickerClosestPair: 'أقرب زوج مدن:',
+            tickerTimezone: 'أكبر فرق توقيت:',
+            tickerDays: 'يوم',
+            tickerFlights: 'رحلات'
         },
 
         zh: {
@@ -723,10 +752,24 @@
             busOrTrain: '巴士/火车',
 
             complete: '已完成',
+            country: '国家',
 
             yearAbbr: '年',
             monthAbbr: '月',
-            dayAbbr: '天'
+            dayAbbr: '天',
+
+            tickerLongestGap: '最长无飞行时间:',
+            tickerAvgGap: '平均旅行间隔:',
+            tickerMostFlightsDay: '单日最多航班:',
+            tickerFavMonth: '最爱旅行月份:',
+            tickerWeekday: '工作日航班:',
+            tickerNorthernmost: '最北到达:',
+            tickerSouthernmost: '最南到达:',
+            tickerEquator: '穿越赤道:',
+            tickerClosestPair: '最近城市对:',
+            tickerTimezone: '最大时区跨越:',
+            tickerDays: '天',
+            tickerFlights: '次航班'
         },
 
         fr: {
@@ -954,10 +997,24 @@
             busOrTrain: 'Bus/Train',
 
             complete: 'Terminé',
+            country: 'Pays',
 
             yearAbbr: 'a',
             monthAbbr: 'm',
-            dayAbbr: 'j'
+            dayAbbr: 'j',
+
+            tickerLongestGap: 'PLUS LONGUE PAUSE SANS VOL :',
+            tickerAvgGap: 'INTERVALLE MOYEN ENTRE VOYAGES :',
+            tickerMostFlightsDay: 'PLUS DE VOLS EN UN JOUR :',
+            tickerFavMonth: 'MOIS DE VOYAGE PRÉFÉRÉ :',
+            tickerWeekday: 'VOLS EN SEMAINE :',
+            tickerNorthernmost: 'POINT LE PLUS AU NORD :',
+            tickerSouthernmost: 'POINT LE PLUS AU SUD :',
+            tickerEquator: "TRAVERSÉES DE L'ÉQUATEUR :",
+            tickerClosestPair: 'PAIRE LA PLUS PROCHE :',
+            tickerTimezone: 'PLUS GRAND DÉCALAGE HORAIRE :',
+            tickerDays: 'JOURS',
+            tickerFlights: 'VOLS'
         },
 
         ru: {
@@ -1185,10 +1242,24 @@
             busOrTrain: 'Автобус/Поезд',
 
             complete: 'Завершено',
+            country: 'Страна',
 
             yearAbbr: 'г',
             monthAbbr: 'м',
-            dayAbbr: 'д'
+            dayAbbr: 'д',
+
+            tickerLongestGap: 'САМЫЙ ДОЛГИЙ ПЕРЕРЫВ БЕЗ ПОЛЁТОВ:',
+            tickerAvgGap: 'СРЕДНИЙ ИНТЕРВАЛ МЕЖДУ ПОЕЗДКАМИ:',
+            tickerMostFlightsDay: 'БОЛЬШЕ ВСЕГО РЕЙСОВ ЗА ДЕНЬ:',
+            tickerFavMonth: 'ЛЮБИМЫЙ МЕСЯЦ ДЛЯ ПУТЕШЕСТВИЙ:',
+            tickerWeekday: 'РЕЙСЫ В БУДНИЕ ДНИ:',
+            tickerNorthernmost: 'САМАЯ СЕВЕРНАЯ ТОЧКА:',
+            tickerSouthernmost: 'САМАЯ ЮЖНАЯ ТОЧКА:',
+            tickerEquator: 'ПЕРЕСЕЧЕНИЯ ЭКВАТОРА:',
+            tickerClosestPair: 'БЛИЖАЙШАЯ ПАРА ГОРОДОВ:',
+            tickerTimezone: 'НАИБОЛЬШИЙ СДВИГ ЧАСОВОГО ПОЯСА:',
+            tickerDays: 'ДНЕЙ',
+            tickerFlights: 'РЕЙСОВ'
         },
 
         es: {
@@ -1416,10 +1487,24 @@
             busOrTrain: 'Autobús/Tren',
 
             complete: 'Completado',
+            country: 'País',
 
             yearAbbr: 'a',
             monthAbbr: 'm',
-            dayAbbr: 'd'
+            dayAbbr: 'd',
+
+            tickerLongestGap: 'MAYOR TIEMPO SIN VOLAR:',
+            tickerAvgGap: 'INTERVALO PROMEDIO ENTRE VIAJES:',
+            tickerMostFlightsDay: 'MÁS VUELOS EN UN DÍA:',
+            tickerFavMonth: 'MES FAVORITO DE VIAJE:',
+            tickerWeekday: 'VUELOS ENTRE SEMANA:',
+            tickerNorthernmost: 'PUNTO MÁS AL NORTE:',
+            tickerSouthernmost: 'PUNTO MÁS AL SUR:',
+            tickerEquator: 'CRUCES DEL ECUADOR:',
+            tickerClosestPair: 'PAR MÁS CERCANO:',
+            tickerTimezone: 'MAYOR CAMBIO DE HUSO HORARIO:',
+            tickerDays: 'DÍAS',
+            tickerFlights: 'VUELOS'
         }
     };
 

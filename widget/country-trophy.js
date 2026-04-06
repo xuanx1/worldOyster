@@ -850,6 +850,12 @@
             'South America': t('achElDoradoTrail'),
             'Oceania':       t('achSouthernCross')
         };
+        const CONTINENT_I18N_KEY = {
+            'Asia': 'asia', 'Europe': 'europe', 'Africa': 'africa',
+            'North America': 'northAmerica', 'South America': 'southAmerica',
+            'Oceania': 'oceania', 'Middle East': 'middleEast'
+        };
+        const tContinent = cont => t(CONTINENT_I18N_KEY[cont] || '') || cont;
 
         // Silver — one per continent
         ALL_CONTINENTS.forEach(cont => {
@@ -857,7 +863,7 @@
             achievements.push({
                 tier: 'silver', id: `silver-${cont}`,
                 name: CONTINENT_NAMES[cont] || `${cont} Explorer`,
-                desc: t('achContinentDesc').replace('{continent}', cont),
+                desc: t('achContinentDesc').replace('{continent}', tContinent(cont)),
                 earned: !!silverAwarded[cont],
                 earnedDate: earnedDates[`silver-${cont}`],
                 progress: Math.min(count, 5),
@@ -913,7 +919,7 @@
             achievements.push({
                 tier: 'bronze', id: `country-${c}`,
                 name: c,
-                desc: COUNTRY_TO_CONTINENT[c] || '',
+                desc: tContinent(COUNTRY_TO_CONTINENT[c] || ''),
                 earned: true,
                 earnedDate: earnedDates[`country-${c}`],
                 isCountry: true
@@ -923,7 +929,7 @@
             achievements.push({
                 tier: 'bronze', id: `country-${c}`,
                 name: c,
-                desc: COUNTRY_TO_CONTINENT[c] || '',
+                desc: tContinent(COUNTRY_TO_CONTINENT[c] || ''),
                 earned: false,
                 isCountry: true
             });
@@ -1386,7 +1392,7 @@
             }
 
             earnedDates[`country-${country}`] = city.flightDate || null;
-            queue('bronze', country, `Country #${seenCountries.size}`);
+            queue('bronze', country, `${_t('country')} #${seenCountries.size}`);
 
             // Silver: World Power Tour
             if (!silverBigFive) {
@@ -1421,7 +1427,8 @@
                     'Oceania':       _t('achSouthernCross')
                 };
                 const contName = CONTINENT_NAMES[continent] || `${continent} Explorer`;
-                queue('silver', contName, _t('achContinentDesc').replace('{continent}', continent), `silver-${continent}`);
+                const _contI18n = { 'Asia':'asia','Europe':'europe','Africa':'africa','North America':'northAmerica','South America':'southAmerica','Oceania':'oceania','Middle East':'middleEast' };
+                queue('silver', contName, _t('achContinentDesc').replace('{continent}', _t(_contI18n[continent] || '') || continent), `silver-${continent}`);
             }
 
             // Gold: ASEAN Complete
@@ -1463,7 +1470,7 @@
         if (VISA_COUNTRIES[country] && !visaAwarded[country] && !VISA_MANUAL.has(country) && (!_visaAfter || (city.flightDate && new Date(city.flightDate) >= _visaAfter))) {
             visaAwarded[country] = true;
             earnedDates[`visa-${country}`] = city.flightDate || null;
-            queue('silver', VISA_COUNTRIES[country], _t('achVisaDesc').replace('{country}', country), `visa-${country}`);
+            queue('silver', VISA_COUNTRIES[country], _t('achVisaDesc').replace('{country}', window.translateCountry ? window.translateCountry(country) : country), `visa-${country}`);
 
             // Gold: Superpower Passport (visa required for all 5 incl. China)
             if (!goldBigFive) {
