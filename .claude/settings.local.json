@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -i \"territorialité\\\\|british.*overseas\\\\|us.*virgin\\\\|french\\\\|dutch\\\\|puerto\\\\|guam\" /c/Users/darkl/OneDrive/Documents/GitHub/worldOyster/*.js)",
+      "Bash(grep \"window\\\\.\\\\w*TO_COUNTRY\\\\|AIRPORT_TO_COUNTRY\\\\|CITY_TO_COUNTRY\" /c/Users/darkl/OneDrive/Documents/GitHub/worldOyster/*.js)",
+      "Bash(python3)",
+      "Bash(grep -n \"filter\\\\|exclude\\\\|tiny\\\\|polygon\\\\|multipolygon\" /c/Users/darkl/OneDrive/Documents/GitHub/worldOyster/*.js)",
+      "Bash(python3 -c ':*)",
+      "Bash(node -e ':*)",
+      "Bash(powershell -Command ':*)",
+      "Bash(powershell -Command \"\\(Get-Content 'c:/Users/darkl/OneDrive/Documents/GitHub/worldOyster/asset/ne_110m_countries.geojson' -Raw\\) -match 'Socotra'\")",
+      "Bash(find /c/Users/darkl/OneDrive/Documents/GitHub/worldOyster -type f \\\\\\( -name \"*.json\" -o -name \"*.js\" -o -name \"*.html\" \\\\\\) -exec grep -l \"i18n\\\\|translation\\\\|gettext\\\\|polyglot\" {} \\\\;)"
+    ]
+  }
+}

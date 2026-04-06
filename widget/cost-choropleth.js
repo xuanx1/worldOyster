@@ -203,7 +203,8 @@
                 const color = heatColor(t);
                 const valFmt = val >= 1000 ? 'S$' + (val / 1000).toFixed(1) + 'k' : 'S$' + val.toFixed(0);
                 const pct = (val / maxSpend) * 100;
-                rankHtml += `<div class="cr-row" data-tip-label="${country}" data-tip-val="${valFmt} total spend">
+                const _ts = window.i18n ? window.i18n.t('totalSpend') : 'total spend';
+                rankHtml += `<div class="cr-row" data-tip-label="${country}" data-tip-val="${valFmt} ${_ts}">
                     <span class="cr-rank">${i + 1}</span>
                     <span class="cr-country">${country}</span>
                     <div class="cr-bar-bg"><div class="cr-bar-fill" style="width:${pct}%;background:${color}"></div></div>
@@ -219,4 +220,5 @@
     }
 
     waitForData(render);
+    window.addEventListener('langchange', function() { render(); });
 })();

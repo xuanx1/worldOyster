@@ -50,6 +50,7 @@
     function render() {
         const container = document.getElementById('recordsCards');
         if (!container) return;
+        const t = window.i18n ? window.i18n.t : function(k) { return k; };
 
         const data = (window.flightMap && window.flightMap.flightData) || [];
         if (!data.length) return;
@@ -98,12 +99,12 @@
         // SVG icons loaded from asset/icons/records/
         const ICON_PATH = 'asset/icons/records/';
         const records = [
-            { iconFile: 'clock', color: '#4CAF50', label: 'Longest Journey', journey: longest, value: longest ? formatDuration(maxDur) : '-' },
-            { iconFile: 'bolt', color: '#4CAF50', label: 'Shortest Hop', journey: shortest, value: shortest ? formatDuration(minDur) : '-' },
-            { iconFile: 'ruler', color: '#4CAF50', label: 'Longest Distance', journey: longestDist, value: longestDist ? `${maxLegDist.toLocaleString()} km` : '-' },
-            { iconFile: 'dollar-up', color: '#4CAF50', label: 'Most Expensive', journey: mostExpensive, value: mostExpensive ? `S$${maxCost.toFixed(0)}` : '-' },
-            { iconFile: 'dollar-down', color: '#E53935', label: 'Cheapest Trip', journey: cheapest, value: cheapest ? `S$${minCost.toFixed(0)}` : '-' },
-            { iconFile: 'globe', color: '#4CAF50', label: 'Farthest from Home', journey: farthest, value: farthest ? `${Math.round(maxHomeDist).toLocaleString()} km` : '-' },
+            { iconFile: 'clock', color: '#4CAF50', label: t('longestJourney'), journey: longest, value: longest ? formatDuration(maxDur) : '-' },
+            { iconFile: 'bolt', color: '#4CAF50', label: t('shortestHop'), journey: shortest, value: shortest ? formatDuration(minDur) : '-' },
+            { iconFile: 'ruler', color: '#4CAF50', label: t('longestDistanceRec'), journey: longestDist, value: longestDist ? `${maxLegDist.toLocaleString()} km` : '-' },
+            { iconFile: 'dollar-up', color: '#4CAF50', label: t('mostExpensive'), journey: mostExpensive, value: mostExpensive ? `S$${maxCost.toFixed(0)}` : '-' },
+            { iconFile: 'dollar-down', color: '#E53935', label: t('cheapestTrip'), journey: cheapest, value: cheapest ? `S$${minCost.toFixed(0)}` : '-' },
+            { iconFile: 'globe', color: '#4CAF50', label: t('farthestFromHome'), journey: farthest, value: farthest ? `${Math.round(maxHomeDist).toLocaleString()} km` : '-' },
         ];
 
         let html = '<div class="records-grid">';
@@ -138,4 +139,5 @@
     }
 
     waitForData(render);
+    window.addEventListener('langchange', render);
 })();

@@ -70,13 +70,14 @@
     let _data = [];
 
     function fmtDays(d) {
+        const _t = window.i18n ? window.i18n.t : function(k){return k;};
         const y = Math.floor(d / 365);
         const m = Math.floor((d % 365) / 30);
         const dd = d % 30;
         let s = '';
-        if (y) s += y + 'y ';
-        if (m) s += m + 'm ';
-        s += dd + 'd';
+        if (y) s += y + _t('yearAbbr') + ' ';
+        if (m) s += m + _t('monthAbbr') + ' ';
+        s += dd + _t('dayAbbr');
         return s;
     }
 
@@ -86,7 +87,7 @@
 
         if (!_data.length) _data = collectStays();
         if (!_data.length) {
-            container.innerHTML = '<div style="color:#666;font-size:12px;">No data</div>';
+            container.innerHTML = `<div style="color:#666;font-size:12px;">${window.i18n ? window.i18n.t('noData') : 'No data'}</div>`;
             return;
         }
 
@@ -118,4 +119,5 @@
         const container = document.getElementById('longestStays');
         if (container) attachRowTooltip(container, '.ls-row');
     });
+    window.addEventListener('langchange', function() { render(); });
 })();

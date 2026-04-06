@@ -50,7 +50,7 @@
 
         if (!_data.length) _data = collectAirlines();
         if (!_data.length) {
-            container.innerHTML = '<div style="color:#666;font-size:12px;">No data</div>';
+            container.innerHTML = `<div style="color:#666;font-size:12px;">${window.i18n ? window.i18n.t('noData') : 'No data'}</div>`;
             return;
         }
 
@@ -60,7 +60,8 @@
 
         _data.slice(0, limit).forEach((a, i) => {
             const pct = (a.count / max) * 100;
-            html += `<div class="ta-row" data-tip-label="${a.airline}" data-tip-val="x${a.count} flights">
+            const _t = window.i18n ? window.i18n.t : function(k){return k;};
+            html += `<div class="ta-row" data-tip-label="${a.airline}" data-tip-val="x${a.count} ${_t('flights')}">
                 <div class="ta-info">
                     <div class="ta-name"><span class="ta-rank">${i + 1}</span>${a.airline}</div>
                 </div>
@@ -82,4 +83,5 @@
         const container = document.getElementById('topAirlines');
         if (container) attachRowTooltip(container, '.ta-row');
     });
+    window.addEventListener('langchange', function() { render(); });
 })();

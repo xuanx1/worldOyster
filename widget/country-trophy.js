@@ -278,7 +278,7 @@
     overlay.innerHTML = `
         <div class="achievements-panel">
             <div class="achievements-header">
-                <div class="achievements-title">Achievements</div>
+                <div class="achievements-title" data-i18n="achievementsTitle">Achievements</div>
                 <div class="achievements-summary" id="achievements-summary"></div>
                 <button class="achievements-close" id="achievements-close">&times;</button>
             </div>
@@ -629,10 +629,12 @@
         const iconHtml = trophy.tier === 'bronze' && COUNTRY_ISO[trophy.title]
             ? `<div class="trophy-icon" style="background:${tier.bg}">${flagImg(trophy.title, 26)}</div>`
             : `<div class="trophy-icon" style="background:${tier.bg}">${trophy.achId ? achIcon(trophy.achId, tier.color, 26) : trophySVG(tier.color)}</div>`;
+        const _t = window.i18n ? window.i18n.t : function(k){return k;};
+        const tierLabel = _t(trophy.tier);
         el.innerHTML = `
             ${iconHtml}
             <div class="trophy-body">
-                <div class="trophy-tier" style="color:${tier.color}">${trophy.tier} trophy</div>
+                <div class="trophy-tier" style="color:${tier.color}">${tierLabel} ${_t('trophy')}</div>
                 <div class="trophy-title" style="color:${tier.color}">${trophy.title}</div>
                 <div class="trophy-subtitle">${trophy.subtitle}</div>
             </div>
@@ -661,13 +663,14 @@
 
     // ── Build the full achievements list ──
     function getAllAchievements() {
+        const t = window.i18n ? window.i18n.t : function(k){return k;};
         const achievements = [];
 
         // Platinum
         achievements.push({
             tier: 'platinum', id: 'circum',
-            name: 'Circumnavigation',
-            desc: 'Visit cities on all 6 inhabited continents',
+            name: t('achCircumName'),
+            desc: t('achCircumDesc'),
             earned: platinumCircumnavigation,
             earnedDate: earnedDates['circum']
         });
@@ -676,8 +679,8 @@
             : 0;
         achievements.push({
             tier: 'platinum', id: '10year',
-            name: 'Decade of Travel',
-            desc: '10 years of travelling since first trip',
+            name: t('achDecadeName'),
+            desc: t('achDecadeDesc'),
             earned: platinum10Year,
             earnedDate: earnedDates['10year'],
             progress: Math.round(yearsElapsed * 10) / 10,
@@ -686,8 +689,8 @@
         const maxCityVisits = Object.values(cityVisitCounts).reduce((a, b) => Math.max(a, b), 0);
         achievements.push({
             tier: 'platinum', id: 'frequentflyer',
-            name: 'Always Home',
-            desc: 'Return to the same city 100 or more times',
+            name: t('achAlwaysHomeName'),
+            desc: t('achAlwaysHomeDesc'),
             earned: goldFrequentFlyer,
             earnedDate: earnedDates['frequentflyer'],
             progress: Math.min(maxCityVisits, 100),
@@ -695,8 +698,8 @@
         });
         achievements.push({
             tier: 'platinum', id: 'city500',
-            name: 'Globe Trotter',
-            desc: 'Visit 500 unique cities',
+            name: t('achGlobeTrotterName'),
+            desc: t('achGlobeTrotterDesc'),
             earned: goldMilestones.has(500),
             earnedDate: goldMilestones.has(500) ? earnedDates['city500'] : undefined,
             progress: Math.min(uniqueCities.size, 500),
@@ -704,7 +707,7 @@
         });
 
         // Gold — city milestones 100-400 (all earned + next unearned)
-        const goldMilestoneNames = { 100: 'Centurion', 200: 'World Walker', 300: 'Wayfarer', 400: 'Pathfinder' };
+        const goldMilestoneNames = { 100: t('achCenturionName'), 200: t('achWorldWalkerName'), 300: t('achWayfarerName'), 400: t('achPathfinderName') };
         const currentCities = uniqueCities.size;
         const goldMilestoneKeys = [100, 200, 300, 400];
         const nextGoldMilestone = goldMilestoneKeys.find(m => !goldMilestones.has(m)) ?? null;
@@ -714,7 +717,7 @@
             achievements.push({
                 tier: 'gold', id: `city${m}`,
                 name: goldMilestoneNames[m],
-                desc: `Visit ${m} unique cities`,
+                desc: t('achCityMilestoneDesc').replace('{n}', m),
                 earned: earned,
                 earnedDate: earned ? earnedDates[`city${m}`] : undefined,
                 progress: Math.min(currentCities, m),
@@ -727,8 +730,8 @@
         const bigFiveCount = BIG_FIVE_VISA.filter(c => visaAwarded[c]).length;
         achievements.push({
             tier: 'gold', id: 'bigfive',
-            name: 'Superpower Passport',
-            desc: 'Obtain visas for the World\'s Top 5 largest economies - China, EU, India, USA, Russia',
+            name: t('achSuperpowerName'),
+            desc: t('achSuperpowerDesc'),
             earned: goldBigFive,
             earnedDate: earnedDates['bigfive'],
             progress: bigFiveCount,
@@ -739,8 +742,8 @@
         const aseanCount = [...ASEAN_COUNTRIES].filter(c => seenCountries.has(c)).length;
         achievements.push({
             tier: 'gold', id: 'asean',
-            name: 'ASEAN Complete',
-            desc: 'Visit all 11 ASEAN nations',
+            name: t('achAseanName'),
+            desc: t('achAseanDesc'),
             earned: goldAsean,
             earnedDate: earnedDates['asean'],
             progress: aseanCount,
@@ -751,8 +754,8 @@
         const silkRoadCount = [...SILK_ROAD_COUNTRIES].filter(c => seenCountries.has(c)).length;
         achievements.push({
             tier: 'gold', id: 'silkroad',
-            name: 'Silk Road Scholar',
-            desc: 'Visit all 7 "Stan" countries',
+            name: t('achSilkRoadName'),
+            desc: t('achSilkRoadDesc'),
             earned: goldSilkRoad,
             earnedDate: earnedDates['silkroad'],
             progress: silkRoadCount,
@@ -763,8 +766,8 @@
         const euCount = [...EU_COUNTRIES].filter(c => seenCountries.has(c)).length;
         achievements.push({
             tier: 'gold', id: 'euComplete',
-            name: 'EU Complete',
-            desc: 'Visit all 27 EU member states',
+            name: t('achEUName'),
+            desc: t('achEUDesc'),
             earned: goldEU,
             earnedDate: earnedDates['euComplete'],
             progress: euCount,
@@ -778,8 +781,8 @@
         const newWorldCount = (hasMainNA ? 1 : 0) + (hasSA ? 1 : 0) + (hasCarib ? 1 : 0);
         achievements.push({
             tier: 'gold', id: 'newworld',
-            name: 'New World Explorer',
-            desc: 'Visit North America (mainland), South America & the Caribbean',
+            name: t('achNewWorldName'),
+            desc: t('achNewWorldDesc'),
             earned: goldNewWorld,
             earnedDate: earnedDates['newworld'],
             progress: newWorldCount,
@@ -789,8 +792,8 @@
         // Gold — Jet Set Year
         achievements.push({
             tier: 'gold', id: 'jetsetyear',
-            name: 'Jet Set Year',
-            desc: 'Visit 3+ continents in the same calendar year',
+            name: t('achJetSetName'),
+            desc: t('achJetSetDesc'),
             earned: goldJetSetYear,
             earnedDate: earnedDates['jetsetyear']
         });
@@ -798,8 +801,8 @@
         // Gold — Year-Round Traveller
         achievements.push({
             tier: 'gold', id: 'yearround',
-            name: 'Year-Round Traveller',
-            desc: 'Take trips in all 12 calendar months',
+            name: t('achYearRoundName'),
+            desc: t('achYearRoundDesc'),
             earned: goldYearRound,
             earnedDate: earnedDates['yearround'],
             progress: monthsWithTrips.size,
@@ -807,11 +810,17 @@
         });
 
         // Silver — visa achievements
+        const VISA_I18N = {
+            'Algeria': 'visaAlgeria', 'USA': 'visaUSA', 'China': 'visaChina',
+            'Israel': 'visaIsrael', 'Turkey': 'visaTurkey', 'Italy': 'visaItaly',
+            'Russia': 'visaRussia', 'North Korea': 'visaNorthKorea',
+            'India': 'visaIndia', 'Turkmenistan': 'visaTurkmenistan'
+        };
         Object.entries(VISA_COUNTRIES).forEach(([country, label]) => {
             achievements.push({
                 tier: 'silver', id: `visa-${country}`,
-                name: label,
-                desc: `Visa obtained for ${country}`,
+                name: VISA_I18N[country] ? t(VISA_I18N[country]) : label,
+                desc: t('achVisaDesc').replace('{country}', country),
                 earned: !!visaAwarded[country],
                 earnedDate: earnedDates[`visa-${country}`]
             });
@@ -822,8 +831,8 @@
         const powerFiveCount = POWER_FIVE.filter(c => seenCountries.has(c)).length;
         achievements.push({
             tier: 'silver', id: 'powerfive',
-            name: 'World Power Tour',
-            desc: 'Visit the World\'s Top 5 largest economies - China, EU, India, USA, Russia',
+            name: t('achPowerTourName'),
+            desc: t('achPowerTourDesc'),
             earned: silverBigFive,
             earnedDate: earnedDates['powerfive'],
             progress: powerFiveCount,
@@ -834,12 +843,12 @@
         achievements.push({ tier: 'silver', id: 'divider-visa-continents', isDivider: true });
 
         const CONTINENT_NAMES = {
-            'Asia':          'Dragon & Lotus',
-            'Europe':        'Old World Wanderer',
-            'Africa':        'Sahara to Savanna',
-            'North America': 'New World Order',
-            'South America': 'El Dorado Trail',
-            'Oceania':       'Below the Southern Cross'
+            'Asia':          t('achDragonLotus'),
+            'Europe':        t('achOldWorldWanderer'),
+            'Africa':        t('achSaharaSavanna'),
+            'North America': t('achNewWorldOrder'),
+            'South America': t('achElDoradoTrail'),
+            'Oceania':       t('achSouthernCross')
         };
 
         // Silver — one per continent
@@ -848,7 +857,7 @@
             achievements.push({
                 tier: 'silver', id: `silver-${cont}`,
                 name: CONTINENT_NAMES[cont] || `${cont} Explorer`,
-                desc: `Visit 5 countries in ${cont}`,
+                desc: t('achContinentDesc').replace('{continent}', cont),
                 earned: !!silverAwarded[cont],
                 earnedDate: earnedDates[`silver-${cont}`],
                 progress: Math.min(count, 5),
@@ -857,11 +866,32 @@
         });
 
         // Bronze — special locations first
+        const SPECIAL_I18N = {
+            'versailles': ['achVersaillesName','achVersaillesDesc'],
+            'rovaniemi': ['achAuroraName','achAuroraDesc'],
+            'athos': ['achAthosName','achAthosDesc'],
+            'amritsar': ['achAmritsarName','achAmritsarDesc'],
+            'baikonur': ['achBaikonurName','achBaikonurDesc'],
+            'ulaanbaatar': ['achUlaanbaatarName','achUlaanbaatarDesc'],
+            'mandalay': ['achMandalayName','achMandalayDesc'],
+            'xian': ['achTerracottaName','achTerracottaDesc'],
+            'beijing': ['achForbiddenCityName','achForbiddenCityDesc'],
+            'agra': ['achTajMahalName','achTajMahalDesc'],
+            'petra': ['achPetraName','achPetraDesc'],
+            'jerusalem': ['achJerusalemName','achJerusalemDesc'],
+            'sahara': ['achSaharaName','achSaharaDesc'],
+            'luxor': ['achValleyKingsName','achValleyKingsDesc'],
+            'nyc': ['achNYCName','achNYCDesc'],
+            'nola': ['achNOLAName','achNOLADesc'],
+            'cusco': ['achMachuPicchuName','achMachuPicchuDesc'],
+            'uyuni': ['achSaltFlatsName','achSaltFlatsDesc']
+        };
         SPECIAL_BRONZE.forEach(sb => {
+            const keys = SPECIAL_I18N[sb.id];
             achievements.push({
                 tier: 'bronze', id: `special-${sb.id}`,
-                name: sb.name,
-                desc: sb.desc,
+                name: keys ? t(keys[0]) : sb.name,
+                desc: keys ? t(keys[1]) : sb.desc,
                 earned: !!specialBronzeAwarded[sb.id],
                 earnedDate: earnedDates[`special-${sb.id}`],
                 isSpecial: true
@@ -904,6 +934,7 @@
 
     // ── Render achievements panel (diffing — animates newly earned) ──
     function renderPanel() {
+        const t = window.i18n ? window.i18n.t : function(k){return k;};
         const body = document.getElementById('achievements-body');
         const summary = document.getElementById('achievements-summary');
         const achs = getAllAchievements();
@@ -912,10 +943,10 @@
         summary.textContent = `${earnedCount} / ${total}`;
 
         const groups = [
-            { tier: 'platinum', label: 'Platinum' },
-            { tier: 'gold', label: 'Gold' },
-            { tier: 'silver', label: 'Silver' },
-            { tier: 'bronze', label: 'Bronze' }
+            { tier: 'platinum', label: t('platinum') },
+            { tier: 'gold', label: t('gold') },
+            { tier: 'silver', label: t('silver') },
+            { tier: 'bronze', label: t('bronze') }
         ];
 
         // Build current earned set to detect newly earned
@@ -936,7 +967,7 @@
 
         const worldProgressHtml = `<div class="world-progress" id="world-progress">
             <div class="world-progress-label">
-                <span class="world-progress-title">World Explored</span>
+                <span class="world-progress-title">${t('worldExplored')}</span>
                 <span class="world-progress-count">${visitedWorldCountries} / ${totalWorldCountries}</span>
             </div>
             <div class="world-progress-bar">
@@ -1007,7 +1038,7 @@
                             col.className = 'ach-earned-col';
                             const newBadge = document.createElement('span');
                             newBadge.className = 'ach-badge earned-badge';
-                            newBadge.textContent = 'Earned';
+                            newBadge.textContent = window.i18n ? window.i18n.t('earned') : 'Earned';
                             col.appendChild(newBadge);
                             const dateStr = earnedDates[a.id];
                             if (dateStr) {
@@ -1075,6 +1106,7 @@
     }
 
     function buildRowsHtml(items, tierConf, newlyEarned) {
+        const t = window.i18n ? window.i18n.t : function(k){return k;};
         let html = '';
         items.forEach(a => {
             if (a.isDivider) {
@@ -1087,8 +1119,8 @@
             const glowStyle = isNew ? `--glow-color:${tierConf.color}55;--glow-bg:${tierConf.bg};` : '';
             const dateLabel = a.earned && a.earnedDate ? formatTrophyDate(a.earnedDate) : '';
             const badgeHtml = a.earned
-                ? `<div class="ach-earned-col"><span class="ach-badge earned-badge">Earned</span>${dateLabel ? `<span class="ach-date">${dateLabel}</span>` : ''}</div>`
-                : '<span class="ach-badge locked-badge">Locked</span>';
+                ? `<div class="ach-earned-col"><span class="ach-badge earned-badge">${t('earned')}</span>${dateLabel ? `<span class="ach-date">${dateLabel}</span>` : ''}</div>`
+                : `<span class="ach-badge locked-badge">${t('locked')}</span>`;
 
             let progressHtml = '';
             if (a.progress !== undefined && a.total && !a.earned) {
@@ -1310,6 +1342,7 @@
 
     // ── Core check — called for every city arrival ──
     function checkCity(city) {
+        const _t = window.i18n ? window.i18n.t : function(k){return k;};
         if (!city || !city.country) return;
         let country = city.country.trim();
         if (!country || country === 'Unknown') return;
@@ -1360,7 +1393,7 @@
                 if (POWER_FIVE.every(c => seenCountries.has(c))) {
                     silverBigFive = true;
                     earnedDates['powerfive'] = city.flightDate || null;
-                    queue('silver', 'World Power Tour', 'Visited the 5 largest economies', 'powerfive');
+                    queue('silver', _t('achPowerTourName'), _t('achPowerTourDesc'), 'powerfive');
                 }
             }
 
@@ -1370,7 +1403,7 @@
                 if (BIG_FIVE_VISA.every(c => visaAwarded[c])) {
                     goldBigFive = true;
                     earnedDates['bigfive'] = city.flightDate || null;
-                    queue('gold', 'Superpower Passport', 'Visas for the 5 largest economies', 'bigfive');
+                    queue('gold', _t('achSuperpowerName'), _t('achSuperpowerDesc'), 'bigfive');
                 }
             }
 
@@ -1379,36 +1412,36 @@
                 silverAwarded[continent] = true;
                 earnedDates[`silver-${continent}`] = city.flightDate || null;
                 const CONTINENT_NAMES = {
-                    'Asia':          'Dragon & Lotus',
-                    'Europe':        'Old World Wanderer',
-                    'Africa':        'Sahara to Savanna',
-                    'North America': 'New World Order',
-                    'South America': 'El Dorado Trail',
-                    'Oceania':       'Below the Southern Cross'
+                    'Asia':          _t('achDragonLotus'),
+                    'Europe':        _t('achOldWorldWanderer'),
+                    'Africa':        _t('achSaharaSavanna'),
+                    'North America': _t('achNewWorldOrder'),
+                    'South America': _t('achElDoradoTrail'),
+                    'Oceania':       _t('achSouthernCross')
                 };
                 const contName = CONTINENT_NAMES[continent] || `${continent} Explorer`;
-                queue('silver', contName, `5 countries in ${continent}`, `silver-${continent}`);
+                queue('silver', contName, _t('achContinentDesc').replace('{continent}', continent), `silver-${continent}`);
             }
 
             // Gold: ASEAN Complete
             if (!goldAsean && ASEAN_COUNTRIES.has(country) && [...ASEAN_COUNTRIES].every(c => seenCountries.has(c))) {
                 goldAsean = true;
                 earnedDates['asean'] = city.flightDate || null;
-                queue('gold', 'ASEAN Complete', 'All 11 ASEAN nations visited', 'asean');
+                queue('gold', _t('achAseanName'), _t('achAseanDesc'), 'asean');
             }
 
             // Gold: Silk Road Scholar
             if (!goldSilkRoad && SILK_ROAD_COUNTRIES.has(country) && [...SILK_ROAD_COUNTRIES].every(c => seenCountries.has(c))) {
                 goldSilkRoad = true;
                 earnedDates['silkroad'] = city.flightDate || null;
-                queue('gold', 'Silk Road Scholar', 'All 7 Stan countries visited', 'silkroad');
+                queue('gold', _t('achSilkRoadName'), _t('achSilkRoadDesc'), 'silkroad');
             }
 
             // Gold: EU Complete
             if (!goldEU && EU_COUNTRIES.has(country) && [...EU_COUNTRIES].every(c => seenCountries.has(c))) {
                 goldEU = true;
                 earnedDates['euComplete'] = city.flightDate || null;
-                queue('gold', 'EU Complete', 'All 27 EU member states visited', 'euComplete');
+                queue('gold', _t('achEUName'), _t('achEUDesc'), 'euComplete');
             }
 
             // Gold: New World Explorer
@@ -1419,7 +1452,7 @@
                 if (hasMainNA && hasSA && hasCarib) {
                     goldNewWorld = true;
                     earnedDates['newworld'] = city.flightDate || null;
-                    queue('gold', 'New World Explorer', 'North, South America & Caribbean visited', 'newworld');
+                    queue('gold', _t('achNewWorldName'), _t('achNewWorldDesc'), 'newworld');
                 }
             }
         }
@@ -1429,7 +1462,7 @@
         if (VISA_COUNTRIES[country] && !visaAwarded[country] && !VISA_MANUAL.has(country) && (!_visaAfter || (city.flightDate && new Date(city.flightDate) >= _visaAfter))) {
             visaAwarded[country] = true;
             earnedDates[`visa-${country}`] = city.flightDate || null;
-            queue('silver', VISA_COUNTRIES[country], `Visa obtained for ${country}`, `visa-${country}`);
+            queue('silver', VISA_COUNTRIES[country], _t('achVisaDesc').replace('{country}', country), `visa-${country}`);
 
             // Gold: Superpower Passport (visa required for all 5 incl. China)
             if (!goldBigFive) {
@@ -1437,7 +1470,7 @@
                 if (BIG_FIVE_VISA.every(c => visaAwarded[c])) {
                     goldBigFive = true;
                     earnedDates['bigfive'] = city.flightDate || null;
-                    queue('gold', 'Superpower Passport', 'Visas for the 5 largest economies', 'bigfive');
+                    queue('gold', _t('achSuperpowerName'), _t('achSuperpowerDesc'), 'bigfive');
                 }
             }
         }
@@ -1447,7 +1480,28 @@
             if (!specialBronzeAwarded[sb.id] && sb.match(city)) {
                 specialBronzeAwarded[sb.id] = true;
                 earnedDates[`special-${sb.id}`] = city.flightDate || null;
-                queue('bronze', sb.name, sb.desc, `special-${sb.id}`);
+                const SPECIAL_I18N = {
+                    'versailles': ['achVersaillesName','achVersaillesDesc'],
+                    'rovaniemi': ['achAuroraName','achAuroraDesc'],
+                    'athos': ['achAthosName','achAthosDesc'],
+                    'amritsar': ['achAmritsarName','achAmritsarDesc'],
+                    'baikonur': ['achBaikonurName','achBaikonurDesc'],
+                    'ulaanbaatar': ['achUlaanbaatarName','achUlaanbaatarDesc'],
+                    'mandalay': ['achMandalayName','achMandalayDesc'],
+                    'xian': ['achTerracottaName','achTerracottaDesc'],
+                    'beijing': ['achForbiddenCityName','achForbiddenCityDesc'],
+                    'agra': ['achTajMahalName','achTajMahalDesc'],
+                    'petra': ['achPetraName','achPetraDesc'],
+                    'jerusalem': ['achJerusalemName','achJerusalemDesc'],
+                    'sahara': ['achSaharaName','achSaharaDesc'],
+                    'luxor': ['achValleyKingsName','achValleyKingsDesc'],
+                    'nyc': ['achNYCName','achNYCDesc'],
+                    'nola': ['achNOLAName','achNOLADesc'],
+                    'cusco': ['achMachuPicchuName','achMachuPicchuDesc'],
+                    'uyuni': ['achSaltFlatsName','achSaltFlatsDesc']
+                };
+                const keys = SPECIAL_I18N[sb.id];
+                queue('bronze', keys ? _t(keys[0]) : sb.name, keys ? _t(keys[1]) : sb.desc, `special-${sb.id}`);
             }
         });
 
@@ -1457,7 +1511,7 @@
             if (continentsPerYear[_jetYr] && continentsPerYear[_jetYr].size >= 3) {
                 goldJetSetYear = true;
                 earnedDates['jetsetyear'] = city.flightDate || null;
-                queue('gold', 'Jet Set Year', `3+ continents in ${_jetYr}`, 'jetsetyear');
+                queue('gold', _t('achJetSetName'), `3+ continents in ${_jetYr}`, 'jetsetyear');
             }
         }
 
@@ -1465,14 +1519,14 @@
         if (!goldYearRound && monthsWithTrips.size === 12) {
             goldYearRound = true;
             earnedDates['yearround'] = city.flightDate || null;
-            queue('gold', 'Year-Round Traveller', 'Travelled in all 12 calendar months', 'yearround');
+            queue('gold', _t('achYearRoundName'), _t('achYearRoundDesc'), 'yearround');
         }
 
         // Platinum: Always Home
         if (!goldFrequentFlyer && cityVisitCounts[cityKey] >= 100) {
             goldFrequentFlyer = true;
             earnedDates['frequentflyer'] = city.flightDate || null;
-            queue('platinum', 'Always Home', `${city.name || 'A city'} visited 100+ times`, 'frequentflyer');
+            queue('platinum', _t('achAlwaysHomeName'), `${city.name || 'A city'} visited 100+ times`, 'frequentflyer');
         }
 
         // City milestones: gold 100-400, platinum 500
@@ -1481,11 +1535,11 @@
             goldMilestones.add(cityCount);
             earnedDates[`city${cityCount}`] = city.flightDate || null;
             if (cityCount === 500) {
-                queue('platinum', 'Globe Trotter', '500 cities visited', 'city500');
+                queue('platinum', _t('achGlobeTrotterName'), _t('achGlobeTrotterDesc'), 'city500');
             } else {
-                const names = { 100: 'Centurion', 200: 'World Walker', 300: 'Wayfarer', 400: 'Pathfinder' };
+                const names = { 100: _t('achCenturionName'), 200: _t('achWorldWalkerName'), 300: _t('achWayfarerName'), 400: _t('achPathfinderName') };
                 const name = names[cityCount] || `${cityCount} Cities`;
-                queue('gold', name, `${cityCount} cities visited`, `city${cityCount}`);
+                queue('gold', name, _t('achCityMilestoneDesc').replace('{n}', cityCount), `city${cityCount}`);
             }
         }
 
@@ -1496,7 +1550,7 @@
             if (allPresent) {
                 platinumCircumnavigation = true;
                 earnedDates['circum'] = city.flightDate || null;
-                queue('platinum', 'Circumnavigation', 'Visited all 6 continents', 'circum');
+                queue('platinum', _t('achCircumName'), _t('achCircumDesc'), 'circum');
             }
         }
 
@@ -1508,7 +1562,7 @@
             if (currentDate >= tenYearsLater) {
                 platinum10Year = true;
                 earnedDates['10year'] = city.flightDate || null;
-                queue('platinum', 'Decade of Travel', `10 years since ${firstTripDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`, '10year');
+                queue('platinum', _t('achDecadeName'), `10 years since ${firstTripDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`, '10year');
             }
         }
 
@@ -1676,5 +1730,19 @@
         });
     }
 
-    window.countryTrophy = { checkCity, reset, syncTo, togglePanel };
+    window.countryTrophy = { checkCity, reset, syncTo, togglePanel, COUNTRY_ISO, flagImg };
+
+    // Re-render achievements panel on language change
+    window.addEventListener('langchange', function() {
+        // Update the panel title
+        const titleEl = document.querySelector('.achievements-title[data-i18n="achievementsTitle"]');
+        if (titleEl && window.i18n) titleEl.textContent = window.i18n.t('achievementsTitle');
+        // Force full rebuild on next open
+        if (panelOpen) {
+            prevEarnedIds = new Set();
+            const body = document.getElementById('achievements-body');
+            if (body) body.innerHTML = '';
+            renderPanel();
+        }
+    });
 })();

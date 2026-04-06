@@ -56,7 +56,7 @@
         if (!container) return;
 
         const data = collectYearlyDuration();
-        if (!data.length) { container.innerHTML = '<div style="color:#666;font-size:12px;">No duration data</div>'; return; }
+        if (!data.length) { container.innerHTML = `<div style="color:#666;font-size:12px;">${window.i18n ? window.i18n.t('noDurationData') : 'No duration data'}</div>`; return; }
 
         const W = 300, H = 220, PAD_L = 29, PAD_R = 10, PAD_T = 0, PAD_B = 20;
         const chartW = W - PAD_L - PAD_R;
@@ -122,7 +122,8 @@
                 const idx = parseInt(this.dataset.idx);
                 const d = data[idx];
                 const dot = dots[idx];
-                tooltip.innerHTML = `<div class="duration-tip-year">${d.year}</div><div class="duration-tip-avg">${d.avg.toFixed(1)}h avg</div><div class="duration-tip-detail">${d.count} legs · ${d.total.toFixed(0)}h total</div>`;
+                const _t = window.i18n ? window.i18n.t : function(k){return k;};
+                tooltip.innerHTML = `<div class="duration-tip-year">${d.year}</div><div class="duration-tip-avg">${d.avg.toFixed(1)}h ${_t('avg')}</div><div class="duration-tip-detail">${d.count} ${_t('legs')} · ${d.total.toFixed(0)}h ${_t('total')}</div>`;
                 tooltip.style.display = 'block';
 
                 // Position relative to SVG
@@ -149,4 +150,5 @@
     }
 
     waitForData(render);
+    window.addEventListener('langchange', function() { render(); });
 })();

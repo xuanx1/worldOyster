@@ -72,6 +72,36 @@ class AnimatedFlightMap {
         this.updateStatistics();
         this.initializeScrubber();
         this.initChart();
+
+        // Re-translate dynamic controls when language changes
+        window.addEventListener('langchange', () => {
+            this.updatePlayPauseButton();
+            this.updateToggleLinesButton();
+            this.updateFollowDotButton();
+            if (this.fastForwardButton) {
+                const t = window.i18n ? window.i18n.t : function(k) { return k; };
+                const key = 'speed' + this.speedMultiplier + 'x';
+                this.fastForwardButton.title = t(key);
+            }
+            if (this._currentYear) this._typewriteYear(this._currentYear);
+            this.updateStatistics();
+            // Re-translate main title
+            const t = window.i18n ? window.i18n.t : function(k) { return k; };
+            if (this._mainTitle) {
+                this._mainTitle.innerHTML = `<span class="title-text">${t('mainTitle1')}<br>${t('mainTitle2')}</span><span class="title-cursor fade-out"></span>`;
+            }
+            // Update chart dataset labels on language switch
+            if (this.legChart) {
+                this.legChart.data.datasets[0].label = t('sgdPerKm');
+                this.legChart.data.datasets[1].label = t('co2PerSgd');
+                this.legChart.update('none');
+            }
+            if (this.priceChart) {
+                this.priceChart.data.datasets[0].label = t('nominal');
+                this.priceChart.data.datasets[1].label = t('real2025');
+                this.priceChart.update('none');
+            }
+        });
     }
 
     _playTitleTypewriter() {
@@ -409,7 +439,7 @@ class AnimatedFlightMap {
                 button.style.justifyContent = 'center';
                 button.style.cursor = 'pointer';
                 button.style.fontSize = '16px';
-                button.title = 'Reset View';
+                button.title = window.i18n ? window.i18n.t('resetView') : 'Reset View';
                 
                 button.onclick = () => {
                     map.setView([20, 100], 1.45);
@@ -435,7 +465,7 @@ class AnimatedFlightMap {
                 button.style.justifyContent = 'center';
                 button.style.cursor = 'pointer';
                 button.style.fontSize = '14px';
-                button.title = 'Pause Animation';
+                button.title = window.i18n ? window.i18n.t('pauseAnimation') : 'Pause Animation';
                 button.style.marginTop = '2px';
                 
                 button.onclick = () => {
@@ -461,7 +491,7 @@ class AnimatedFlightMap {
                 button.style.justifyContent = 'center';
                 button.style.cursor = 'pointer';
                 button.style.fontSize = '14px';
-                button.title = 'Play Animation';
+                button.title = window.i18n ? window.i18n.t('playAnimation') : 'Play Animation';
                 button.style.marginTop = '2px';
                 
                 button.onclick = () => {
@@ -487,7 +517,7 @@ class AnimatedFlightMap {
                 button.style.justifyContent = 'center';
                 button.style.cursor = 'pointer';
                 button.style.fontSize = '14px';
-                button.title = 'Speed: 1x (click to cycle)';
+                button.title = window.i18n ? window.i18n.t('speed1x') : 'Speed: 1x (click to cycle)';
                 button.style.marginTop = '2px';
                 
                 button.onclick = () => {
@@ -514,7 +544,7 @@ class AnimatedFlightMap {
                 button.style.cursor = 'pointer';
                 button.style.fontSize = '18px';
                 button.style.fontWeight = 'bold';
-                button.title = 'Hide Flight Lines';
+                button.title = window.i18n ? window.i18n.t('hideFlightLines') : 'Hide Flight Lines';
                 button.style.marginTop = '2px';
                 
                 button.onclick = () => {
@@ -540,7 +570,7 @@ class AnimatedFlightMap {
                 button.style.justifyContent = 'center';
                 button.style.cursor = 'pointer';
                 button.style.fontSize = '14px';
-                button.title = 'Follow Flying Dot';
+                button.title = window.i18n ? window.i18n.t('followDot') : 'Follow Flying Dot';
                 button.style.marginTop = '2px';
                 
                 button.onclick = () => {
@@ -573,7 +603,7 @@ class AnimatedFlightMap {
                 button.style.justifyContent = 'center';
                 button.style.cursor = 'pointer';
                 button.style.fontSize = '16px';
-                button.title = 'Achievements';
+                button.title = window.i18n ? window.i18n.t('achievements') : 'Achievements';
                 button.onclick = (e) => {
                     L.DomEvent.stopPropagation(e);
                     if (window.countryTrophy) window.countryTrophy.togglePanel();
@@ -640,19 +670,10 @@ class AnimatedFlightMap {
     }
     
     getYearSlogan(year) {
-        const slogans = {
-            2017: 'Back to Where It Began',
-            2018: 'The Nation Calls',
-            2019: 'Beyond the Horizon',
-            2020: 'Grounded, Almost',
-            2021: 'The Far West',
-            2022: 'Middle East\'s First Foray',
-            2023: 'Chasing Schengen',
-            2024: 'Six Continents, One Year',
-            2025: 'New World, Who Dis',
-            2026: 'The Southeast Asian Network',
-        };
-        return slogans[year] || '';
+        const t = window.i18n ? window.i18n.t : function(k) { return k; };
+        const key = 'slogan' + year;
+        const val = t(key);
+        return val !== key ? val : '';
     }
 
     updateHeaderYear(journeys) {
@@ -1604,7 +1625,7 @@ class AnimatedFlightMap {
         // Set current flight to show completion briefly
         const currentFlightElement = document.getElementById('currentFlight');
         if (currentFlightElement) {
-            currentFlightElement.textContent = 'Journey Complete!';
+            currentFlightElement.textContent = window.i18n ? window.i18n.t('journeyComplete') : 'Journey Complete!';
         }
         
         // Auto-restart animation after a brief pause (loop the animation)
@@ -1660,19 +1681,19 @@ class AnimatedFlightMap {
             if (this.speedMultiplier === 1) {
                 this.fastForwardButton.style.backgroundColor = '#333';
                 this.fastForwardButton.style.opacity = '1';
-                this.fastForwardButton.title = 'Speed: 1x (click to cycle)';
+                this.fastForwardButton.title = window.i18n ? window.i18n.t('speed1x') : 'Speed: 1x (click to cycle)';
             } else if (this.speedMultiplier === 10) {
                 this.fastForwardButton.style.backgroundColor = '#FF9800';
                 this.fastForwardButton.style.opacity = '1';
-                this.fastForwardButton.title = 'Speed: 10x (click to cycle)';
+                this.fastForwardButton.title = window.i18n ? window.i18n.t('speed10x') : 'Speed: 10x (click to cycle)';
             } else if (this.speedMultiplier === 20) {
                 this.fastForwardButton.style.backgroundColor = '#F44336';
                 this.fastForwardButton.style.opacity = '1';
-                this.fastForwardButton.title = 'Speed: 20x (click to cycle)';
+                this.fastForwardButton.title = window.i18n ? window.i18n.t('speed20x') : 'Speed: 20x (click to cycle)';
             } else if (this.speedMultiplier === 100) {
                 this.fastForwardButton.style.backgroundColor = '#9C27B0';
                 this.fastForwardButton.style.opacity = '1';
-                this.fastForwardButton.title = 'Speed: 100x (click to cycle)';
+                this.fastForwardButton.title = window.i18n ? window.i18n.t('speed100x') : 'Speed: 100x (click to cycle)';
             }
         }
     }
@@ -1745,15 +1766,15 @@ class AnimatedFlightMap {
             if (this.pauseAfterCurrentFlight) {
                 // Show pending pause state
                 this.playPauseButton.innerHTML = '⏸️';
-                this.playPauseButton.title = 'Pausing after current flight...';
+                this.playPauseButton.title = window.i18n ? window.i18n.t('pausingAfterFlight') : 'Pausing after current flight...';
                 this.playPauseButton.style.opacity = '0.7'; // Visual indication of pending state
             } else if (this.isAnimating) {
                 this.playPauseButton.innerHTML = '⏸️';
-                this.playPauseButton.title = 'Pause Animation';
+                this.playPauseButton.title = window.i18n ? window.i18n.t('pauseAnimation') : 'Pause Animation';
                 this.playPauseButton.style.opacity = '1';
             } else {
                 this.playPauseButton.innerHTML = '▶️';
-                this.playPauseButton.title = 'Resume Animation';
+                this.playPauseButton.title = window.i18n ? window.i18n.t('resumeAnimation') : 'Resume Animation';
                 this.playPauseButton.style.opacity = '1';
             }
         }
@@ -1841,12 +1862,12 @@ class AnimatedFlightMap {
         if (this.toggleLinesButton) {
             if (this.linesVisible) {
                 this.toggleLinesButton.innerHTML = '━';
-                this.toggleLinesButton.title = 'Hide Flight Lines';
+                this.toggleLinesButton.title = window.i18n ? window.i18n.t('hideFlightLines') : 'Hide Flight Lines';
                 this.toggleLinesButton.style.backgroundColor = '#333';
                 this.toggleLinesButton.style.opacity = '1';
             } else {
                 this.toggleLinesButton.innerHTML = '•';
-                this.toggleLinesButton.title = 'Show Flight Lines';
+                this.toggleLinesButton.title = window.i18n ? window.i18n.t('showFlightLines') : 'Show Flight Lines';
                 this.toggleLinesButton.style.backgroundColor = '#666';
                 this.toggleLinesButton.style.opacity = '0.5';
             }
@@ -1868,12 +1889,12 @@ class AnimatedFlightMap {
         if (this.followDotButton) {
             if (this.followDot) {
                 this.followDotButton.innerHTML = '🎯';
-                this.followDotButton.title = 'Stop Following Dot';
+                this.followDotButton.title = window.i18n ? window.i18n.t('stopFollowDot') : 'Stop Following Dot';
                 this.followDotButton.style.backgroundColor = '#4CAF50';
                 this.followDotButton.style.opacity = '1';
             } else {
                 this.followDotButton.innerHTML = '🎯';
-                this.followDotButton.title = 'Follow Flying Dot';
+                this.followDotButton.title = window.i18n ? window.i18n.t('followDot') : 'Follow Flying Dot';
                 this.followDotButton.style.backgroundColor = '#333';
                 this.followDotButton.style.opacity = '1';
             }
@@ -2375,12 +2396,12 @@ class AnimatedFlightMap {
                 // If no valid journey found, show nothing
                 currentFlightElement.textContent = '';
             } else if (this.currentCityIndex === 0 && this.cities.length > 0) {
-                currentFlightElement.textContent = `Starting at ${this.cities[0].name}`;
+                currentFlightElement.textContent = `${window.i18n ? window.i18n.t('startingAt') : 'Starting at'} ${this.cities[0].name}`;
             } else if (this.currentCityIndex >= this.cities.length && this.cities.length > 0) {
                 // Only show "Journey Complete!" when currentCityIndex has gone beyond all cities (animation completed)
-                currentFlightElement.textContent = 'Journey Complete!';
+                currentFlightElement.textContent = window.i18n ? window.i18n.t('journeyComplete') : 'Journey Complete!';
             } else {
-                currentFlightElement.textContent = 'Ready to begin journey';
+                currentFlightElement.textContent = window.i18n ? window.i18n.t('readyToBegin') : 'Ready to begin journey';
             }
         }
     }
@@ -2780,9 +2801,9 @@ class AnimatedFlightMap {
                     '| toCity.locationCode:', toCity.locationCode,
                     '| fromCity.locationCode:', fromCity.locationCode);
             }
-            details.push(desc || 'Bus/Train');
+            details.push(desc || (window.i18n ? window.i18n.t('busOrTrain') : 'Bus/Train'));
         }
-        if (journey.costSGD) details.push(`S$${Math.round(journey.costSGD)}${isReturn ? '' : ', One Way'}`);
+        if (journey.costSGD) details.push(`S$${Math.round(journey.costSGD)}${isReturn ? '' : ', ' + (window.i18n ? window.i18n.t('oneWay') : 'One Way')}`);
         if (journey.date) details.push(new Date(journey.date).getFullYear().toString());
 
         const detailsText = details.filter(Boolean).join(' · ');
@@ -3261,16 +3282,18 @@ class AnimatedFlightMap {
         const rows = [];
 
         if (this.legChart) {
+            const _tl = window.i18n ? window.i18n.t : function(k){return k;};
             const cpk = this.legChart.data.datasets[0]?.data[idx];
             const co2 = this.legChart.data.datasets[1]?.data[idx];
-            if (cpk != null) rows.push(['S$/km', cpk.toFixed(3)]);
-            if (co2 != null) rows.push(['kg CO\u2082/S$', (co2 / 1000).toFixed(3)]);
+            if (cpk != null) rows.push([_tl('sgdPerKm'), cpk.toFixed(3)]);
+            if (co2 != null) rows.push([_tl('co2PerSgd'), (co2 / 1000).toFixed(3)]);
         }
         if (this.priceChart) {
+            const _tp = window.i18n ? window.i18n.t : function(k){return k;};
             const nom = this.priceChart.data.datasets[0]?.data[idx];
             const real = this.priceChart.data.datasets[1]?.data[idx];
-            if (nom != null) rows.push(['Nominal', 'S$' + nom.toFixed(2)]);
-            if (real != null) rows.push(['Real (2025)', 'S$' + real.toFixed(2)]);
+            if (nom != null) rows.push([_tp('nominal'), 'S$' + nom.toFixed(2)]);
+            if (real != null) rows.push([_tp('real2025'), 'S$' + real.toFixed(2)]);
         }
 
         const d = this._chartDates?.[idx];
@@ -3362,6 +3385,7 @@ class AnimatedFlightMap {
     }
 
     initChart() {
+        const _t = window.i18n ? window.i18n.t : function(k){return k;};
         const canvas = document.getElementById('legChart');
         if (!canvas || typeof Chart === 'undefined') return;
         this.legChart = new Chart(canvas.getContext('2d'), {
@@ -3370,7 +3394,7 @@ class AnimatedFlightMap {
                 labels: [],
                 datasets: [
                     {
-                        label: 'S$/km',
+                        label: _t('sgdPerKm'),
                         data: [],
                         borderColor: '#4CAF50',
                         backgroundColor: 'rgba(76, 175, 80, 0.7)',
@@ -3381,7 +3405,7 @@ class AnimatedFlightMap {
                         spanGaps: true
                     },
                     {
-                        label: 'kg CO₂/S$',
+                        label: _t('co2PerSgd'),
                         data: [],
                         borderColor: '#FF4444',
                         backgroundColor: 'rgba(255, 68, 68, 0.7)',
@@ -3439,7 +3463,7 @@ class AnimatedFlightMap {
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'SGD, Nominal',
+                        label: _t('nominal'),
                         data: [],
                         borderColor: '#4CAF50',
                         backgroundColor: 'rgba(76, 175, 80, 0.7)',
@@ -3448,7 +3472,7 @@ class AnimatedFlightMap {
                         borderWidth: 0.5,
                         spanGaps: true
                     }, {
-                        label: 'SGD, Real (2025)',
+                        label: _t('real2025'),
                         data: [],
                         borderColor: '#FF4444',
                         backgroundColor: 'rgba(255, 68, 68, 0.7)',
@@ -4192,13 +4216,13 @@ class AnimatedFlightMap {
                 
                 let metaphor = '';
                 if (moonTimes >= 1) {
-                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${moonTimes.toFixed(2)}x To the Moon</span>`;
+                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${moonTimes.toFixed(2)}x ${window.i18n ? window.i18n.t('toTheMoon') : 'To the Moon'}</span>`;
                 } else if (moonTimes >= 0.1) {
-                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${(moonTimes * 100).toFixed(0)}% To the Moon</span>`;
+                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${(moonTimes * 100).toFixed(0)}% ${window.i18n ? window.i18n.t('toTheMoon') : 'To the Moon'}</span>`;
                 } else if (earthTimes >= 1) {
-                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${earthTimes.toFixed(1)}x Around Earth</span>`;
+                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${earthTimes.toFixed(1)}x ${window.i18n ? window.i18n.t('aroundEarth') : 'Around Earth'}</span>`;
                 } else if (earthTimes >= 0.1) {
-                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${(earthTimes * 100).toFixed(0)}% Around Earth</span>`;
+                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${(earthTimes * 100).toFixed(0)}% ${window.i18n ? window.i18n.t('aroundEarth') : 'Around Earth'}</span>`;
                 }
                 
                 this.animateNumber(totalDistanceEl, distanceKm, 800, (val) => `${Math.round(val).toLocaleString()} km ${metaphor}`);
@@ -4215,9 +4239,9 @@ class AnimatedFlightMap {
                 
                 let timeMetaphor = '';
                 if (totalWeeks >= 1) {
-                    timeMetaphor = `<br><span style="font-size: 0.65em; font-weight: 900; color: #4CAF50;">${totalWeeks.toFixed(1)} Weeks</span>`;
+                    timeMetaphor = `<br><span style="font-size: 0.65em; font-weight: 900; color: #4CAF50;">${totalWeeks.toFixed(1)} ${window.i18n ? window.i18n.t('weeks') : 'Weeks'}</span>`;
                 } else if (totalDays >= 1) {
-                    timeMetaphor = `<br><span style="font-size: 0.65em; font-weight: 900; color: #4CAF50;">${totalDays.toFixed(1)} Days</span>`;
+                    timeMetaphor = `<br><span style="font-size: 0.65em; font-weight: 900; color: #4CAF50;">${totalDays.toFixed(1)} ${window.i18n ? window.i18n.t('daysUnit') : 'Days'}</span>`;
                 }
                 
                 this.animateNumber(totalTimeEl, totalMinutes, 700, (val) => {
@@ -4253,39 +4277,40 @@ class AnimatedFlightMap {
                 const homesEquivalent = co2Tons / 7.5;
                 const smallTownYears = co2Tons / 40000;
                 
+                const _t = window.i18n ? window.i18n.t : function(k){return k;};
                 let co2Metaphor = '';
                 
                 // Tiered comparisons - each shows ~2x to ~10x range
                 if (smallTownYears >= 0.00225) {
                     // 90+ tons: Small town
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${(smallTownYears * 100).toFixed(2)}% Annual Town Emission</span>`;
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${(smallTownYears * 100).toFixed(2)}% ${_t('annualTownEmission')}</span>`;
                 }
                 else if (homesEquivalent >= 3) {
                     // 22.5+ tons: Home (3x → 12x at 90)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${homesEquivalent.toFixed(1)}x Annual Household Emission</span>`;
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${homesEquivalent.toFixed(1)}x ${_t('annualHouseholdEmission')}</span>`;
                 }
                 else if (carsEquivalent >= 3) {
                     // 13.8+ tons: Car (3x → 4.9x at 22.5)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${carsEquivalent.toFixed(1)}x Annual Car Emission</span>`;
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${carsEquivalent.toFixed(1)}x ${_t('annualCarEmission')}</span>`;
                 }
                 else if (personYears >= 2) {
                     // 8+ tons: Per capita (2x → 3.45x at 13.8)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${personYears.toFixed(1)}x Annual Global Average Per Capita Emission</span>`;
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${personYears.toFixed(1)}x ${_t('annualGlobalPerCapitaEmission')}</span>`;
                 }
                 else if (motorcyclesEquivalent >= 2) {
                     // 5+ tons: Motorcycle (2x → 3.2x at 8)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${motorcyclesEquivalent.toFixed(1)}x Annual Motorcycle Emission</span>`;
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${motorcyclesEquivalent.toFixed(1)}x ${_t('annualMotorcycleEmission')}</span>`;
                 }
                 else if (laptopsEquivalent >= 2) {
                     // 0.6+ tons: Laptops (2x → 16.7x at 5)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${laptopsEquivalent.toFixed(0)} Laptops'${laptopsEquivalent >= 2 ? '' : ''} Production Emission</span>`;
+                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${laptopsEquivalent.toFixed(0)} ${_t('laptopsProductionEmission')}</span>`;
                 }
                 
                 this.animateNumber(co2EmissionEl, co2Kg, 750, (val) => {
                     if (val >= 1000) {
-                        return `${(val / 1000).toFixed(1)} tons CO₂ ${co2Metaphor}`;
+                        return `${(val / 1000).toFixed(1)} ${_t('tonsCO2')} ${co2Metaphor}`;
                     } else {
-                        return `${Math.round(val)} kg CO₂ ${co2Metaphor}`;
+                        return `${Math.round(val)} ${_t('kgCO2')} ${co2Metaphor}`;
                     }
                 });
             } else {
@@ -4312,7 +4337,7 @@ class AnimatedFlightMap {
         }
         if (currentFlightEl) {
             if (currentJourneyIndex >= this.cities.length) {
-                this.animateTextTransition(currentFlightEl, 'Complete');
+                this.animateTextTransition(currentFlightEl, window.i18n ? window.i18n.t('complete') : 'Complete');
             } else if (currentJourneyIndex > 0 && currentJourneyIndex < this.cities.length) {
                 // Find the nearest journey with different city names
                 let displayIndex = currentJourneyIndex;
@@ -4544,13 +4569,69 @@ class AnimatedFlightMap {
 document.addEventListener('DOMContentLoaded', () => {
     window.flightMap = new AnimatedFlightMap();
 
-    // Set up export button
+    // Set up export button — comprehensive data + dashboard export
     const exportButton = document.getElementById('exportButton');
     if (exportButton) {
         exportButton.addEventListener('click', () => {
-            if (window.flightMap) {
-                window.flightMap.exportFlightData();
+            const fm = window.flightMap;
+            if (!fm) return;
+
+            // Base flight data
+            const exportData = fm.exportFlightData() || {};
+
+            // Dashboard widget data
+            exportData.dashboard = {};
+
+            // Return visits
+            if (window._rvData) {
+                exportData.dashboard.returnVisits = window._rvData;
             }
+            // Longest stays
+            if (window._lsData) {
+                exportData.dashboard.longestStays = window._lsData;
+            }
+            // Top airlines
+            if (window._taData) {
+                exportData.dashboard.topAirlines = window._taData;
+            }
+
+            // Country spending from cost choropleth
+            const countryMap = window.AIRPORT_TO_COUNTRY || {};
+            const cityCountryMap = window.CITY_TO_COUNTRY || {};
+            const spend = {};
+            (fm.flightData || []).forEach(j => {
+                let country = null;
+                const cost = j.costSGD || j.actualCostSGD || 0;
+                if (j.type === 'land') {
+                    country = cityCountryMap[j.destination] || cityCountryMap[j.origin];
+                } else {
+                    const toCode = j.toCode || (j.to && j.to.match(/\(([A-Z]{3})\//)?.[1]);
+                    country = countryMap[toCode];
+                }
+                if (country && cost > 0) spend[country] = (spend[country] || 0) + cost;
+            });
+            exportData.dashboard.countrySpending = spend;
+
+            // Chart images (canvas to PNG)
+            exportData.charts = {};
+            document.querySelectorAll('canvas').forEach(canvas => {
+                const id = canvas.id || canvas.closest('[id]')?.id || 'chart';
+                try {
+                    exportData.charts[id] = canvas.toDataURL('image/png');
+                } catch (e) { /* skip tainted canvases */ }
+            });
+
+            // Download
+            const jsonString = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `worldoyster-export-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         });
     }
 

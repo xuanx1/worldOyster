@@ -72,7 +72,7 @@
 
         if (!_data.length) _data = collectVisits();
         if (!_data.length) {
-            container.innerHTML = '<div style="color:#666;font-size:12px;">No repeat visits yet</div>';
+            container.innerHTML = `<div style="color:#666;font-size:12px;">${window.i18n ? window.i18n.t('noRepeatVisits') : 'No repeat visits yet'}</div>`;
             return;
         }
 
@@ -104,4 +104,5 @@
         window._rvRender = function (n) { window._rvLimit = n; render(); };
         render();
     });
+    window.addEventListener('langchange', function() { _data = []; render(); });
 })();

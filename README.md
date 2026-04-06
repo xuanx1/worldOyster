@@ -9,6 +9,11 @@ An animated journey map visualising my travel history and its environmental impa
 
 ---
 
+### 🌐 Multilingual Support
+- Full i18n across all widgets and UI — **English, Arabic, Chinese, French, Russian, Spanish**
+- Language selector in the header; all labels, tooltips, legends, and achievements translate live
+- Default language: English
+
 ### 🎮 Interactive Timeline Controls
 - **Video-like scrubber**: Drag the glowing timeline head to jump to any point in the journey
 - **Play/Pause controls**: Start, stop, and resume animation with smooth transitions
@@ -54,6 +59,23 @@ An animated journey map visualising my travel history and its environmental impa
 - **Leg efficiency chart**: Cost efficiency per journey leg
 - **Period filters**: ALL, 1Y, 3Y, 5Y, 7Y, 10Y
 - **Scrollable chart preview** with thumb slider
+
+### 📋 Insight Widgets
+- **Spending Heatmap** — monthly spending by year
+- **Cost Choropleth** — world map coloured by total spend per country
+- **Duration Trend** — avg/total trip duration over time
+- **Records Cards** — personal travel records (longest flight, farthest city, etc.)
+- **Unvisited Neighbours** — countries bordering visited ones, with flag icons
+- **Return Visits** — cities visited more than once
+- **Longest Stays** — cities with the most days spent
+- **Top Airlines** — most-flown carriers
+- **Journey Timeline** — continent-coloured timeline of every leg
+
+### 🏆 Country Trophy System
+- PlayStation-style tiered achievements — Bronze, Silver, Gold, Platinum
+- Milestone awards: city counts, continent coverage, multi-year travel, ASEAN/EU/Superpower sets
+- Special location awards for notable places
+- Achievement panel with earned/locked badges & progress
 
 ### 🌿 Environmental Impact Tracking
 - **Mode-specific emission factors**:

@@ -114,7 +114,7 @@
         if (!container) return;
 
         const trips = clusterTrips();
-        if (!trips.length) { container.innerHTML = '<div style="color:#666;font-size:12px;">No data</div>'; return; }
+        if (!trips.length) { container.innerHTML = `<div style="color:#666;font-size:12px;">${window.i18n ? window.i18n.t('noData') : 'No data'}</div>`; return; }
 
         const minDate = trips[0].start;
         const maxDate = trips[trips.length - 1].end;
@@ -146,8 +146,9 @@
             const color = CONTINENT_COLORS[t.primaryContinent] || '#666';
             const dateRange = `${t.start.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})} – ${t.end.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}`;
             const countries = t.countriesArr.join(', ');
+            const _t = window.i18n ? window.i18n.t : function(k){return k;};
             svg += `<rect x="${x1}" y="${barY}" width="${w}" height="${barH}" rx="3" fill="${color}" opacity="0.8"
-                data-tip-label="${dateRange}" data-tip-val="${countries} (${t.legs} legs)"/>`;
+                data-tip-label="${dateRange}" data-tip-val="${countries} (${t.legs} ${_t('legs')})"/>`;
         });
 
         svg += `</svg>`;
@@ -155,8 +156,11 @@
         // Continent legend
         const usedContinents = new Set(trips.map(t => t.primaryContinent));
         let legend = '<div class="timeline-legend">';
+        const CONTINENT_I18N = { 'Asia': 'asia', 'Europe': 'europe', 'North America': 'northAmerica', 'South America': 'southAmerica', 'Africa': 'africa', 'Oceania': 'oceania', 'Middle East': 'middleEast' };
+        const _t2 = window.i18n ? window.i18n.t : function(k){return k;};
         usedContinents.forEach(c => {
-            legend += `<span class="timeline-legend-item"><span class="timeline-dot" style="background:${CONTINENT_COLORS[c] || '#666'}"></span>${c}</span>`;
+            const label = CONTINENT_I18N[c] ? _t2(CONTINENT_I18N[c]) : c;
+            legend += `<span class="timeline-legend-item"><span class="timeline-dot" style="background:${CONTINENT_COLORS[c] || '#666'}"></span>${label}</span>`;
         });
         legend += '</div>';
 
@@ -179,4 +183,5 @@
     }
 
     waitForData(render);
+    window.addEventListener('langchange', function() { render(); });
 })();

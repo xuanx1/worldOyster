@@ -115,9 +115,6 @@
                 display: none;
             }
 
-            .title-section .export-button {
-                display: none !important;
-            }
         }
 
         .main-title {
@@ -148,40 +145,6 @@
             }
         }
 
-        .export-button {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            border: none;
-            border-radius: 8px;
-            padding: 12px 20px;
-            color: #ffffff;
-            font-size: 0.9em;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            display: none;
-        }
-
-        @media (max-width: 768px) {
-            .export-button {
-                display: none !important;
-            }
-        }
-
-        .export-button:hover {
-            background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
-        }
-
-        .export-button:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
-        }
 
         .card-container {
             width: 700px;
@@ -1367,11 +1330,6 @@
         #spendingHeatmap::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
         #spendingHeatmap::-webkit-scrollbar-thumb:hover { background: #777; }
         .widgets-toggle {
-            position: fixed;
-            bottom: 32px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 200;
             background: rgba(40, 40, 40, 0.85);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
@@ -1388,7 +1346,44 @@
             font-family: inherit;
         }
         .widgets-toggle:hover { background: rgba(60, 60, 60, 0.9); color: #fff; }
-        .widgets-toggle.open { bottom: calc(85vh + 10px); }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .bottom-bar.open { bottom: calc(85vh + 10px); }
+        .lang-toggle-bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .lang-btn {
+            width: 22px;
+            height: 22px;
+            border-radius: 20px;
+            border: 1px solid #555;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.2s;
+            opacity: 0.6;
+            background: rgba(40, 40, 40, 0.85);
+            padding: 0;
+        }
+        .lang-btn:hover { opacity: 1; border-color: #aaa; transform: scale(1.15); }
+        .lang-btn.active { opacity: 1; border-color: #4CAF50; box-shadow: 0 0 6px rgba(76, 175, 80, 0.5); }
+        .lang-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
 
         .widgets-inner {
             display: grid;
@@ -1705,7 +1700,7 @@
         <!-- price/inflation chart sits between title and existing efficiency chart -->
         <div id="priceChartContainer">
             <div class="chart-header">
-                <div class="chart-label">Adjusted, S$</div>
+                <div class="chart-label" data-i18n="adjustedSGD">Adjusted, S$</div>
                 <div class="chart-filters">
                     <button class="chart-filter-btn active" data-period="all">ALL</button>
                     <button class="chart-filter-btn" data-period="1">1Y</button>
@@ -1723,12 +1718,9 @@
             </div>
         </div>
 
-        <button class="export-button" id="exportButton">
-            📊 Export Data
-        </button>
         <div id="chartContainer">
             <div class="chart-header">
-                <div class="chart-label">Leg Efficiency</div>
+                <div class="chart-label" data-i18n="legEfficiency">Leg Efficiency</div>
                 <div class="chart-filters">
                     <button class="chart-filter-btn active" data-period="all">ALL</button>
                     <button class="chart-filter-btn" data-period="1">1Y</button>
@@ -1778,38 +1770,38 @@
     <div class="card-spacer"></div>
 
     <div class="stats-section">
-        <div class="stats-title">Travel Statistics</div>
+        <div class="stats-title" data-i18n="travelStatistics">Travel Statistics</div>
         <div class="stats-grid">
         <div class="stat-item">
-            <div class="stat-label">Total Journeys</div>
+            <div class="stat-label" data-i18n="totalJourneys">Total Journeys</div>
             <div class="stat-value" id="totalFlights">-</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label">Cities Visited</div>
+            <div class="stat-label" data-i18n="citiesVisited">Cities Visited</div>
             <div class="stat-value" id="citiesVisited">-</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label">Total Distance<div class="stat-increment" id="incDistance">-</div></div>
+            <div class="stat-label"><span data-i18n="totalDistance">Total Distance</span><div class="stat-increment" id="incDistance">-</div></div>
             <div class="stat-value" id="totalDistance">-</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label">Total Time<div class="stat-increment" id="incTime">-</div></div>
+            <div class="stat-label"><span data-i18n="totalTime">Total Time</span><div class="stat-increment" id="incTime">-</div></div>
             <div class="stat-value" id="totalTime">-</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label">CO₂ Emission<div class="stat-increment" id="incCO2">-</div></div>
+            <div class="stat-label"><span data-i18n="co2Emission">CO₂ Emission</span><div class="stat-increment" id="incCO2">-</div></div>
             <div class="stat-value" id="co2Emission">-</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label">Cost (USD)<div class="stat-increment" id="incCostUSD">-</div></div>
+            <div class="stat-label"><span data-i18n="costUSD">Cost (USD)</span><div class="stat-increment" id="incCostUSD">-</div></div>
             <div class="stat-value" id="totalCostUSD">-</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label">Cost (SGD)<div class="stat-increment" id="incCostSGD">-</div></div>
+            <div class="stat-label"><span data-i18n="costSGD">Cost (SGD)</span><div class="stat-increment" id="incCostSGD">-</div></div>
             <div class="stat-value" id="totalCostSGD">-</div>
         </div>
         <div class="stat-item current-journey">
-            <div class="stat-label">Current Journey</div>
+            <div class="stat-label" data-i18n="currentJourney">Current Journey</div>
             <div class="stat-value highlight" id="currentFlight">-</div>
         </div>
         </div>
@@ -1826,82 +1818,94 @@
     </div>
 
     <div class="widgets-backdrop" id="widgetsBackdrop"></div>
-    <button class="widgets-toggle" id="widgetsToggle">Insights</button>
+    <div class="bottom-bar" id="bottomBar">
+        <button class="widgets-toggle" id="exportButton" data-i18n="export">Export</button>
+        <button class="widgets-toggle" id="widgetsToggle" data-i18n="insights">Insights</button>
+        <div class="lang-toggle-bar" id="langToggleBar">
+            <button class="lang-btn active" data-lang="en" title="English"><img src="asset/flags/gb.png" alt="EN"></button>
+            <button class="lang-btn" data-lang="ar" title="العربية"><img src="asset/flags/sa.png" alt="AR"></button>
+            <button class="lang-btn" data-lang="zh" title="中文"><img src="asset/flags/cn.png" alt="ZH"></button>
+            <button class="lang-btn" data-lang="fr" title="Français"><img src="asset/flags/fr.png" alt="FR"></button>
+            <button class="lang-btn" data-lang="ru" title="Русский"><img src="asset/flags/ru.png" alt="RU"></button>
+            <button class="lang-btn" data-lang="es" title="Español"><img src="asset/flags/es.png" alt="ES"></button>
+        </div>
+    </div>
     <div class="widgets-section" id="widgetsSection">
         <div class="widgets-inner">
             <!-- Row 1: Timeline (full width) -->
             <div class="widget-card full">
-                <div class="widget-title">Journey Timeline</div>
+                <div class="widget-title" data-i18n="journeyTimeline">Journey Timeline</div>
                 <div id="journeyTimeline"></div>
             </div>
 
             <!-- Row 2: Records (wide) + Duration Trend -->
             <div class="widget-card wide">
-                <div class="widget-title">Records</div>
+                <div class="widget-title" data-i18n="records">Records</div>
                 <div id="recordsCards"></div>
             </div>
             <div class="widget-card">
-                <div class="widget-title">Avg Duration / Year</div>
+                <div class="widget-title" data-i18n="avgDurationYear">Avg Duration / Year</div>
                 <div id="durationTrend"></div>
             </div>
 
             <!-- Row 3: Cost by Country (full) -->
             <div class="widget-card full">
-                <div class="widget-title">Cost by Country</div>
+                <div class="widget-title" data-i18n="costByCountry">Cost by Country</div>
                 <div id="costChoropleth"></div>
             </div>
 
             <!-- Row 4: Spending Heatmap (wide) + stacked Return Visits / Longest Stays -->
             <div class="widget-card wide">
-                <div class="widget-title">Spending Heatmap</div>
+                <div class="widget-title" data-i18n="spendingHeatmap">Spending Heatmap</div>
                 <div id="spendingHeatmap"></div>
             </div>
             <div class="widget-stack">
                 <div class="widget-card">
-                    <div class="widget-title">Return Visits</div>
+                    <div class="widget-title" data-i18n="returnVisits">Return Visits</div>
                     <div id="returnVisits"></div>
                 </div>
                 <div class="widget-card">
-                    <div class="widget-title">Longest Stays</div>
+                    <div class="widget-title" data-i18n="longestStays">Longest Stays</div>
                     <div id="longestStays"></div>
                 </div>
                 <div class="widget-card">
-                    <div class="widget-title">Most Flown Airlines</div>
+                    <div class="widget-title" data-i18n="mostFlownAirlines">Most Flown Airlines</div>
                     <div id="topAirlines"></div>
                 </div>
             </div>
 
             <!-- Row 5: Unvisited Neighbors (full) -->
             <div class="widget-card full">
-                <div class="widget-title">Unvisited Neighbours</div>
+                <div class="widget-title" data-i18n="unvisitedNeighbours">Unvisited Neighbours</div>
                 <div id="unvisitedNeighbors"></div>
             </div>
         </div>
     </div>
 
     <footer class="footer">
-        Made with <span class="footer-heart">❤</span> for travelling | 
-        <a href="https://github.com/xuanx1/worldOyster" target="_blank" rel="noopener noreferrer">Source Code</a>
+        <span data-i18n="madeWith">Made with</span> <span class="footer-heart">❤</span> <span data-i18n="forTravelling">for travelling</span> |
+        <a href="https://github.com/xuanx1/worldOyster" target="_blank" rel="noopener noreferrer" data-i18n="sourceCode">Source Code</a>
     </footer>
 
+    <script src="translations.js"></script>
     <script src="asset/vendor/chart.umd.min.js"></script>
     <script src="asset/vendor/leaflet.js"></script>
-    <script src="airports.js"></script>
-    <script src="cities.js"></script>
-    <script src="countries.js"></script>
-    <script src="flight-data.js"></script>
-    <script src="city-native-names.js"></script>
-    <script src="country-trophy.js"></script>
+    <script src="data/airports.js"></script>
+    <script src="data/cities.js"></script>
+    <script src="data/countries.js"></script>
+    <script src="data/flight-data.js"></script>
+    <script src="data/city-native-names.js"></script>
+    <script src="widget/country-trophy.js"></script>
     <script src="animated-flight-map.js"></script>
-    <script src="spending-heatmap.js"></script>
-    <script src="cost-choropleth.js"></script>
-    <script src="duration-trend.js"></script>
-    <script src="records-cards.js"></script>
-    <script src="unvisited-neighbors.js"></script>
-    <script src="return-visits.js"></script>
-    <script src="longest-stays.js"></script>
-    <script src="top-airlines.js"></script>
-    <script src="journey-timeline.js"></script>
+    <script src="widget/spending-heatmap.js"></script>
+    <script src="widget/cost-choropleth.js"></script>
+    <script src="widget/duration-trend.js"></script>
+    <script src="widget/records-cards.js"></script>
+    <script src="widget/unvisited-neighbors.js"></script>
+    <script src="widget/return-visits.js"></script>
+    <script src="widget/longest-stays.js"></script>
+    <script src="widget/top-airlines.js"></script>
+    <script src="widget/journey-timeline.js"></script>
     <script>
     // Toggle widget dashboard
     function toggleWidgets() {
@@ -1911,10 +1915,32 @@
         section.classList.toggle('open');
         btn.classList.toggle('open');
         backdrop.classList.toggle('open');
-        btn.textContent = section.classList.contains('open') ? 'Close' : 'Insights';
+        const t = window.i18n ? window.i18n.t : function(k) { return k; };
+        btn.textContent = section.classList.contains('open') ? t('close') : t('insights');
+        document.getElementById('bottomBar').classList.toggle('open');
     }
     document.getElementById('widgetsToggle').addEventListener('click', toggleWidgets);
     document.getElementById('widgetsBackdrop').addEventListener('click', toggleWidgets);
+
+    // Language toggle
+    (function () {
+        const langBar = document.getElementById('langToggleBar');
+        langBar.addEventListener('click', function (e) {
+            const btn = e.target.closest('.lang-btn');
+            if (!btn) return;
+            langBar.querySelector('.lang-btn.active').classList.remove('active');
+            btn.classList.add('active');
+            const lang = btn.dataset.lang;
+            document.documentElement.lang = lang;
+            if (lang === 'ar') {
+                document.documentElement.dir = 'rtl';
+            } else {
+                document.documentElement.dir = 'ltr';
+            }
+            // Apply translations to data-i18n elements and notify widgets
+            if (window.i18n) window.i18n.setLang(lang);
+        });
+    })();
 
     (function syncStackToHeatmap() {
         const heatmapCard = document.getElementById('spendingHeatmap')?.closest('.widget-card');

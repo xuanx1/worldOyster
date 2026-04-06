@@ -3,8 +3,15 @@
     'use strict';
 
     const CELL = 8, GAP = 6, PAD = 8;
-    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const DAYS = ['Mon','','Wed','','Fri','','Sun'];
+    const MONTHS_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const DAYS_EN = ['Mon','','Wed','','Fri','','Sun'];
+    function getMonths() { return (window.i18n && window.i18n.t('months')) || MONTHS_EN; }
+    function getDays() {
+        const d = window.i18n && window.i18n.t('days');
+        if (!d) return DAYS_EN;
+        // Translation gives [Mon,Wed,Fri,Sun] — interleave blanks
+        return [d[0] || '', '', d[1] || '', '', d[2] || '', '', d[3] || ''];
+    }
     const GREEN = [ '#161b22', '#0e4429', '#006d32', '#26a641', '#39d353' ]; // 0-spend → max
 
     function waitForData(cb) {
@@ -79,7 +86,7 @@
         svg += `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMinYMin meet" style="display:block;width:100%;height:auto;">`;
 
         // Day labels
-        DAYS.forEach((d, i) => {
+        getDays().forEach((d, i) => {
             if (d) {
                 svg += `<text x="${PAD}" y="${PAD + i * (CELL + GAP) + CELL - 2}" fill="#8b949e" font-size="9" font-family="inherit">${d}</text>`;
             }
@@ -93,7 +100,7 @@
             if (dt.getMonth() !== lastMonth && dt.getFullYear() === year) {
                 lastMonth = dt.getMonth();
                 const x = PAD + 28 + w * (CELL + GAP);
-                svg += `<text x="${x}" y="${H - 4}" fill="#8b949e" font-size="9" font-family="inherit">${MONTHS[lastMonth]}</text>`;
+                svg += `<text x="${x}" y="${H - 4}" fill="#8b949e" font-size="9" font-family="inherit">${getMonths()[lastMonth]}</text>`;
             }
         }
 
@@ -145,4 +152,5 @@
     }
 
     waitForData(initRender);
+    window.addEventListener('langchange', render);
 })();
