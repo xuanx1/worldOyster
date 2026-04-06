@@ -1102,7 +1102,8 @@
         if (!dateStr) return '';
         const d = new Date(dateStr);
         if (isNaN(d.getTime())) return '';
-        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        const _locale = window.i18n && window.i18n.getLocale ? window.i18n.getLocale() : 'en-GB';
+        return d.toLocaleDateString(_locale, { day: 'numeric', month: 'short', year: 'numeric' });
     }
 
     function buildRowsHtml(items, tierConf, newlyEarned) {
@@ -1563,7 +1564,7 @@
             if (currentDate >= tenYearsLater) {
                 platinum10Year = true;
                 earnedDates['10year'] = city.flightDate || null;
-                queue('platinum', _t('achDecadeName'), `10 years since ${firstTripDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`, '10year');
+                queue('platinum', _t('achDecadeName'), `10 years since ${firstTripDate.toLocaleDateString(window.i18n && window.i18n.getLocale ? window.i18n.getLocale() : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`, '10year');
             }
         }
 

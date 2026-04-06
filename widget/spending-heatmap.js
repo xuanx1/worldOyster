@@ -114,7 +114,8 @@
                 const val = daily[key] || 0;
                 const x = PAD + 28 + w * (CELL + GAP);
                 const y = PAD + d * (CELL + GAP);
-                const dateStr = dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                const _locale = window.i18n && window.i18n.getLocale ? window.i18n.getLocale() : 'en-GB';
+                const dateStr = dt.toLocaleDateString(_locale, { day: 'numeric', month: 'short', year: 'numeric' });
                 svg += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" rx="2" fill="${colorFn(val)}" class="hm-cell" data-date="${dateStr}" data-val="${val.toFixed(0)}" style="outline:1px solid rgba(255,255,255,0.04);cursor:default"></rect>`;
             }
         }

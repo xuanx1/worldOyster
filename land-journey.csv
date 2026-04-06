@@ -228,8 +228,10 @@ New York,Niagara,bus,70.42,10/5/2025
 Niagara,New York,bus,70.42,11/5/2025
 Niagara,Toronto,bus,12.66,11/5/2025
 Toronto,Niagara,bus,7.66,11/5/2025
-Los Angeles,Tijuana,bus,80.24,24/5/2025
-Tijuana,Los Angeles,bus,80.24,24/5/2025
+Los Angeles,San Diego,bus,80.24,24/5/2025
+San Diego,Tijuana,walk,0,24/5/2025
+Tijuana,San Diego,walk,0,24/5/2025
+San Diego,Los Angeles,bus,80.24,24/5/2025
 Seattle,Vancouver,bus,56.53,2/8/2025
 Vancouver,Seattle,bus,56.53,4/8/2025
 La Paz,Uyuni,bus,14.3,2/9/2025

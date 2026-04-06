@@ -110,8 +110,10 @@
         let html = '<div class="records-grid">';
         records.forEach(r => {
             const route = r.journey ? getOriginDest(r.journey) : null;
-            const routeStr = route ? `${route.from} → ${route.to}` : '';
-            const dateStr = r.journey?.date ? new Date(r.journey.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+            const _tf = window.translateCity || function(n) { return n; };
+            const _locale = window.i18n && window.i18n.getLocale ? window.i18n.getLocale() : 'en-GB';
+            const routeStr = route ? `${_tf(route.from)} → ${_tf(route.to)}` : '';
+            const dateStr = r.journey?.date ? new Date(r.journey.date).toLocaleDateString(_locale, { day: 'numeric', month: 'short', year: 'numeric' }) : '';
             html += `<div class="record-card">
                 <div class="record-icon" data-icon="${r.iconFile}" data-color="${r.color}"></div>
                 <div class="record-body">

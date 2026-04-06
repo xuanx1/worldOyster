@@ -1307,14 +1307,10 @@
         /* Minimal scrollbar for widgets panel (matches city list) */
         .widgets-section::-webkit-scrollbar { display: none; }
         .widgets-section { scrollbar-width: none; }
-        .return-visits-list::-webkit-scrollbar { width: 6px; }
-        .return-visits-list::-webkit-scrollbar-track { background: #2a2a2a; border-radius: 3px; }
-        .return-visits-list::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
-        .return-visits-list::-webkit-scrollbar-thumb:hover { background: #777; }
-        .neighbors-list::-webkit-scrollbar { width: 6px; }
-        .neighbors-list::-webkit-scrollbar-track { background: #2a2a2a; border-radius: 3px; }
-        .neighbors-list::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
-        .neighbors-list::-webkit-scrollbar-thumb:hover { background: #777; }
+        .return-visits-list::-webkit-scrollbar { display: none; }
+        .return-visits-list { scrollbar-width: none; }
+        .neighbors-list::-webkit-scrollbar { display: none; }
+        .neighbors-list { scrollbar-width: none; }
         #spendingHeatmap::-webkit-scrollbar { height: 6px; }
         #spendingHeatmap::-webkit-scrollbar-track { background: #2a2a2a; border-radius: 3px; }
         #spendingHeatmap::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
@@ -1483,10 +1479,9 @@
             width: 280px;
             flex-shrink: 0;
             overflow-y: auto;
+            scrollbar-width: none;
         }
-        .choropleth-ranking::-webkit-scrollbar { width: 6px; }
-        .choropleth-ranking::-webkit-scrollbar-track { background: #2a2a2a; border-radius: 3px; }
-        .choropleth-ranking::-webkit-scrollbar-thumb { background: #666; border-radius: 3px; }
+        .choropleth-ranking::-webkit-scrollbar { display: none; }
         .cr-row {
             display: flex;
             align-items: center;
@@ -1595,7 +1590,8 @@
         .rv-count { font-size: 11px; color: #4CAF50; font-weight: 600; width: 28px; text-align: right; flex-shrink: 0; }
 
         /* Longest Stays */
-        .longest-stays-list { overflow-y: auto; }
+        .longest-stays-list { overflow-y: auto; scrollbar-width: none; }
+        .longest-stays-list::-webkit-scrollbar { display: none; }
         .ls-row {
             display: flex;
             align-items: center;

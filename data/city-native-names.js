@@ -296,6 +296,7 @@
     "Philadelphia": "Philadelphia",
     "Los Angeles": "Los Angeles",
     "Los Angles": "Los Angeles",
+    "San Diego": "San Diego",
     "Chicago": "Chicago",
     "Milwaukee": "Milwaukee",
     "San Francisco": "San Francisco",

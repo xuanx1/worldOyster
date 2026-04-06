@@ -3300,7 +3300,8 @@ class AnimatedFlightMap {
         }
 
         const d = this._chartDates?.[idx];
-        const footerText = d ? new Date(d).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase() : '';
+        const _locale = window.i18n && window.i18n.getLocale ? window.i18n.getLocale() : 'en-GB';
+        const footerText = d ? new Date(d).toLocaleDateString(_locale, { month: 'short', year: 'numeric' }).toUpperCase() : '';
 
         const tableRows = rows.map(([label, val]) =>
             `<tr><td class="ct-label">${label}</td><td class="ct-value">${val}</td></tr>`
@@ -4370,7 +4371,9 @@ class AnimatedFlightMap {
                 
                 // Display if we found a valid journey with different cities
                 if (displayIndex > 0 && displayIndex < this.cities.length && this.normalizeCityName(fromCity.name) !== this.normalizeCityName(toCity.name)) {
-                    this.animateTextTransition(currentFlightEl, `${fromCity.name} → ${toCity.name}`);
+                    const _from = window.translateCity ? window.translateCity(fromCity.name) : fromCity.name;
+                    const _to = window.translateCity ? window.translateCity(toCity.name) : toCity.name;
+                    this.animateTextTransition(currentFlightEl, `${_from} → ${_to}`);
                 } else {
                     currentFlightEl.textContent = '';
                 }

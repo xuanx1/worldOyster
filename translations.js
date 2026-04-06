@@ -1456,11 +1456,15 @@
         window.dispatchEvent(new CustomEvent('langchange', { detail: { lang: lang } }));
     }
 
+    // Map short lang codes to BCP-47 locales for date formatting
+    var LOCALE_MAP = { en: 'en-GB', ar: 'ar', zh: 'zh-CN', fr: 'fr-FR', ru: 'ru-RU', es: 'es-ES' };
+
     // Expose globally
     window.i18n = {
         t: t,
         setLang: setLang,
         getLang: function () { return currentLang; },
+        getLocale: function () { return LOCALE_MAP[currentLang] || 'en-GB'; },
         translations: T
     };
 })();

@@ -149,6 +149,7 @@
         "Ljubljana":     { ar:"ليوبليانا", zh:"卢布尔雅那", ru:"Любляна" },
         "London":        { ar:"لندن", zh:"伦敦", fr:"Londres", ru:"Лондон", es:"Londres" },
         "Los Angeles":   { ar:"لوس أنجلوس", zh:"洛杉矶", ru:"Лос-Анджелес" },
+        "San Diego":     { ar:"سان دييغو", zh:"圣迭戈", ru:"Сан-Диего" },
         "Luang Prabang": { ar:"لوانغ برابانغ", zh:"琅勃拉邦", ru:"Луангпхабанг" },
         "Luxor":         { ar:"الأقصر", zh:"卢克索", fr:"Louxor", ru:"Луксор" },
         "Lviv":          { ar:"لفيف", zh:"利沃夫", ru:"Львов" },
@@ -315,7 +316,7 @@
      */
     window.translateCity = function (name, lang) {
         if (!name) return '';
-        var l = lang || (window.i18n && window.i18n.lang) || 'en';
+        var l = lang || (window.i18n && window.i18n.getLang ? window.i18n.getLang() : 'en');
         if (l === 'en') return name;
         var entry = C[name];
         return (entry && entry[l]) || name;

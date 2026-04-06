@@ -248,6 +248,7 @@ window.CITY_COORDINATES = {
     'Philadelphia': [39.9526, -75.1652],
     'Los Angeles': [34.0522, -118.2437],
     'Los Angles': [34.0522, -118.2437],
+    'San Diego': [32.7157, -117.1611],
     'Chicago': [41.8781, -87.6298],
     'Milwaukee': [43.0389, -87.9065],
     'San Francisco': [37.7749, -122.4194],
