@@ -109,7 +109,11 @@
         'Fiji': 'fj', 'Papua New Guinea': 'pg', 'Samoa': 'ws', 'Tonga': 'to',
         'Vanuatu': 'vu', 'Solomon Islands': 'sb', 'Kiribati': 'ki',
         'Micronesia': 'fm', 'Marshall Islands': 'mh', 'Palau': 'pw',
-        'Tuvalu': 'tv', 'Nauru': 'nr', 'Niue': 'nu', 'Cook Islands': 'ck'
+        'Tuvalu': 'tv', 'Nauru': 'nr', 'Niue': 'nu', 'Cook Islands': 'ck',
+        // Unrecognised territories
+        'Transnistria': 'transnistria', 'Abkhazia': 'abkhazia',
+        'South Ossetia': 'south-ossetia', 'Northern Cyprus': 'trnc',
+        'Somaliland': 'somaliland', 'Republic of Artsakh': 'artsakh'
     };
 
     // Expose for use by other modules (e.g. current journey flags)
@@ -256,11 +260,16 @@
 
     // ── Trophy tiers: colors & SVG ──
     const TIERS = {
-        bronze:   { color: '#CD7F32', bg: 'rgba(205,127,50,0.15)' },
-        silver:   { color: '#C0C0C0', bg: 'rgba(192,192,192,0.15)' },
-        gold:     { color: '#FFD700', bg: 'rgba(255,215,0,0.15)' },
-        platinum: { color: '#B76E79', bg: 'rgba(183,110,121,0.20)' }
+        bronze:       { color: '#CD7F32', bg: 'rgba(205,127,50,0.15)' },
+        unrecognised: { color: '#888888', bg: 'rgba(136,136,136,0.12)' },
+        silver:       { color: '#C0C0C0', bg: 'rgba(192,192,192,0.15)' },
+        gold:         { color: '#FFD700', bg: 'rgba(255,215,0,0.15)' },
+        platinum:     { color: '#B76E79', bg: 'rgba(183,110,121,0.20)' }
     };
+
+    const UNRECOGNISED_TERRITORIES = [
+        'Transnistria', 'Abkhazia', 'South Ossetia', 'Northern Cyprus', 'Somaliland', 'Republic of Artsakh'
+    ];
 
     function trophySVG(color, size) {
         const s = size || 26;
@@ -342,6 +351,7 @@
         .trophy-notification.tier-gold { border: 1px solid rgba(255,215,0,0.1); }
         .trophy-notification.tier-silver { border: 1px solid rgba(192,192,192,0.08); }
         .trophy-notification.tier-bronze { border: 1px solid rgba(255,255,255,0.04); }
+        .trophy-notification.tier-unrecognised { border: 1px solid rgba(136,136,136,0.15); }
 
         @media (max-width: 768px) {
             #trophy-container { top: 62px; left: 12px; bottom: auto; right: auto; }
@@ -637,12 +647,12 @@
 
         const el = document.createElement('div');
         el.className = `trophy-notification tier-${trophy.tier}`;
-        // Bronze country trophies show flag, non-country trophies show bespoke icon
-        const iconHtml = trophy.tier === 'bronze' && COUNTRY_ISO[trophy.title]
+        // Bronze / unrecognised country trophies show flag, non-country trophies show bespoke icon
+        const iconHtml = (trophy.tier === 'bronze' || trophy.tier === 'unrecognised') && COUNTRY_ISO[trophy.title]
             ? `<div class="trophy-icon" style="background:${tier.bg}">${flagImg(trophy.title, 26)}</div>`
             : `<div class="trophy-icon" style="background:${tier.bg}">${trophy.achId ? achIcon(trophy.achId, tier.color, 26) : trophySVG(tier.color)}</div>`;
         const _t = window.i18n ? window.i18n.t : function(k){return k;};
-        const tierLabel = _t(trophy.tier);
+        const tierLabel = trophy.tier === 'unrecognised' ? _t('disputed') : _t(trophy.tier);
         el.innerHTML = `
             ${iconHtml}
             <div class="trophy-body">
@@ -652,8 +662,8 @@
             </div>
         `;
         container.appendChild(el);
-        // Skip sound for bronze country-visited trophies
-        if (!(trophy.tier === 'bronze' && COUNTRY_ISO[trophy.title])) playSound();
+        // Skip sound for bronze/unrecognised country-visited trophies
+        if (!((trophy.tier === 'bronze' || trophy.tier === 'unrecognised') && COUNTRY_ISO[trophy.title])) playSound();
 
         requestAnimationFrame(() => { requestAnimationFrame(() => { el.classList.add('show'); }); });
 
@@ -947,6 +957,29 @@
             });
         });
 
+        // Unrecognised territories — separate section below bronze
+        const visitedTerritories = UNRECOGNISED_TERRITORIES.filter(t => seenCountries.has(t));
+        const unvisitedTerritories = UNRECOGNISED_TERRITORIES.filter(t => !seenCountries.has(t));
+        visitedTerritories.forEach(t => {
+            achievements.push({
+                tier: 'unrecognised', id: `territory-${t}`,
+                name: t,
+                desc: '',
+                earned: true,
+                earnedDate: earnedDates[`country-${t}`],
+                isCountry: true
+            });
+        });
+        unvisitedTerritories.forEach(t => {
+            achievements.push({
+                tier: 'unrecognised', id: `territory-${t}`,
+                name: t,
+                desc: '',
+                earned: false,
+                isCountry: true
+            });
+        });
+
         return achievements;
     }
 
@@ -964,7 +997,8 @@
             { tier: 'platinum', label: t('platinum') },
             { tier: 'gold', label: t('gold') },
             { tier: 'silver', label: t('silver') },
-            { tier: 'bronze', label: t('bronze') }
+            { tier: 'bronze', label: t('bronze') },
+            { tier: 'unrecognised', label: t('disputed') }
         ];
 
         // Build current earned set to detect newly earned
@@ -974,9 +1008,9 @@
             if (!prevEarnedIds.has(id)) newlyEarned.add(id);
         });
 
-        // World progress: countries visited vs total in the world
+        // World progress: countries visited vs total in the world (exclude unrecognised territories)
         const totalWorldCountries = Object.keys(COUNTRY_TO_CONTINENT).length;
-        const visitedWorldCountries = seenCountries.size;
+        const visitedWorldCountries = [...seenCountries].filter(c => COUNTRY_TO_CONTINENT[c]).length;
         const worldPct = totalWorldCountries > 0 ? Math.round((visitedWorldCountries / totalWorldCountries) * 1000) / 10 : 0;
 
         // Check if we need a full rebuild or can diff
@@ -1404,7 +1438,8 @@
             }
 
             earnedDates[`country-${country}`] = city.flightDate || null;
-            queue('bronze', country, `${_t('country')} #${seenCountries.size}`);
+            const isTerritory = UNRECOGNISED_TERRITORIES.includes(country);
+            queue(isTerritory ? 'unrecognised' : 'bronze', country, isTerritory ? _t('disputed') : `${_t('country')} #${seenCountries.size}`);
 
             // Silver: World Power Tour
             if (!silverBigFive) {

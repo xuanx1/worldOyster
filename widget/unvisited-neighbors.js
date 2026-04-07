@@ -199,7 +199,13 @@
         'Ascension Island': [-7.94, -14.36],
         'Tristan da Cunha': [-37.07, -12.32],
         'Svalbard': [78.22, 15.64],
-        'French Guiana': [3.93, -53.13]
+        'French Guiana': [3.93, -53.13],
+        'Transnistria': [46.84, 29.63],
+        'Abkhazia': [43.00, 41.02],
+        'South Ossetia': [42.23, 43.97],
+        'Northern Cyprus': [35.19, 33.38],
+        'Somaliland': [9.56, 44.06],
+        'Republic of Artsakh': [39.82, 46.75]
     };
 
     // Map GeoJSON NAME → app country names
@@ -246,7 +252,9 @@
     // Cities that should mark a specific territory as visited
     const CITY_TERRITORY = {
         'Hong Kong': 'Hong Kong SAR',
-        'Macau': 'Macau SAR'
+        'Macau': 'Macau SAR',
+        'Kyrenia': 'Northern Cyprus',
+        'Stepanakert': 'Republic of Artsakh'
     };
 
     // Region classification for grouping unvisited neighbours
@@ -298,11 +306,18 @@
         'Paraguay': 'americas', 'Peru': 'americas', 'USA': 'americas',
         'Venezuela': 'americas',
         // Oceania
-        'Australia': 'oceania', 'New Zealand': 'oceania', 'Papua New Guinea': 'oceania'
+        'Australia': 'oceania', 'New Zealand': 'oceania', 'Papua New Guinea': 'oceania',
+        // Disputed / unrecognised
+        'Transnistria': 'disputed',
+        'Abkhazia': 'disputed',
+        'South Ossetia': 'disputed',
+        'Northern Cyprus': 'disputed',
+        'Somaliland': 'disputed',
+        'Republic of Artsakh': 'disputed'
     };
 
     // Ordered list of regions for display
-    const REGION_ORDER = ['africa', 'americas', 'asia', 'europe', 'oceania'];
+    const REGION_ORDER = ['africa', 'americas', 'asia', 'europe', 'oceania', 'disputed'];
 
     function getVisitedCountries() {
         const data = (window.flightMap && window.flightMap.flightData) || [];
@@ -531,12 +546,21 @@
         </div>`;
         const _flag = window.countryTrophy ? window.countryTrophy.flagImg : function(){return '';};
 
+        // Collect unrecognised/disputed territories not yet visited
+        const disputedTerritories = Object.keys(COUNTRY_REGION)
+            .filter(c => COUNTRY_REGION[c] === 'disputed' && !visited.has(c));
+
         // Group unvisited by region
         const regionGroups = {};
         unvisited.forEach(c => {
             const region = COUNTRY_REGION[c] || 'other';
             if (!regionGroups[region]) regionGroups[region] = [];
             regionGroups[region].push(c);
+        });
+        // Add disputed territories (they aren't neighbours, so add separately)
+        disputedTerritories.forEach(c => {
+            if (!regionGroups['disputed']) regionGroups['disputed'] = [];
+            if (!regionGroups['disputed'].includes(c)) regionGroups['disputed'].push(c);
         });
 
         // Map region keys to translation keys (reuse existing continent translations)
@@ -547,6 +571,7 @@
             africa: 'africa',
             americas: 'americas',
             oceania: 'oceania',
+            disputed: 'disputed',
             other: 'region_other'
         };
 

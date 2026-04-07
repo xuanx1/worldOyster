@@ -128,6 +128,7 @@ window.AIRPORT_COORDINATES = {
     'BKK': [13.6900, 100.7501], // Bangkok Suvarnabhumi
     'SGN': [10.8188, 106.6519], // Ho Chi Minh City (Saigon)
     'DAD': [16.0439, 108.1987], // Da Nang
+    'ATQ': [31.7096, 74.7973],  // Amritsar
     'BOM': [19.0896, 72.8656],  // Mumbai
     'DEL': [28.5562, 77.1000],  // Delhi
     'CCU': [22.6549, 88.4469],  // Kolkata
@@ -402,6 +403,7 @@ window.AIRPORT_TO_CITY = {
     // Airports not previously mapped — use string-parsed city name
     // ensures airportToCityMap lookup always wins over string parsing
     'ATH': 'Athens',
+    'ATQ': 'Amritsar',
     'AUH': 'Abu Dhabi',
     'BAH': 'Manama',
     'BCN': 'Barcelona',

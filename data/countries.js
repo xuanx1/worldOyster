@@ -134,7 +134,7 @@ window.AIRPORT_TO_COUNTRY = {
     'MNL': 'Philippines',
 
     // Asia - India
-    'DEL': 'India', 'BOM': 'India', 'CCU': 'India', 'GAU': 'India',
+    'DEL': 'India', 'BOM': 'India', 'CCU': 'India', 'GAU': 'India', 'ATQ': 'India',
 
     // Asia - Bangladesh
     'DAC': 'Bangladesh',
@@ -241,7 +241,7 @@ window.CITY_TO_COUNTRY = {
 
     // Europe - Turkey & Caucasus
     'Istanbul': 'Turkey', 'Ankara': 'Turkey', 'Antalya': 'Turkey', 'Denizli': 'Turkey', 'Pamukkale': 'Turkey',
-    'Tbilisi': 'Georgia', 'Yerevan': 'Armenia', 'Gori': 'Georgia', 'Batumi': 'Georgia', 'Kutaisi': 'Georgia',
+    'Tbilisi': 'Georgia', 'Yerevan': 'Armenia', 'Stepanakert': 'Republic of Artsakh', 'Gori': 'Georgia', 'Batumi': 'Georgia', 'Kutaisi': 'Georgia',
 
     // Middle East
     'Beirut': 'Lebanon', 'Tripoli': 'Lebanon', 'Jerusalem': 'Israel', 'Tel Aviv': 'Israel', 'Eilat': 'Israel',
@@ -253,7 +253,7 @@ window.CITY_TO_COUNTRY = {
     'Casablanca': 'Morocco', 'Marrakech': 'Morocco', 'Chefchaoun': 'Morocco', 'Tangier': 'Morocco', 'Rabat': 'Morocco', 'Marrakesh': 'Morocco',
     'Tunis': 'Tunisia', 'Bizerte': 'Tunisia',
     'Algiers': 'Algeria', 'Oran': 'Algeria', 'Constantine': 'Algeria',
-    'Larnaca': 'Cyprus', 'Kyrenia': 'Cyprus',
+    'Larnaca': 'Cyprus', 'Kyrenia': 'Northern Cyprus',
 
     // Asia
     'Seoul': 'South Korea', 'Busan': 'South Korea', 'Pusan': 'South Korea', 'Daegu': 'South Korea', 'Daejeon': 'South Korea',
@@ -276,6 +276,7 @@ window.CITY_TO_COUNTRY = {
     'Manila': 'Philippines', 'Cebu': 'Philippines',
     'New Delhi': 'India', 'Delhi': 'India', 'Agra': 'India', 'Jaipur': 'India', 'Amritsar': 'India',
     'Mumbai': 'India', 'Kolkata': 'India', 'Calcutta': 'India', 'Chennai': 'India', 'Guwahati': 'India',
+    'Lahore': 'Pakistan',
     'Colombo': 'Sri Lanka', 'Kandy': 'Sri Lanka', 'Galle': 'Sri Lanka', 'Sigiriya': 'Sri Lanka', 'Dambulla': 'Sri Lanka', 'Anuradhapura': 'Sri Lanka',
     'Dhaka': 'Bangladesh',
     'Paro': 'Bhutan', 'Thimphu': 'Bhutan', 'Punakha': 'Bhutan',

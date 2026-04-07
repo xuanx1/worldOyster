@@ -320,6 +320,7 @@
         "Xi'an":         { ar:"شيآن", zh:"西安", ru:"Сиань" },
         "Xian":          { ar:"شيآن", zh:"西安", ru:"Сиань" },
         "Yangon":        { ar:"يانغون", zh:"仰光", fr:"Rangoun", ru:"Янгон", es:"Rangún" },
+        "Stepanakert":   { ar:"ستيباناكيرت", zh:"斯特潘纳克特", fr:"Stepanakert", ru:"Степанакерт" },
         "Yerevan":       { ar:"يريفان", zh:"埃里温", fr:"Erevan", ru:"Ереван" },
         "Yogyakarta":    { ar:"يوغياكارتا", zh:"日惹", ru:"Джокьякарта" },
         "Zagreb":        { ar:"زغرب", zh:"萨格勒布", ru:"Загреб" },

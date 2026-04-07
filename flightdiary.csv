@@ -230,3 +230,5 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2026-07-10,OM2972,"Hong Kong / Hong Kong International (HKG/VHHH)","Ulaanbaatar / Ulaanbaatar International Airport (UBN/ZMCK)",18:30:00,23:10:00,04:40:00,"MIAT Mongolian Airlines (OM/MGL)","Boeing 737 MAX 8 (B38M)",,,0,0,0,,1135,9406,518,2123,218.23
 2026-07-13,OM297,"Ulaanbaatar / Ulaanbaatar International Airport (UBN/ZMCK)","Hong Kong / Hong Kong International (HKG/VHHH)",06:45:00,11:25:00,04:40:00,"MIAT Mongolian Airlines (OM/MGL)","Boeing 737-800 (B738)",,,0,0,0,,9406,1135,518,231,218.23
 2026-07-13,CX635,"Hong Kong / Hong Kong International (HKG/VHHH)","Singapore / Changi (SIN/WSSS)",15:05:00,19:05:00,04:00:00,"Cathay Pacific (CX/CPA)","Airbus A330-300 (A333)",,,0,0,0,,1135,2672,199,31,194.34
+2026-04-24,TR750,"Singapore / Changi (SIN/WSSS)","Amritsar / Amritsar (ATQ/VIAR)",05:35:00,09:05:00,06:30:00,"Scoot (TR/TGW)","Boeing 787-8 (B788)",,,0,0,0,,2672,181,2695,2087,222.88
+2026-04-26,TR751,"Amritsar / Amritsar (ATQ/VIAR)","Singapore / Changi (SIN/WSSS)",10:45:00,19:25:00,05:40:00,"Scoot (TR/TGW)","Boeing 787-8 (B788)",,,0,0,0,,181,2672,2695,2087,222.88
