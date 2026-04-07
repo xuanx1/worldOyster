@@ -12,6 +12,7 @@ class AnimatedFlightMap {
         this.visitedPaths = [];
         this.cityMarkers = [];
         this.routeInteractivePolylines = []; // invisible, interactive polylines for hover
+        this._worldCopyLayers = []; // polyline/marker copies at ±360 for seamless panning
         this.continuousPath = null; // Current continuous polyline segment
         this.allPathCoordinates = []; // All coordinates for current continuous path segment
         this.continuousPathSegments = []; // Array of all continuous path segments (for disconnected journeys)
@@ -348,8 +349,8 @@ class AnimatedFlightMap {
     initializeMap() {
         // Define world bounds to prevent panning outside the map
         const worldBounds = [
-            [-90, -180], // Southwest corner
-            [90, 180]    // Northeast corner
+            [-90, -Infinity], // Southwest corner
+            [90, Infinity]    // Northeast corner
         ];
 
         // Initialize map with minimal styling
@@ -360,6 +361,7 @@ class AnimatedFlightMap {
             maxZoom: 12,
             zoomControl: false,
             dragging: false,
+            worldCopyJump: true,
             maxBounds: worldBounds,
             maxBoundsViscosity: 1.0 // Makes the bounds "sticky"
         });
@@ -554,6 +556,10 @@ class AnimatedFlightMap {
         if (this.flightDot && this.map && this.map.hasLayer(this.flightDot)) {
             this.map.removeLayer(this.flightDot);
         }
+        // Remove existing world-copy dots
+        if (this._flightDotCopies) {
+            this._flightDotCopies.forEach(d => { try { if (this.map && this.map.hasLayer(d)) this.map.removeLayer(d); } catch (e) {} });
+        }
 
         const dotIcon = L.divIcon({
             className: 'flight-dot',
@@ -580,6 +586,21 @@ class AnimatedFlightMap {
         }
 
         this.flightDot = L.marker([0, 0], { icon: dotIcon });
+
+        // Create ±360 copies for seamless panning
+        this._flightDotCopies = [
+            L.marker([0, -360], { icon: dotIcon, interactive: false }),
+            L.marker([0, 360], { icon: dotIcon, interactive: false })
+        ];
+    }
+
+    // Update flight dot and its ±360 copies to a new position
+    _setFlightDotLatLng(latlng) {
+        this.flightDot.setLatLng(latlng);
+        if (this._flightDotCopies) {
+            this._flightDotCopies[0].setLatLng([latlng[0], latlng[1] - 360]);
+            this._flightDotCopies[1].setLatLng([latlng[0], latlng[1] + 360]);
+        }
     }
 
     addResetViewButton() {
@@ -1320,9 +1341,13 @@ class AnimatedFlightMap {
     positionDotAtCity(cityIndex) {
         const city = this.cities[cityIndex];
         if (city) {
-            this.flightDot.setLatLng([city.lat, city.lng]);
+            this._setFlightDotLatLng([city.lat, city.lng]);
             if (!this.map.hasLayer(this.flightDot)) {
                 this.map.addLayer(this.flightDot);
+            }
+            // Ensure ±360 copies are on the map
+            if (this._flightDotCopies) {
+                this._flightDotCopies.forEach(d => { if (!this.map.hasLayer(d)) d.addTo(this.map); });
             }
         }
     }
@@ -1397,7 +1422,10 @@ class AnimatedFlightMap {
         const gen = this._animationGen;
 
         // Create great circle path for all journeys (same visual treatment)
-        const path = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng]);
+        // Unwrap date-line crossings so the path is continuous (no split)
+        const rawPath = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng]);
+        const isDateLineCrossing = Math.abs(toCity.lng - fromCity.lng) > 180;
+        const path = isDateLineCrossing ? this._unwrapPathLongitudes(rawPath) : rawPath;
         const journey = toCity.originalFlight;
 
         // Calculate distance for timing (rough distance in degrees)
@@ -1473,21 +1501,8 @@ class AnimatedFlightMap {
             this.allPathCoordinates = [];
         }
 
-        // Store segment info for date line handling
-        const pathLines = [];
-        const isDateLineCrossing = Math.abs(toCity.lng - fromCity.lng) > 180;
-
-        if (isDateLineCrossing) {
-            // For date line crossing, we still need separate visual segments
-            const segments = this.splitPathAtDateLine(path);
-            segments.forEach(segment => {
-                if (segment.length > 0) {
-                    pathLines.push({ points: segment });
-                }
-            });
-        } else {
-            pathLines.push({ points: path });
-        }
+        // Path is already unwrapped (continuous) so always a single segment
+        const pathLines = [{ points: path }];
         
         // Store references for pause functionality
         this.currentAnimationPath = path;
@@ -1553,39 +1568,31 @@ class AnimatedFlightMap {
                     return;
                 }
                 // Animation complete - add full segment to continuous path
-                this.flightDot.setLatLng(path[path.length - 1]);
-
-                // Check if this segment crosses the date line
-                const isDateLineCrossing = Math.abs(toCity.lng - fromCity.lng) > 180;
+                this._setFlightDotLatLng(path[path.length - 1]);
 
                 if (isDateLineCrossing) {
-                    // For date line crossings, split the path into separate segments
-                    const segments = this.splitPathAtDateLine(path);
-
                     // Finalize current path segment if it has points
                     if (this.allPathCoordinates.length > 0 && this.continuousPath) {
                         this.continuousPath.setLatLngs(this.allPathCoordinates);
                         this.continuousPathSegments.push(this.continuousPath);
                     }
 
-                    // Create separate polylines for each date line segment
-                    segments.forEach((segment, idx) => {
-                        const segmentPolyline = L.polyline(segment, {
-                            color: '#4CAF50',
-                            weight: 1,
-                            opacity: 0.6
-                        });
-
-                        if (this.linesVisible) {
-                            segmentPolyline.addTo(this.map);
-                        }
-
-                        this.continuousPathSegments.push(segmentPolyline);
+                    // Create single continuous polyline for the unwrapped crossing path
+                    const segmentPolyline = L.polyline(path, {
+                        color: '#4CAF50',
+                        weight: 1,
+                        opacity: 0.6
                     });
 
-                    // Start fresh with the last point of the last segment
-                    const lastSegment = segments[segments.length - 1];
-                    this.allPathCoordinates = [lastSegment[lastSegment.length - 1]];
+                    if (this.linesVisible) {
+                        segmentPolyline.addTo(this.map);
+                        this._addPolylineWorldCopies(path, { color: '#4CAF50', weight: 1, opacity: 0.6 });
+                    }
+
+                    this.continuousPathSegments.push(segmentPolyline);
+
+                    // Start fresh with the destination's original coordinates
+                    this.allPathCoordinates = [[toCity.lat, toCity.lng]];
 
                     // Create new continuous path for next segments
                     this.continuousPath = L.polyline(this.allPathCoordinates, {
@@ -1627,7 +1634,7 @@ class AnimatedFlightMap {
 
             // Update dot position with eased timing
             if (currentStep < path.length) {
-                this.flightDot.setLatLng(path[currentStep]);
+                this._setFlightDotLatLng(path[currentStep]);
 
                 // Follow the dot if enabled
                 if (this.followDot) {
@@ -1981,6 +1988,13 @@ class AnimatedFlightMap {
                 if (r && r.poly && !this.map.hasLayer(r.poly)) this.map.addLayer(r.poly);
             });
         }
+
+        // Show world copy layers (±360 duplicates)
+        if (this._worldCopyLayers) {
+            this._worldCopyLayers.forEach(layer => {
+                if (layer && !this.map.hasLayer(layer)) this.map.addLayer(layer);
+            });
+        }
     }
 
     hideAllLines() {
@@ -2012,6 +2026,13 @@ class AnimatedFlightMap {
         if (this.routeInteractivePolylines && this.routeInteractivePolylines.length) {
             this.routeInteractivePolylines.forEach(r => {
                 if (r && r.poly && this.map.hasLayer(r.poly)) this.map.removeLayer(r.poly);
+            });
+        }
+
+        // Hide world copy layers (±360 duplicates)
+        if (this._worldCopyLayers) {
+            this._worldCopyLayers.forEach(layer => {
+                if (layer && this.map.hasLayer(layer)) this.map.removeLayer(layer);
             });
         }
     }
@@ -2481,11 +2502,15 @@ class AnimatedFlightMap {
             if (!this.flightDot) {
                 this.createFlightDot();
             }
-            this.flightDot.setLatLng([currentCity.lat, currentCity.lng]);
+            this._setFlightDotLatLng([currentCity.lat, currentCity.lng]);
 
             // Add to map if not already there
             if (!this.map.hasLayer(this.flightDot)) {
                 this.flightDot.addTo(this.map);
+            }
+            // Ensure ±360 copies are on the map
+            if (this._flightDotCopies) {
+                this._flightDotCopies.forEach(d => { if (!this.map.hasLayer(d)) d.addTo(this.map); });
             }
         }
     }
@@ -2621,6 +2646,9 @@ class AnimatedFlightMap {
             });
             this.routeInteractivePolylines = [];
         }
+
+        // Clear world copies (±360 duplicates for seamless panning)
+        this._clearWorldCopies();
         
         // Rebuild the continuous path up to current position
         this.allPathCoordinates = [];
@@ -2637,41 +2665,34 @@ class AnimatedFlightMap {
                 const pathPoints = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng]);
                 
                 if (isDateLineCrossing) {
-                    // Split the path into separate segments for date line crossing
-                    const segments = this.splitPathAtDateLine(pathPoints);
+                    // Unwrap longitudes so the path is one continuous line across ±180°
+                    const unwrapped = this._unwrapPathLongitudes(pathPoints);
                     
-                    // Finalize current segment if it has points
+                    // Finalize current accumulated segment if it has points
                     if (this.allPathCoordinates.length > 0) {
-                        const segment = L.polyline(this.allPathCoordinates, {
-                            color: '#4CAF50',
-                            weight: 1,
-                            opacity: 0.6
-                        });
+                        const segOpts = { color: '#4CAF50', weight: 1, opacity: 0.6 };
+                        const segment = L.polyline(this.allPathCoordinates, segOpts);
                         
                         if (this.linesVisible) {
                             segment.addTo(this.map);
+                            this._addPolylineWorldCopies(this.allPathCoordinates, segOpts);
                         }
                         this.continuousPathSegments.push(segment);
                     }
                     
-                    // Create separate polylines for each date line segment
-                    segments.forEach((seg, idx) => {
-                        const segmentPolyline = L.polyline(seg, {
-                            color: '#4CAF50',
-                            weight: 1,
-                            opacity: 0.6
-                        });
-                        
-                        if (this.linesVisible) {
-                            segmentPolyline.addTo(this.map);
-                        }
-                        
-                        this.continuousPathSegments.push(segmentPolyline);
-                    });
+                    // Create single continuous polyline for the unwrapped crossing path
+                    const segOpts = { color: '#4CAF50', weight: 1, opacity: 0.6 };
+                    const segmentPolyline = L.polyline(unwrapped, segOpts);
                     
-                    // Start fresh with last point of last segment
-                    const lastSegment = segments[segments.length - 1];
-                    this.allPathCoordinates = [lastSegment[lastSegment.length - 1]];
+                    if (this.linesVisible) {
+                        segmentPolyline.addTo(this.map);
+                        this._addPolylineWorldCopies(unwrapped, segOpts);
+                    }
+                    
+                    this.continuousPathSegments.push(segmentPolyline);
+                    
+                    // Start fresh with the destination's original coordinates
+                    this.allPathCoordinates = [[toCity.lat, toCity.lng]];
                 } else {
                     // Avoid duplicating the first point if it matches the last point already in the path
                     let pointsToAdd = pathPoints;
@@ -2692,15 +2713,13 @@ class AnimatedFlightMap {
         
         // Create the final continuous path with remaining accumulated coordinates
         if (this.allPathCoordinates.length > 0) {
-            this.continuousPath = L.polyline(this.allPathCoordinates, {
-                color: '#4CAF50',
-                weight: 1,
-                opacity: 0.6
-            });
+            const finalOpts = { color: '#4CAF50', weight: 1, opacity: 0.6 };
+            this.continuousPath = L.polyline(this.allPathCoordinates, finalOpts);
             
             // Only add to map if lines are visible
             if (this.linesVisible) {
                 this.continuousPath.addTo(this.map);
+                this._addPolylineWorldCopies(this.allPathCoordinates, finalOpts);
             }
         }
         
@@ -2734,9 +2753,13 @@ class AnimatedFlightMap {
             const toCity = this.cities[i + 1];
             if (!fromCity || !toCity) continue;
 
-            // Build a simplified great circle for the hop and split if crossing date line
-            const hopPath = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng], 60);
-            const segments = this.splitPathAtDateLine(hopPath);
+            // Build a simplified great circle for the hop
+            // Unwrap date-line crossings so the hit area is one continuous polyline
+            const rawHopPath = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng], 60);
+            const hopCrossesDateLine = Math.abs(toCity.lng - fromCity.lng) > 180;
+            const segments = hopCrossesDateLine
+                ? [this._unwrapPathLongitudes(rawHopPath)]
+                : [rawHopPath];
 
             segments.forEach(seg => {
                 if (!seg || seg.length < 2) return;
@@ -2866,6 +2889,20 @@ class AnimatedFlightMap {
 
                 // Click-to-pin popup disabled for desktop — routes still respond to tap on mobile via the handlers above.
 
+                // Add ±360 hit-area copies so routes are hoverable in adjacent world copies
+                [-360, 360].forEach(offset => {
+                    const shiftedSeg = seg.map(c => [c[0], c[1] + offset]);
+                    const hitCopy = L.polyline(shiftedSeg, {
+                        color: '#4CAF50', weight: 32, opacity: 0,
+                        interactive: true, className: 'route-hit'
+                    });
+                    if (this.linesVisible) hitCopy.addTo(this.map);
+                    hitCopy.on('mouseover', (e) => hit.fire('mouseover', e));
+                    hitCopy.on('mouseout', () => hit.fire('mouseout'));
+                    hitCopy.on('click', (e) => hit.fire('click', e));
+                    hitCopy.on('touchstart', (e) => hit.fire('touchstart', e));
+                    this._worldCopyLayers.push(hitCopy);
+                });
 
                 this.routeInteractivePolylines.push(meta);
             });
@@ -3016,10 +3053,57 @@ class AnimatedFlightMap {
         this.continuousPathSegments = [];
         this.visitedPaths = [];
         this.routeInteractivePolylines = [];
+        this._worldCopyLayers = [];
         this.currentAnimationPath = null;
         this.currentPathLines = null;
         this.allPathCoordinates = [];
         this.cityMarkers = [];
+    }
+
+    // Unwrap path longitudes so consecutive points never jump > 180°.
+    // This produces a continuous polyline that crosses ±180° smoothly
+    // instead of being split into disconnected segments.
+    _unwrapPathLongitudes(path) {
+        if (!path || path.length < 2) return path;
+        const out = [[path[0][0], path[0][1]]];
+        let offset = 0;
+        for (let i = 1; i < path.length; i++) {
+            let lon = path[i][1] + offset;
+            const prev = out[i - 1][1];
+            if (lon - prev > 180) { offset -= 360; lon -= 360; }
+            else if (lon - prev < -180) { offset += 360; lon += 360; }
+            out.push([path[i][0], lon]);
+        }
+        return out;
+    }
+
+    // Remove all world-copy layers (±360 duplicates for seamless panning)
+    _clearWorldCopies() {
+        if (this._worldCopyLayers) {
+            this._worldCopyLayers.forEach(layer => {
+                try { if (this.map.hasLayer(layer)) this.map.removeLayer(layer); } catch (e) {}
+            });
+        }
+        this._worldCopyLayers = [];
+    }
+
+    // Create copies of a polyline at ±360 longitude for seamless world panning
+    _addPolylineWorldCopies(coords, options) {
+        [-360, 360].forEach(offset => {
+            const shifted = coords.map(c => [c[0], c[1] + offset]);
+            const copy = L.polyline(shifted, { ...options, interactive: false });
+            copy.addTo(this.map);
+            this._worldCopyLayers.push(copy);
+        });
+    }
+
+    // Create copies of a marker at ±360 longitude for seamless world panning
+    _addMarkerWorldCopies(lat, lng, icon) {
+        [-360, 360].forEach(offset => {
+            const copy = L.marker([lat, lng + offset], { icon, interactive: false });
+            copy.addTo(this.map);
+            this._worldCopyLayers.push(copy);
+        });
     }
 
     // Add city markers for all cities and style them based on their visited state
@@ -3043,6 +3127,12 @@ class AnimatedFlightMap {
                         this.updateCityMarkerStyle(index, 'current');
                     } else if (city.visited) {
                         this.updateCityMarkerStyle(index, 'visited');
+                    }
+
+                    // Add ±360 copies for seamless panning
+                    const mkr = this.cityMarkers[index].marker;
+                    if (mkr.options && mkr.options.icon) {
+                        this._addMarkerWorldCopies(city.lat, city.lng, mkr.options.icon);
                     }
                 } else {
                     // Remove unvisited markers from map

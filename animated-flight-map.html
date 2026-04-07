@@ -237,10 +237,10 @@
         .header h1 {
             color: #4CAF50;
             margin: 0;
-            font-size: 1.2em;
-            font-weight: 600;
+            font-size: 0.7em;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.18em;
             line-height: 1;
             white-space: nowrap;
         }
@@ -918,6 +918,10 @@
             position: relative;
         }
 
+        .stat-item.has-metaphor .stat-value {
+            height: 3.2em;
+        }
+
         @media (max-width: 768px) {
             .stat-item {
                 background: #333;
@@ -977,7 +981,7 @@
             font-size: 1.4em;
             font-weight: 300;
             color: #ffffff;
-            height: 3em;
+            height: 1.6em;
             line-height: 1.4;
             overflow: hidden;
             max-width: 100%;
@@ -2007,15 +2011,15 @@
             <div class="stat-label" data-i18n="citiesVisited">Cities Visited</div>
             <div class="stat-value" id="citiesVisited">-</div>
         </div>
-        <div class="stat-item">
+        <div class="stat-item has-metaphor">
             <div class="stat-label"><span data-i18n="totalDistance">Total Distance</span><div class="stat-increment" id="incDistance">-</div></div>
             <div class="stat-value" id="totalDistance">-</div>
         </div>
-        <div class="stat-item">
+        <div class="stat-item has-metaphor">
             <div class="stat-label"><span data-i18n="totalTime">Total Time</span><div class="stat-increment" id="incTime">-</div></div>
             <div class="stat-value" id="totalTime">-</div>
         </div>
-        <div class="stat-item">
+        <div class="stat-item has-metaphor">
             <div class="stat-label"><span data-i18n="co2Emission">CO₂ Emission</span><div class="stat-increment" id="incCO2">-</div></div>
             <div class="stat-value" id="co2Emission">-</div>
         </div>
