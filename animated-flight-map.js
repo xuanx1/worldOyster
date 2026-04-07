@@ -1631,7 +1631,7 @@ class AnimatedFlightMap {
 
                 // Follow the dot if enabled
                 if (this.followDot) {
-                    this.map.panTo(path[currentStep], { animate: false });
+                    this.panToVisible(path[currentStep], false);
                 }
 
                 // Update continuous path progressively
@@ -2032,14 +2032,32 @@ class AnimatedFlightMap {
         }
     }
 
+    panToVisible(latLng, animate) {
+        const header = document.querySelector('.card-container .header');
+        const cityList = document.querySelector('.city-list-container');
+        const hH = header ? header.offsetHeight : 0;
+        const cH = cityList ? cityList.offsetHeight : 0;
+        const containerH = this.map.getContainer().offsetHeight;
+        const visibleCenterY = hH + (containerH - hH - cH) / 2;
+        const geoCenterY = containerH / 2;
+        const dy = visibleCenterY - geoCenterY;
+        const pt = this.map.latLngToContainerPoint(latLng);
+        pt.y -= dy;
+        const adjusted = this.map.containerPointToLatLng(pt);
+        if (animate) {
+            this.map.setView(adjusted, this.map.getZoom(), { animate: true, duration: 0.5 });
+        } else {
+            this.map.panTo(adjusted, { animate: false });
+        }
+    }
+
     toggleFollowDot() {
         this.followDot = !this.followDot;
         this.updateFollowDotButton();
-        
+
         // If enabling follow mode and dot exists, pan to it
         if (this.followDot && this.flightDot) {
-            const dotLatLng = this.flightDot.getLatLng();
-            this.map.setView(dotLatLng, this.map.getZoom(), { animate: true, duration: 0.5 });
+            this.panToVisible(this.flightDot.getLatLng(), true);
         }
     }
 
@@ -2509,6 +2527,13 @@ class AnimatedFlightMap {
     updateCurrentFlightDisplay() {
         const currentFlightElement = document.getElementById('currentFlight');
         if (currentFlightElement) {
+            // Helper to build a small flag <img> from a country name
+            const _flag = (country) => {
+                const iso = window.COUNTRY_ISO && country ? window.COUNTRY_ISO[country.trim()] : null;
+                if (!iso) return '';
+                return `<img src="asset/flags/${iso}.png" width="16" height="12" alt="${country}" style="vertical-align:middle;border-radius:2px;margin:0 5px 0 2px;">`;
+            };
+
             // Show current journey for any position, including the last city
             if (this.currentCityIndex > 0 && this.currentCityIndex < this.cities.length) {
                 // Find the nearest journey with different city names
@@ -2539,14 +2564,16 @@ class AnimatedFlightMap {
                 
                 // Display if we found a valid journey with different cities
                 if (displayIndex > 0 && displayIndex < this.cities.length && this.normalizeCityName(fromCity.name) !== this.normalizeCityName(toCity.name)) {
+                    const fromFlag = _flag(fromCity.country);
+                    const toFlag = _flag(toCity.country);
                     // Check if this is a land journey and add mode info
                     const journeyData = toCity.originalFlight;
                     if (journeyData && journeyData.type === 'land' && journeyData.mode) {
                         const mode = journeyData.mode.charAt(0).toUpperCase() + journeyData.mode.slice(1);
                         const durationText = journeyData.durationFormatted ? ` (${journeyData.durationFormatted})` : '';
-                        currentFlightElement.textContent = `${fromCity.name} → ${toCity.name} [${mode}${durationText}]`;
+                        currentFlightElement.innerHTML = `${fromFlag}${fromCity.name} → ${toFlag}${toCity.name} [${mode}${durationText}]`;
                     } else {
-                        currentFlightElement.textContent = `${fromCity.name} → ${toCity.name}`;
+                        currentFlightElement.innerHTML = `${fromFlag}${fromCity.name} → ${toFlag}${toCity.name}`;
                     }
                     return;
                 }
@@ -2554,7 +2581,8 @@ class AnimatedFlightMap {
                 // If no valid journey found, show nothing
                 currentFlightElement.textContent = '';
             } else if (this.currentCityIndex === 0 && this.cities.length > 0) {
-                currentFlightElement.textContent = `${window.i18n ? window.i18n.t('startingAt') : 'Starting at'} ${this.cities[0].name}`;
+                const startFlag = _flag(this.cities[0].country);
+                currentFlightElement.innerHTML = `${window.i18n ? window.i18n.t('startingAt') : 'Starting at'} ${startFlag}${this.cities[0].name}`;
             } else if (this.currentCityIndex >= this.cities.length && this.cities.length > 0) {
                 // Only show "Journey Complete!" when currentCityIndex has gone beyond all cities (animation completed)
                 currentFlightElement.textContent = window.i18n ? window.i18n.t('journeyComplete') : 'Journey Complete!';
@@ -4353,7 +4381,7 @@ class AnimatedFlightMap {
             uniqueCityKeys.add(cityKey);
         });
         const citiesVisited = uniqueCityKeys.size;
-        
+
         const currentJourneyIndex = this.currentCityIndex;
         
         // Update DOM elements
@@ -4531,7 +4559,11 @@ class AnimatedFlightMap {
                 if (displayIndex > 0 && displayIndex < this.cities.length && this.normalizeCityName(fromCity.name) !== this.normalizeCityName(toCity.name)) {
                     const _from = window.translateCity ? window.translateCity(fromCity.name) : fromCity.name;
                     const _to = window.translateCity ? window.translateCity(toCity.name) : toCity.name;
-                    this.animateTextTransition(currentFlightEl, `${_from} → ${_to}`);
+                    const _isoFrom = window.COUNTRY_ISO && fromCity.country ? window.COUNTRY_ISO[fromCity.country.trim()] : null;
+                    const _isoTo = window.COUNTRY_ISO && toCity.country ? window.COUNTRY_ISO[toCity.country.trim()] : null;
+                    const _fFrom = _isoFrom ? `<img src="asset/flags/${_isoFrom}.png" width="16" height="12" style="vertical-align:middle;border-radius:2px;margin:0 5px 0 2px;">` : '';
+                    const _fTo = _isoTo ? `<img src="asset/flags/${_isoTo}.png" width="16" height="12" style="vertical-align:middle;border-radius:2px;margin:0 5px 0 2px;">` : '';
+                    this.animateTextTransition(currentFlightEl, `${_fFrom}${_from} → ${_fTo}${_to}`, true);
                 } else {
                     currentFlightEl.textContent = '';
                 }
@@ -4630,16 +4662,21 @@ class AnimatedFlightMap {
     }
 
     // Smooth text transition with swiping effect
-    animateTextTransition(element, newText) {
+    animateTextTransition(element, newText, useHTML = false) {
         // If text is the same, don't animate
-        if (element.textContent === newText) return;
+        const currentContent = useHTML ? element.innerHTML : element.textContent;
+        if (currentContent === newText) return;
         
         // Add fade-out class
         element.classList.add('fade-out');
         
         // After fade-out completes, change text and fade-in
         setTimeout(() => {
-            element.textContent = newText;
+            if (useHTML) {
+                element.innerHTML = newText;
+            } else {
+                element.textContent = newText;
+            }
             element.classList.remove('fade-out');
             element.classList.add('fade-in');
             

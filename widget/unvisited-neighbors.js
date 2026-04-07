@@ -249,6 +249,61 @@
         'Macau': 'Macau SAR'
     };
 
+    // Region classification for grouping unvisited neighbours
+    const COUNTRY_REGION = {
+        // Europe
+        'Albania': 'europe', 'Andorra': 'europe', 'Austria': 'europe', 'Belarus': 'europe',
+        'Belgium': 'europe', 'Bosnia and Herzegovina': 'europe', 'Bulgaria': 'europe',
+        'Croatia': 'europe', 'Cyprus': 'europe', 'Czech Republic': 'europe', 'Denmark': 'europe',
+        'Estonia': 'europe', 'Finland': 'europe', 'France': 'europe', 'Germany': 'europe',
+        'Greece': 'europe', 'Hungary': 'europe', 'Iceland': 'europe', 'Ireland': 'europe',
+        'Italy': 'europe', 'Kosovo': 'europe', 'Latvia': 'europe', 'Liechtenstein': 'europe',
+        'Lithuania': 'europe', 'Luxembourg': 'europe', 'Malta': 'europe', 'Moldova': 'europe',
+        'Monaco': 'europe', 'Montenegro': 'europe', 'Netherlands': 'europe',
+        'North Macedonia': 'europe', 'Norway': 'europe', 'Poland': 'europe', 'Portugal': 'europe',
+        'Romania': 'europe', 'San Marino': 'europe', 'Serbia': 'europe', 'Slovakia': 'europe',
+        'Slovenia': 'europe', 'Spain': 'europe', 'Sweden': 'europe', 'Switzerland': 'europe',
+        'UK': 'europe', 'Ukraine': 'europe', 'Vatican City': 'europe',
+        // Asia
+        'Afghanistan': 'asia', 'Armenia': 'asia', 'Azerbaijan': 'asia', 'Bangladesh': 'asia',
+        'Bhutan': 'asia', 'Brunei': 'asia', 'Cambodia': 'asia', 'China': 'asia',
+        'Georgia': 'asia', 'Hong Kong SAR': 'asia', 'India': 'asia', 'Indonesia': 'asia',
+        'Iran': 'asia', 'Iraq': 'asia', 'Japan': 'asia', 'Kazakhstan': 'asia',
+        'Kyrgyzstan': 'asia', 'Laos': 'asia', 'Macau SAR': 'asia', 'Malaysia': 'asia',
+        'Maldives': 'asia', 'Mongolia': 'asia', 'Myanmar': 'asia', 'Nepal': 'asia',
+        'North Korea': 'asia', 'Pakistan': 'asia', 'Philippines': 'asia', 'ROC (Taiwan)': 'asia',
+        'Russia': 'asia', 'Singapore': 'asia', 'South Korea': 'asia', 'Sri Lanka': 'asia',
+        'Syria': 'asia', 'Tajikistan': 'asia', 'Thailand': 'asia', 'Timor-Leste': 'asia',
+        'Turkmenistan': 'asia', 'Uzbekistan': 'asia', 'Vietnam': 'asia',
+        // Middle East (part of Asia)
+        'Bahrain': 'asia', 'Egypt': 'africa', 'Israel': 'asia',
+        'Jordan': 'asia', 'Kuwait': 'asia', 'Lebanon': 'asia',
+        'Oman': 'asia', 'Palestine': 'asia', 'Qatar': 'asia',
+        'Saudi Arabia': 'asia', 'Turkey': 'asia', 'UAE': 'asia',
+        'Yemen': 'asia',
+        // Africa
+        'Algeria': 'africa', 'Benin': 'africa', 'Botswana': 'africa', 'Cameroon': 'africa',
+        'Central African Republic': 'africa', 'Chad': 'africa', 'Dem. Rep. Congo': 'africa',
+        'DR Congo': 'africa', 'Djibouti': 'africa', 'Eritrea': 'africa', 'Eswatini': 'africa',
+        'Ethiopia': 'africa', 'Kenya': 'africa', 'Lesotho': 'africa', 'Libya': 'africa',
+        'Mali': 'africa', 'Mauritania': 'africa', 'Morocco': 'africa', 'Mozambique': 'africa',
+        'Namibia': 'africa', 'Niger': 'africa', 'Nigeria': 'africa',
+        'Republic of the Congo': 'africa', 'Somalia': 'africa', 'South Africa': 'africa',
+        'South Sudan': 'africa', 'Sudan': 'africa', 'Tanzania': 'africa', 'Tunisia': 'africa',
+        'Uganda': 'africa', 'Zimbabwe': 'africa',
+        // Americas
+        'Argentina': 'americas', 'Bolivia': 'americas', 'Brazil': 'americas',
+        'Canada': 'americas', 'Chile': 'americas', 'Colombia': 'americas',
+        'Ecuador': 'americas', 'Mexico': 'americas', 'Panama': 'americas',
+        'Paraguay': 'americas', 'Peru': 'americas', 'USA': 'americas',
+        'Venezuela': 'americas',
+        // Oceania
+        'Australia': 'oceania', 'New Zealand': 'oceania', 'Papua New Guinea': 'oceania'
+    };
+
+    // Ordered list of regions for display
+    const REGION_ORDER = ['africa', 'americas', 'asia', 'europe', 'oceania'];
+
     function getVisitedCountries() {
         const data = (window.flightMap && window.flightMap.flightData) || [];
         const countryMap = window.AIRPORT_TO_COUNTRY || {};
@@ -468,20 +523,69 @@
                 });
             });
 
-        // Legend + tag list
+        // Legend + tag list grouped by region
         const _t = window.i18n ? window.i18n.t : function(k){return k;};
         let legend = `<div class="neighbors-legend">
             <span class="neighbors-legend-item"><span class="neighbors-dot visited"></span>${_t('visited')} (${visited.size})</span>
             <span class="neighbors-legend-item"><span class="neighbors-dot unvisited"></span>${_t('unvisitedNeighboursLabel')} (${unvisited.length})</span>
         </div>`;
         const _flag = window.countryTrophy ? window.countryTrophy.flagImg : function(){return '';};
-        legend += '<div class="neighbors-list">';
+
+        // Group unvisited by region
+        const regionGroups = {};
         unvisited.forEach(c => {
-            const borderedBy = unvisitedNeighborMap[c] || [];
-            const tipVal = borderedBy.length ? borderedBy.map(function(b){ return window.translateCountry ? window.translateCountry(b) : b; }).join(', ') : '—';
-            const _cn = window.translateCountry ? window.translateCountry(c) : c;
-            legend += `<span class="neighbor-tag" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${tipVal}">${_flag(c, 16)} ${_cn}</span>`;
+            const region = COUNTRY_REGION[c] || 'other';
+            if (!regionGroups[region]) regionGroups[region] = [];
+            regionGroups[region].push(c);
         });
+
+        // Map region keys to translation keys (reuse existing continent translations)
+        const REGION_I18N = {
+            europe: 'europe',
+            asia: 'asia',
+            middleEast: 'middleEast',
+            africa: 'africa',
+            americas: 'americas',
+            oceania: 'oceania',
+            other: 'region_other'
+        };
+
+        legend += '<div class="neighbors-regions">';
+        const _bLabel = _t('borders');
+        REGION_ORDER.forEach(region => {
+            const countries = regionGroups[region];
+            if (!countries || !countries.length) return;
+            const regionLabel = _t(REGION_I18N[region] || region);
+            legend += `<div class="neighbors-region">`;
+            legend += `<div class="neighbors-region-label">${regionLabel} <span class="neighbors-region-count">(${countries.length})</span></div>`;
+            legend += `<div class="neighbors-region-list">`;
+            countries.forEach(c => {
+                const borderedBy = unvisitedNeighborMap[c] || [];
+                const tipVal = borderedBy.length ? borderedBy.map(function(b){ return window.translateCountry ? window.translateCountry(b) : b; }).join(', ') : '—';
+                const _cn = window.translateCountry ? window.translateCountry(c) : c;
+                legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${tipVal}">
+                    <div class="un-name">${_flag(c, 16)} ${_cn}</div>
+                    <div class="un-borders">${_bLabel}: ${tipVal}</div>
+                </div>`;
+            });
+            legend += '</div></div>';
+        });
+        // Handle any countries without a region
+        if (regionGroups['other'] && regionGroups['other'].length) {
+            legend += `<div class="neighbors-region">`;
+            legend += `<div class="neighbors-region-label">${_t(REGION_I18N['other'])} <span class="neighbors-region-count">(${regionGroups['other'].length})</span></div>`;
+            legend += `<div class="neighbors-region-list">`;
+            regionGroups['other'].forEach(c => {
+                const borderedBy = unvisitedNeighborMap[c] || [];
+                const tipVal = borderedBy.length ? borderedBy.map(function(b){ return window.translateCountry ? window.translateCountry(b) : b; }).join(', ') : '—';
+                const _cn = window.translateCountry ? window.translateCountry(c) : c;
+                legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${tipVal}">
+                    <div class="un-name">${_flag(c, 16)} ${_cn}</div>
+                    <div class="un-borders">${_bLabel}: ${tipVal}</div>
+                </div>`;
+            });
+            legend += '</div></div>';
+        }
         legend += '</div>';
         container.insertAdjacentHTML('beforeend', legend);
 
@@ -539,15 +643,15 @@
             map.flyTo([20, 30], 2, { duration: 0.5 });
         }
 
-        const tagList = container.querySelector('.neighbors-list');
+        const tagList = container.querySelector('.neighbors-regions');
         tagList.addEventListener('mousemove', function (e) {
-            const tag = e.target.closest('.neighbor-tag');
-            if (!tag) { tip.style.display = 'none'; unhighlightCountry(); return; }
-            tip.innerHTML = `<div class="tip-label">${tag.dataset.tipLabel}</div><div class="tip-val">${tag.dataset.tipVal}</div>`;
+            const row = e.target.closest('.un-row');
+            if (!row) { tip.style.display = 'none'; unhighlightCountry(); return; }
+            tip.innerHTML = `<div class="tip-label">${row.dataset.tipLabel}</div><div class="tip-val">${row.dataset.tipVal}</div>`;
             tip.style.display = 'block';
             tip.style.left = e.clientX + 'px';
             tip.style.top = (e.clientY - 12) + 'px';
-            highlightCountry(tag.dataset.country);
+            highlightCountry(row.dataset.country);
         });
         tagList.addEventListener('mouseleave', () => { tip.style.display = 'none'; unhighlightCountry(); });
 

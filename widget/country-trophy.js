@@ -112,6 +112,9 @@
         'Tuvalu': 'tv', 'Nauru': 'nr', 'Niue': 'nu', 'Cook Islands': 'ck'
     };
 
+    // Expose for use by other modules (e.g. current journey flags)
+    window.COUNTRY_ISO = COUNTRY_ISO;
+
     function flagImg(country, size) {
         const s = size || 20;
         const iso = COUNTRY_ISO[country];
@@ -341,8 +344,10 @@
         .trophy-notification.tier-bronze { border: 1px solid rgba(255,255,255,0.04); }
 
         @media (max-width: 768px) {
-            #trophy-container { bottom: 16px; left: 16px; right: 16px; }
+            #trophy-container { top: 62px; left: 12px; bottom: auto; right: auto; }
             .trophy-notification { min-width: unset; max-width: unset; width: 100%; padding: 10px 14px; }
+            .card-container.mini-map ~ #trophy-container,
+            body:has(.card-container.mini-map) #trophy-container { display: none; }
         }
 
         /* ── Achievements overlay ── */
@@ -478,6 +483,13 @@
             margin: 18px 0 10px;
             padding-bottom: 6px;
             border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .ach-section-header > span:first-child {
+            display: inline-flex;
+            align-items: center;
+        }
+        .ach-section-header svg {
+            display: block;
         }
         .ach-section-header:first-child { margin-top: 0; }
         .ach-section-label {

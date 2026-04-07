@@ -96,6 +96,7 @@
             madeWith: 'Made with',
             forTravelling: 'for travelling',
             sourceCode: 'Source Code',
+            language: 'Language',
 
             // Flights
             flights: 'flights',
@@ -129,9 +130,11 @@
             europe: 'Europe',
             northAmerica: 'North America',
             southAmerica: 'South America',
+            americas: 'Americas',
             africa: 'Africa',
             oceania: 'Oceania',
             middleEast: 'Middle East',
+            region_other: 'Other',
 
             // Country trophy / achievements
             achievementsTitle: 'Achievements',
@@ -361,6 +364,7 @@
             madeWith: 'صُنع بـ',
             forTravelling: 'للسفر',
             sourceCode: 'الشيفرة المصدرية',
+            language: 'اللغة',
 
             flights: 'رحلات',
             totalSpend: 'إجمالي الإنفاق',
@@ -386,6 +390,8 @@
             asia: 'آسيا',
             europe: 'أوروبا',
             northAmerica: 'أمريكا الشمالية',
+            americas: 'الأمريكتان',
+            region_other: 'أخرى',
             southAmerica: 'أمريكا الجنوبية',
             africa: 'أفريقيا',
             oceania: 'أوقيانوسيا',
@@ -528,9 +534,9 @@
         },
 
         zh: {
-            pageTitle: '这世界是你的舞台吗？🦪',
-            mainTitle1: '这世界是',
-            mainTitle2: '你的舞台吗？🦪',
+            pageTitle: '这世界是不是你的舞台？🦪',
+            mainTitle1: '这世界是不是',
+            mainTitle2: '你的舞台？🦪',
 
             export: '导出',
             insights: '数据洞察',
@@ -606,6 +612,7 @@
             madeWith: '为了旅行的',
             forTravelling: '而造',
             sourceCode: '源代码',
+            language: '语言',
 
             flights: '航班',
             totalSpend: '总花费',
@@ -631,6 +638,8 @@
             asia: '亚洲',
             europe: '欧洲',
             northAmerica: '北美洲',
+            americas: '美洲',
+            region_other: '其他',
             southAmerica: '南美洲',
             africa: '非洲',
             oceania: '大洋洲',
@@ -774,7 +783,7 @@
 
         fr: {
             pageTitle: 'Le monde est-il votre huître ? 🦪',
-            mainTitle1: 'LE MONDE EST-IL',
+            mainTitle1: 'LE MONDE EST',
             mainTitle2: 'VOTRE 🦪 ?',
 
             export: 'Exporter',
@@ -851,6 +860,7 @@
             madeWith: 'Fait avec',
             forTravelling: 'pour le voyage',
             sourceCode: 'Code source',
+            language: 'Langue',
 
             flights: 'vols',
             totalSpend: 'dépenses totales',
@@ -876,6 +886,8 @@
             asia: 'Asie',
             europe: 'Europe',
             northAmerica: 'Amérique du Nord',
+            americas: 'Amériques',
+            region_other: 'Autres',
             southAmerica: 'Amérique du Sud',
             africa: 'Afrique',
             oceania: 'Océanie',
@@ -1096,6 +1108,7 @@
             madeWith: 'Сделано с',
             forTravelling: 'для путешествий',
             sourceCode: 'Исходный код',
+            language: 'Язык',
 
             flights: 'рейсов',
             totalSpend: 'общие расходы',
@@ -1121,6 +1134,8 @@
             asia: 'Азия',
             europe: 'Европа',
             northAmerica: 'Северная Америка',
+            americas: 'Америка',
+            region_other: 'Другое',
             southAmerica: 'Южная Америка',
             africa: 'Африка',
             oceania: 'Океания',
@@ -1264,8 +1279,8 @@
 
         es: {
             pageTitle: '¿El mundo es tu ostra? 🦪',
-            mainTitle1: '¿EL MUNDO ES',
-            mainTitle2: 'TU 🦪?',
+            mainTitle1: '¿EL MUNDO',
+            mainTitle2: 'ES TU 🦪?',
 
             export: 'Exportar',
             insights: 'Estadísticas',
@@ -1341,6 +1356,7 @@
             madeWith: 'Hecho con',
             forTravelling: 'para viajar',
             sourceCode: 'Código fuente',
+            language: 'Idioma',
 
             flights: 'vuelos',
             totalSpend: 'gasto total',
@@ -1366,6 +1382,8 @@
             asia: 'Asia',
             europe: 'Europa',
             northAmerica: 'América del Norte',
+            americas: 'Américas',
+            region_other: 'Otros',
             southAmerica: 'América del Sur',
             africa: 'África',
             oceania: 'Oceanía',
