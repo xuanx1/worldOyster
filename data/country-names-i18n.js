@@ -69,7 +69,7 @@
         'Gabon': { ar: 'الغابون', zh: '加蓬', fr: 'Gabon', ru: 'Габон', es: 'Gabón' },
         'Galapagos': { ar: 'غالاباغوس', zh: '加拉帕戈斯', fr: 'Galápagos', ru: 'Галапагосы', es: 'Galápagos' },
         'Gambia': { ar: 'غامبيا', zh: '冈比亚', fr: 'Gambie', ru: 'Гамбия', es: 'Gambia' },
-        'GBAO': { ar: 'غورنو بدخشان', zh: '戈尔诺-巴达赫尚', fr: 'GBAO', ru: 'ГБАО', es: 'GBAO' },
+        'Gorno-Badakhshan': { ar: 'غورنو بدخشان', zh: '戈尔诺-巴达赫尚', fr: 'Gorno-Badakhshan', ru: 'ГБАО', es: 'Gorno-Badajshán' },
         'Georgia': { ar: 'جورجيا', zh: '格鲁吉亚', fr: 'Géorgie', ru: 'Грузия', es: 'Georgia' },
         'Germany': { ar: 'ألمانيا', zh: '德国', fr: 'Allemagne', ru: 'Германия', es: 'Alemania' },
         'Ghana': { ar: 'غانا', zh: '加纳', fr: 'Ghana', ru: 'Гана', es: 'Ghana' },

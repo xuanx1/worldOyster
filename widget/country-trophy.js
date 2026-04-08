@@ -130,7 +130,7 @@
         'Transnistria': 'transnistria', 'Abkhazia': 'abkhazia',
         'South Ossetia': 'south-ossetia', 'Northern Cyprus': 'trnc',
         'Somaliland': 'somaliland', 'Artsakh': 'artsakh',
-        'Antarctica': 'aq', 'GBAO': 'tj', 'Baikonur': 'kz',
+        'Antarctica': 'aq', 'Gorno-Badakhshan': 'tj', 'Baikonur': 'kz',
         'Kaliningrad': 'ru', 'Ceuta': 'es', 'Melilla': 'es',
         'Rapa Nui': 'cl', 'Galapagos': 'ec',
         'Kish Island': 'ir', 'Panmunjom': 'kr'

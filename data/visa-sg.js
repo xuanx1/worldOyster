@@ -14,7 +14,7 @@ window.VISA_SG = {
     'Timor-Leste': 'free', 'Singapore': 'free',
     'Uzbekistan': 'free', 'Kazakhstan': 'free', 'Turkmenistan': 'required',
     'Kyrgyzstan': 'free', 'Tajikistan': 'free',
-    'GBAO': 'evisa',
+    'Gorno-Badakhshan': 'evisa',
     'Azerbaijan': 'evisa', 'Georgia': 'free', 'Armenia': 'free',
     'North Korea': 'required',
     'Andaman and Nicobar Islands': 'evisa',

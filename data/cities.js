@@ -367,7 +367,7 @@ window.CITY_COORDINATES = {
     'Christmas Island': [-10.49, 105.63],
     'Cocos Islands': [-12.19, 96.83],
     'British Indian Ocean Territory': [-6.34, 71.88],
-    'GBAO': [38.35, 71.55],
+    'Gorno-Badakhshan': [38.35, 71.55],
     'Baikonur': [45.62, 63.31],
     'Kish Island': [26.53, 54.02],
     // Africa
