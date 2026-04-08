@@ -137,7 +137,7 @@
         'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines',
         'Bermuda', 'Cayman Islands', 'Turks and Caicos Islands', 'British Virgin Islands',
         'Anguilla', 'Montserrat', 'Aruba', 'Curaçao', 'US Virgin Islands',
-        'Puerto Rico', 'Guadeloupe', 'Martinique', 'Sint Maarten',
+        'Puerto Rico', 'Guadeloupe', 'Martinique', 'Saint Martin / Sint Maarten',
         'Saint Barthélemy', 'Bonaire', 'French Guiana', 'Rapa Nui', 'Galapagos',
         // Pacific
         'Samoa', 'Tonga', 'Kiribati', 'Micronesia', 'Marshall Islands', 'Palau',
@@ -284,7 +284,7 @@
         'Guadeloupe': 'special', 'Martinique': 'special',
         'Montserrat': 'special', 'Puerto Rico': 'special',
         'Saint Barthélemy': 'special',
-        'Sint Maarten': 'special', 'Turks and Caicos Islands': 'special',
+        'Saint Martin / Sint Maarten': 'special', 'Turks and Caicos Islands': 'special',
         'US Virgin Islands': 'special',
         // Oceania
         'Australia': 'oceania', 'Fiji': 'oceania', 'Kiribati': 'oceania',
@@ -334,7 +334,7 @@
         'Anguilla': 'americas', 'Aruba': 'americas', 'Bonaire': 'americas',
         'British Virgin Islands': 'americas', 'Cayman Islands': 'americas',
         'Curaçao': 'americas', 'Montserrat': 'americas',
-        'Sint Maarten': 'americas', 'Turks and Caicos Islands': 'americas',
+        'Saint Martin / Sint Maarten': 'americas', 'Turks and Caicos Islands': 'americas',
         'Rapa Nui': 'americas', 'Galapagos': 'americas',
         // Oceania
         'American Samoa': 'oceania', 'Cook Islands': 'oceania', 'French Polynesia': 'oceania',

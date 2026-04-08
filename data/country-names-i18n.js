@@ -258,7 +258,7 @@
         'Saint Vincent and the Grenadines': { ar: 'سانت فنسنت والغرنادين', zh: '圣文森特和格林纳丁斯', fr: 'Saint-Vincent-et-les-Grenadines', ru: 'Сент-Винсент и Гренадины', es: 'San Vicente y las Granadinas' },
         'Samoa': { ar: 'ساموا', zh: '萨摩亚', fr: 'Samoa', ru: 'Самоа', es: 'Samoa' },
         'São Tomé and Príncipe': { ar: 'ساو تومي وبرينسيبي', zh: '圣多美和普林西比', fr: 'São Tomé-et-Príncipe', ru: 'Сан-Томе и Принсипи', es: 'Santo Tomé y Príncipe' },
-        'Sint Maarten': { ar: 'سينت مارتن', zh: '荷属圣马丁', fr: 'Saint-Martin (néerlandaise)', ru: 'Синт-Мартен', es: 'San Martín' },
+        'Saint Martin / Sint Maarten': { ar: 'سان مارتن / سينت مارتن', zh: '圣马丁', fr: 'Saint-Martin / Sint Maarten', ru: 'Сен-Мартен / Синт-Мартен', es: 'San Martín' },
         'Socotra': { ar: 'سقطرى', zh: '索科特拉岛', fr: 'Socotra', ru: 'Сокотра', es: 'Socotra' },
         'Svalbard': { ar: 'سفالبارد', zh: '斯瓦尔巴', fr: 'Svalbard', ru: 'Шпицберген', es: 'Svalbard' },
         'Tokelau': { ar: 'توكيلاو', zh: '托克劳', fr: 'Tokelau', ru: 'Токелау', es: 'Tokelau' },

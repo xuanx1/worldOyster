@@ -93,7 +93,7 @@ window.VISA_SG = {
     'Montserrat': 'free', 'Puerto Rico': 'free',
     'Saint Barthélemy': 'free', 'Saint Kitts and Nevis': 'free',
     'Saint Lucia': 'free', 'Saint Vincent and the Grenadines': 'free',
-    'Sint Maarten': 'free', 'Turks and Caicos Islands': 'free',
+    'Saint Martin / Sint Maarten': 'free', 'Turks and Caicos Islands': 'free',
     'US Virgin Islands': 'free',
     // Oceania
     'Australia': 'free', 'Fiji': 'free', 'Kiribati': 'free',

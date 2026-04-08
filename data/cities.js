@@ -404,7 +404,7 @@ window.CITY_COORDINATES = {
     'Puerto Rico': [18.22, -66.59],
     'Guadeloupe': [16.27, -61.55],
     'Martinique': [14.64, -61.02],
-    'Sint Maarten': [18.04, -63.07],
+    'Saint Martin / Sint Maarten': [18.04, -63.07],
     'Saint Barthélemy': [17.90, -62.83],
     'Bonaire': [12.15, -68.27],
     'French Guiana': [3.93, -53.13],

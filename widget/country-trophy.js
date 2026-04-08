@@ -108,7 +108,7 @@
         'Bermuda': 'bm', 'Cayman Islands': 'ky',
         'Turks and Caicos Islands': 'tc',
         'British Virgin Islands': 'vg', 'Anguilla': 'ai', 'Montserrat': 'ms',
-        'Aruba': 'aw', 'Curaçao': 'cw', 'Sint Maarten': 'sx', 'Bonaire': 'bq',
+        'Aruba': 'aw', 'Curaçao': 'cw', 'Saint Martin / Sint Maarten': 'sx', 'Bonaire': 'bq',
         'Puerto Rico': 'pr', 'US Virgin Islands': 'vi',
         'Guadeloupe': 'gp', 'Martinique': 'mq', 'Saint Barthélemy': 'bl',
         'French Guiana': 'gf',
