@@ -659,7 +659,7 @@
         // Legend + tag list grouped by region
         const _t = window.i18n ? window.i18n.t : function(k){return k;};
         function legendSvg(fill, stroke, hatchColor) {
-            const s = 11;
+            const s = 14;
             let defs = '', fillAttr;
             if (hatchColor) {
                 const id = 'lg-' + hatchColor.replace('#','');
@@ -685,14 +685,16 @@
             .filter(c => COUNTRY_REGION[c] === 'special' && !visited.has(c));
 
         let legend = `<div class="neighbors-legend">
-            <span class="neighbors-legend-item">${legendSvg('rgba(76,175,80,0.5)', '#4CAF50', '')} ${_t('visited')} (${visited.size})</span>
-            <span class="neighbors-legend-item">${legendSvg('rgba(255,183,77,0.15)', '#FFB74D', '')} ${_t('unvisitedNeighboursLabel')} (${unvisited.length})</span>
-            <span class="neighbors-legend-item">${legendSvg('rgba(183,110,121,0.15)', '#B76E79', '')} ${_t('unvisitedPlaces')} (${specialTerritories.length})</span>
+            <span class="neighbors-legend-item" data-legend="visited">${legendSvg('rgba(76,175,80,0.5)', '#4CAF50', '')} ${_t('visited')} (${visited.size})</span>
             <span class="neighbors-legend-visa">
-                <span class="neighbors-legend-item">${legendSvg('none', 'transparent', '#4CAF50')} ${_t('visaFree')} (${visaCounts.free})</span>
-                <span class="neighbors-legend-item">${legendSvg('none', 'transparent', '#8BC34A')} ${_t('visaOnArrival')} (${visaCounts.arrival})</span>
-                <span class="neighbors-legend-item">${legendSvg('none', 'transparent', '#FFB74D')} ${_t('eVisa')} (${visaCounts.evisa})</span>
-                <span class="neighbors-legend-item">${legendSvg('none', 'transparent', '#ef5350')} ${_t('visaRequired')} (${visaCounts.required})</span>
+                <span class="neighbors-legend-item" data-legend="unvisited">${legendSvg('rgba(255,183,77,0.15)', '#FFB74D', '')} ${_t('unvisitedNeighboursLabel')} (${unvisited.length})</span>
+                <span class="neighbors-legend-item" data-legend="special">${legendSvg('rgba(183,110,121,0.15)', '#B76E79', '')} ${_t('unvisitedPlaces')} (${specialTerritories.length})</span>
+            </span>
+            <span class="neighbors-legend-visa">
+                <span class="neighbors-legend-item" data-legend="free">${legendSvg('none', 'transparent', '#4CAF50')} ${_t('visaFree')} (${visaCounts.free})</span>
+                <span class="neighbors-legend-item" data-legend="arrival">${legendSvg('none', 'transparent', '#8BC34A')} ${_t('visaOnArrival')} (${visaCounts.arrival})</span>
+                <span class="neighbors-legend-item" data-legend="evisa">${legendSvg('none', 'transparent', '#FFB74D')} ${_t('eVisa')} (${visaCounts.evisa})</span>
+                <span class="neighbors-legend-item" data-legend="required">${legendSvg('none', 'transparent', '#ef5350')} ${_t('visaRequired')} (${visaCounts.required})</span>
             </span>
         </div>`;
         const _flag = window.countryTrophy ? window.countryTrophy.flagImg : function(){return '';};
@@ -734,7 +736,7 @@
         legend += '<div class="neighbors-regions">';
         function renderRegion(countries, label, extraCountries, extraLabel) {
             const totalCount = countries.length + (extraCountries ? extraCountries.length : 0);
-            const wideClass = totalCount >= 40 ? ' region-full' : totalCount >= 20 ? ' region-wide' : '';
+            const wideClass = totalCount >= 40 ? ' region-full' : totalCount >= 15 ? ' region-wide' : '';
             legend += `<div class="neighbors-region${wideClass}">`;
             legend += `<div class="neighbors-region-label">${label} <span class="neighbors-region-count">(${countries.length})</span></div>`;
             legend += `<div class="neighbors-region-list">`;
@@ -743,7 +745,7 @@
                 const v = visaData[c] || '';
                 const visaLabel = v ? _t(VISA_LABELS[v] || v) : '—';
                 const visaColor = VISA_MAP_COLORS[v] || '#888';
-                legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-visa-color="${visaColor}">
+                legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-visa-color="${visaColor}" data-visa="${v}" data-type="unvisited">
                     <div class="un-name">${_flag(c, 16)} ${_cn}</div>
                 </div>`;
             });
@@ -763,19 +765,19 @@
                     africa: 'africa', americas: 'americas', asia: 'asia',
                     europe: 'europe', oceania: 'oceania', antarctica: 'antarctica'
                 };
-                legend += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px;">';
+                legend += '<div class="special-territories-grid">';
                 specOrder.forEach(cont => {
                     if (!specGroups[cont] || !specGroups[cont].length) return;
                     const contLabel = _t(specContLabels[cont] || cont);
                     legend += '<div>';
-                    legend += `<div style="margin-bottom:2px;font-size:9px;color:#B76E79;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">${contLabel} <span style="font-weight:400;color:#666;">(${specGroups[cont].length})</span></div>`;
+                    legend += `<div style="margin-top:10px;margin-bottom:4px;font-size:9px;color:#B76E79;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">${contLabel} <span style="font-weight:400;color:#666;">(${specGroups[cont].length})</span></div>`;
                     specGroups[cont].forEach(c => {
                         const _cn = window.translateCountry ? window.translateCountry(c) : c;
                         const v = visaData[c] || '';
                         const visaLabel = v ? _t(VISA_LABELS[v] || v) : '—';
                         const visaColor = VISA_MAP_COLORS[v] || '#888';
-                        legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-visa-color="${visaColor}" style="padding:3px 0;">
-                            <div class="un-name" style="font-size:11px;">${_flag(c, 14)} ${_cn}</div>
+                        legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-visa-color="${visaColor}">
+                            <div class="un-name">${_flag(c, 16)} ${_cn}</div>
                         </div>`;
                     });
                     legend += '</div>';
@@ -786,24 +788,129 @@
         }
         REGION_ORDER.forEach(region => {
             const countries = regionGroups[region];
-            if (!countries || !countries.length) {
-                // Still render if special has entries and this is disputed
-                if (region === 'disputed' && regionGroups['special'] && regionGroups['special'].length) {
-                    renderRegion([], _t(REGION_I18N[region] || region), regionGroups['special'], _t(REGION_I18N['special']));
-                }
-                return;
-            }
+            if (!countries || !countries.length) return;
             if (region === 'disputed') {
-                renderRegion(countries, _t(REGION_I18N[region] || region), regionGroups['special'], _t(REGION_I18N['special']));
+                // Render full-width with horizontal flow in 2 rows
+                legend += `<div class="neighbors-region region-full">`;
+                legend += `<div class="neighbors-region-label">${_t(REGION_I18N[region])} <span class="neighbors-region-count">(${countries.length})</span></div>`;
+                legend += `<div class="neighbors-region-list disputed-grid">`;
+                countries.forEach(c => {
+                    const _cn = window.translateCountry ? window.translateCountry(c) : c;
+                    const v = visaData[c] || '';
+                    const visaLabel = v ? _t(VISA_LABELS[v] || v) : '—';
+                    const visaColor = VISA_MAP_COLORS[v] || '#888';
+                    legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-visa-color="${visaColor}" data-visa="${v}" data-type="unvisited">
+                        <div class="un-name">${_flag(c, 16)} ${_cn}</div>
+                    </div>`;
+                });
+                legend += '</div></div>';
             } else {
                 renderRegion(countries, _t(REGION_I18N[region] || region));
             }
         });
+        // Special territories — each continent as its own card
+        if (regionGroups['special'] && regionGroups['special'].length) {
+            const specGroups = {};
+            const specOrder = ['africa', 'americas', 'asia', 'europe', 'oceania', 'antarctica'];
+            regionGroups['special'].forEach(c => {
+                const cont = SPECIAL_CONTINENT[c] || 'other';
+                if (!specGroups[cont]) specGroups[cont] = [];
+                specGroups[cont].push(c);
+            });
+            const specContLabels = { africa: 'africa', americas: 'americas', asia: 'asia', europe: 'europe', oceania: 'oceania', antarctica: 'antarctica' };
+            specOrder.forEach(cont => {
+                if (!specGroups[cont] || !specGroups[cont].length) return;
+                const countries = specGroups[cont];
+                const wideClass = countries.length >= 10 ? ' region-wide' : '';
+                legend += `<div class="neighbors-region${wideClass}" style="border-color:rgba(183,110,121,0.25)">`;
+                legend += `<div class="neighbors-region-label" style="color:#B76E79">${_t(specContLabels[cont] || cont)} <span class="neighbors-region-count">(${countries.length})</span></div>`;
+                legend += `<div class="neighbors-region-list${wideClass ? '' : ''}">`;
+                countries.forEach(c => {
+                    const _cn = window.translateCountry ? window.translateCountry(c) : c;
+                    const v = visaData[c] || '';
+                    const visaLabel = v ? _t(VISA_LABELS[v] || v) : '—';
+                    const visaColor = VISA_MAP_COLORS[v] || '#888';
+                    legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-visa-color="${visaColor}" data-visa="${v}" data-type="special">
+                        <div class="un-name">${_flag(c, 16)} ${_cn}</div>
+                    </div>`;
+                });
+                legend += '</div></div>';
+            });
+        }
         if (regionGroups['other'] && regionGroups['other'].length) {
             renderRegion(regionGroups['other'], _t(REGION_I18N['other']));
         }
         legend += '</div>';
         container.insertAdjacentHTML('beforeend', legend);
+
+        // Legend hover — dim everything except the hovered category
+        const legendEl = container.querySelector('.neighbors-legend');
+        const allRows = container.querySelectorAll('.un-row');
+        let activeLegend = null;
+
+        function dimForLegend(filter) {
+            activeLegend = filter;
+            allRows.forEach(function (row) {
+                let match = false;
+                if (filter === 'visited') {
+                    match = false; // no visited rows in the list
+                } else if (filter === 'unvisited') {
+                    match = row.dataset.type === 'unvisited';
+                } else if (filter === 'special') {
+                    match = row.dataset.type === 'special';
+                } else {
+                    // visa type filter
+                    match = row.dataset.visa === filter;
+                }
+                row.style.opacity = match ? '1' : '0.15';
+            });
+            // Dim legend items too
+            legendEl.querySelectorAll('.neighbors-legend-item').forEach(function (item) {
+                item.style.opacity = item.dataset.legend === filter ? '1' : '0.35';
+            });
+            // Dim map layers
+            Object.keys(countryLayers).forEach(function (country) {
+                var isVisited = visited.has(country);
+                var visa = visaData[country] || '';
+                var type = COUNTRY_REGION[country] === 'special' ? 'special' : (isVisited ? 'visited' : 'unvisited');
+                var match = false;
+                if (filter === 'visited') match = isVisited;
+                else if (filter === 'unvisited') match = type === 'unvisited';
+                else if (filter === 'special') match = type === 'special';
+                else match = visa === filter;
+                countryLayers[country].forEach(function (entry) {
+                    if (entry.type === 'geo' && entry.layer._path) {
+                        entry.layer._path.style.opacity = match ? '1' : '0.1';
+                    } else if (entry.type === 'dot') {
+                        var el = entry.layer.getElement();
+                        if (el) el.style.opacity = match ? '1' : '0.1';
+                    }
+                });
+            });
+        }
+
+        function undimLegend() {
+            activeLegend = null;
+            allRows.forEach(function (row) { row.style.opacity = '1'; });
+            legendEl.querySelectorAll('.neighbors-legend-item').forEach(function (item) { item.style.opacity = '1'; });
+            Object.keys(countryLayers).forEach(function (country) {
+                countryLayers[country].forEach(function (entry) {
+                    if (entry.type === 'geo' && entry.layer._path) {
+                        entry.layer._path.style.opacity = '';
+                    } else if (entry.type === 'dot') {
+                        var el = entry.layer.getElement();
+                        if (el) el.style.opacity = '';
+                    }
+                });
+            });
+        }
+
+        legendEl.addEventListener('mouseover', function (e) {
+            var item = e.target.closest('.neighbors-legend-item[data-legend]');
+            if (!item) return;
+            dimForLegend(item.dataset.legend);
+        });
+        legendEl.addEventListener('mouseleave', undimLegend);
 
         const tip = document.createElement('div');
         tip.className = 'widget-row-tooltip';
