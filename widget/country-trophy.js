@@ -996,24 +996,35 @@
             });
         });
 
-        // Unrecognised territories — separate section below bronze
-        const visitedTerritories = UNRECOGNISED_TERRITORIES.filter(t => seenCountries.has(t));
-        const unvisitedTerritories = UNRECOGNISED_TERRITORIES.filter(t => !seenCountries.has(t));
-        visitedTerritories.forEach(t => {
+        // Unrecognised territories — divider then listed as bronze
+        achievements.push({
+            tier: 'bronze', id: 'divider-countries-territories', isDivider: true
+        });
+        const _disputedLabel = t('disputed');
+        const TERRITORY_CONTINENT = {
+            'Kosovo': 'Europe', 'Transnistria': 'Europe', 'Northern Cyprus': 'Europe',
+            'Abkhazia': 'Asia', 'South Ossetia': 'Asia', 'Artsakh': 'Asia',
+            'Somaliland': 'Africa'
+        };
+        const visitedTerritories = UNRECOGNISED_TERRITORIES.filter(tr => seenCountries.has(tr));
+        const unvisitedTerritories = UNRECOGNISED_TERRITORIES.filter(tr => !seenCountries.has(tr));
+        visitedTerritories.forEach(tr => {
+            const cont = tContinent(TERRITORY_CONTINENT[tr] || '');
             achievements.push({
-                tier: 'unrecognised', id: `territory-${t}`,
-                name: t,
-                desc: '',
+                tier: 'bronze', id: `territory-${tr}`,
+                name: tr,
+                desc: cont ? `${_disputedLabel} · ${cont}` : _disputedLabel,
                 earned: true,
-                earnedDate: earnedDates[`country-${t}`],
+                earnedDate: earnedDates[`country-${tr}`],
                 isCountry: true
             });
         });
-        unvisitedTerritories.forEach(t => {
+        unvisitedTerritories.forEach(tr => {
+            const cont = tContinent(TERRITORY_CONTINENT[tr] || '');
             achievements.push({
-                tier: 'unrecognised', id: `territory-${t}`,
-                name: t,
-                desc: '',
+                tier: 'bronze', id: `territory-${tr}`,
+                name: tr,
+                desc: cont ? `${_disputedLabel} · ${cont}` : _disputedLabel,
                 earned: false,
                 isCountry: true
             });
@@ -1036,8 +1047,7 @@
             { tier: 'platinum', label: t('platinum') },
             { tier: 'gold', label: t('gold') },
             { tier: 'silver', label: t('silver') },
-            { tier: 'bronze', label: t('bronze') },
-            { tier: 'unrecognised', label: t('disputed') }
+            { tier: 'bronze', label: t('bronze') }
         ];
 
         // Build current earned set to detect newly earned

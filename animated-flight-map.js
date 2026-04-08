@@ -221,18 +221,19 @@ class AnimatedFlightMap {
             facts.push(`${Q(t('tickerAvgGap'))} ${A(`${avgGap} ${t('tickerDays')}`)}`);
         }
 
-        // MOST FLIGHTS IN A SINGLE DAY
+        // MOST FLIGHTS IN A SINGLE DAY (exclude land journeys)
+        const flightDates = data.filter(j => j.type !== 'land').map(j => new Date(j.date)).filter(d => !isNaN(d));
         const byDate = {};
-        dates.forEach(d => { const k = d.toISOString().slice(0, 10); byDate[k] = (byDate[k] || 0) + 1; });
+        flightDates.forEach(d => { const k = d.toISOString().slice(0, 10); byDate[k] = (byDate[k] || 0) + 1; });
         const maxDay = Object.entries(byDate).sort((a, b) => b[1] - a[1])[0];
         if (maxDay && maxDay[1] > 1) {
             const d = new Date(maxDay[0]);
             facts.push(`${Q(t('tickerMostFlightsDay'))} ${A(`${maxDay[1]} (${d.getDate()} ${tMonths[d.getMonth()]} ${d.getFullYear()})`)}`);
         }
 
-        // FAVOURITE TRAVEL MONTH
+        // FAVOURITE TRAVEL MONTH (flights only)
         const byMonth = {};
-        dates.forEach(d => { const m = d.getMonth(); byMonth[m] = (byMonth[m] || 0) + 1; });
+        flightDates.forEach(d => { const m = d.getMonth(); byMonth[m] = (byMonth[m] || 0) + 1; });
         const favMonth = Object.entries(byMonth).sort((a, b) => b[1] - a[1])[0];
         if (favMonth) facts.push(`${Q(t('tickerFavMonth'))} ${A(`${tMonths[parseInt(favMonth[0])]} (${favMonth[1]} ${t('tickerFlights')})`)}`);
 
