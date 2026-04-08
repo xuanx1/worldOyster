@@ -241,7 +241,7 @@ window.CITY_TO_COUNTRY = {
 
     // Europe - Turkey & Caucasus
     'Istanbul': 'Turkey', 'Ankara': 'Turkey', 'Antalya': 'Turkey', 'Denizli': 'Turkey', 'Pamukkale': 'Turkey',
-    'Tbilisi': 'Georgia', 'Yerevan': 'Armenia', 'Stepanakert': 'Republic of Artsakh', 'Gori': 'Georgia', 'Batumi': 'Georgia', 'Kutaisi': 'Georgia',
+    'Tbilisi': 'Georgia', 'Yerevan': 'Armenia', 'Stepanakert': 'Artsakh', 'Gori': 'Georgia', 'Batumi': 'Georgia', 'Kutaisi': 'Georgia',
 
     // Middle East
     'Beirut': 'Lebanon', 'Tripoli': 'Lebanon', 'Jerusalem': 'Israel', 'Tel Aviv': 'Israel', 'Eilat': 'Israel',
@@ -257,6 +257,7 @@ window.CITY_TO_COUNTRY = {
 
     // Asia
     'Seoul': 'South Korea', 'Busan': 'South Korea', 'Pusan': 'South Korea', 'Daegu': 'South Korea', 'Daejeon': 'South Korea',
+    'Incheon': 'South Korea', 'Paju': 'South Korea', 'Panmunjom': 'South Korea',
     'Pyongyang': 'North Korea', 'Kaesong': 'North Korea', 'Nampo': 'North Korea', 'Sariwon': 'North Korea',
     'Dandong': 'China',
     'Beijing': 'China', 'Peking': 'China', 'Tianjin': 'China', 'Shanghai': 'China', 'Chengdu': 'China', 'Chongqing': 'China', 'Wuhan': 'China',

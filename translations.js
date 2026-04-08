@@ -39,7 +39,7 @@
             returnVisits: 'Return Visits',
             longestStays: 'Longest Stays',
             mostFlownAirlines: 'Most Flown Airlines',
-            unvisitedNeighbours: 'Unvisited Neighbours',
+            unvisitedNeighbours: 'Unvisited Countries/Places',
 
             // Map controls
             resetView: 'Reset View',
@@ -122,8 +122,14 @@
 
             // Spending heatmap (already has months/days above)
 
-            // Unvisited neighbours legend
-            unvisitedNeighboursLabel: 'Unvisited Neighbours',
+            // Unvisited countries/places legend
+            unvisitedNeighboursLabel: 'Unvisited Countries',
+            unvisitedPlaces: 'Unvisited Places',
+            unvisitedLabel: 'Unvisited',
+            visaFree: 'Visa Free',
+            visaOnArrival: 'Visa on Arrival',
+            eVisa: 'e-Visa',
+            visaRequired: 'Visa Required',
 
             // Journey timeline continent names
             asia: 'Asia',
@@ -133,8 +139,10 @@
             americas: 'Americas',
             africa: 'Africa',
             oceania: 'Oceania',
+            antarctica: 'Antarctica',
             middleEast: 'Middle East',
             disputed: 'Unrecognised',
+            specialTerritories: 'Special Territories',
             region_other: 'Other',
 
             // Country trophy / achievements
@@ -177,6 +185,10 @@
             achJetSetDesc: 'Visit 3+ continents in the same calendar year',
             achYearRoundName: 'Year-Round Traveller',
             achYearRoundDesc: 'Take trips in all 12 calendar months',
+            achAntarcticaName: 'Ice Explorer',
+            achAntarcticaDesc: 'Set foot on Antarctica',
+            achSpaceLaunchName: 'Space Explorer',
+            achSpaceLaunchDesc: 'Visit a space launch site (Baikonur, Cape Canaveral, or Wenchang)',
 
             // Silver — visa
             achVisaDesc: 'Visa obtained for {country}',
@@ -229,6 +241,8 @@
             achMachuPicchuDesc: 'Visit Machu Picchu',
             achSaltFlatsName: 'Mirror of the Sky',
             achSaltFlatsDesc: 'Visit the Bolivia Salt Flats',
+            achPanmunjomName: 'The 38th Parallel',
+            achPanmunjomDesc: 'Visit the DMZ at Panmunjom',
 
             // Visa achievement names (silver)
             visaAlgeria: 'Desert Rose',
@@ -317,7 +331,7 @@
             returnVisits: 'الزيارات المتكررة',
             longestStays: 'أطول الإقامات',
             mostFlownAirlines: 'أكثر شركات الطيران استخداماً',
-            unvisitedNeighbours: 'الجيران غير المُزارين',
+            unvisitedNeighbours: 'البلدان/الأماكن غير المُزارة',
 
             resetView: 'إعادة ضبط العرض',
             pauseAnimation: 'إيقاف الرسوم المتحركة',
@@ -386,7 +400,13 @@
             weeks: 'أسابيع',
             daysUnit: 'أيام',
 
-            unvisitedNeighboursLabel: 'الجيران غير المُزارين',
+            unvisitedNeighboursLabel: 'البلدان غير المُزارة',
+            unvisitedPlaces: 'الأماكن غير المُزارة',
+            unvisitedLabel: 'غير مُزار',
+            visaFree: 'بدون تأشيرة',
+            visaOnArrival: 'تأشيرة عند الوصول',
+            eVisa: 'تأشيرة إلكترونية',
+            visaRequired: 'تأشيرة مطلوبة',
 
             asia: 'آسيا',
             europe: 'أوروبا',
@@ -394,9 +414,11 @@
             americas: 'الأمريكتان',
             region_other: 'أخرى',
             disputed: 'غير معترف بها',
+            specialTerritories: 'أقاليم خاصة',
             southAmerica: 'أمريكا الجنوبية',
             africa: 'أفريقيا',
             oceania: 'أوقيانوسيا',
+            antarctica: 'أنتاركتيكا',
             middleEast: 'الشرق الأوسط',
 
             achievementsTitle: 'الإنجازات',
@@ -436,6 +458,10 @@
             achJetSetDesc: 'زيارة 3 قارات أو أكثر في نفس السنة',
             achYearRoundName: 'مسافر طوال العام',
             achYearRoundDesc: 'القيام برحلات في جميع أشهر السنة الاثني عشر',
+            achAntarcticaName: 'مستكشف الجليد',
+            achAntarcticaDesc: 'زيارة القارة القطبية الجنوبية',
+            achSpaceLaunchName: 'مستكشف الفضاء',
+            achSpaceLaunchDesc: 'زيارة موقع إطلاق فضائي (بايكونور، كيب كانافيرال، أو وينتشانغ)',
 
             achVisaDesc: 'تأشيرة لـ {country}',
             achPowerTourName: 'جولة القوى العالمية',
@@ -485,6 +511,8 @@
             achMachuPicchuDesc: 'زيارة ماتشو بيتشو',
             achSaltFlatsName: 'مرآة السماء',
             achSaltFlatsDesc: 'زيارة مسطحات الملح البوليفية',
+            achPanmunjomName: 'خط العرض 38',
+            achPanmunjomDesc: 'زيارة المنطقة المنزوعة السلاح في بانمونجوم',
 
             visaAlgeria: 'وردة الصحراء',
             visaUSA: 'روح إمباير ستيت',
@@ -566,7 +594,7 @@
             returnVisits: '重访记录',
             longestStays: '最长停留',
             mostFlownAirlines: '最常乘坐航空公司',
-            unvisitedNeighbours: '未到访邻国',
+            unvisitedNeighbours: '未到访国家/地区',
 
             resetView: '重置视图',
             pauseAnimation: '暂停动画',
@@ -635,7 +663,13 @@
             weeks: '周',
             daysUnit: '天',
 
-            unvisitedNeighboursLabel: '未到访邻国',
+            unvisitedNeighboursLabel: '未到访国家',
+            unvisitedPlaces: '未到访地区',
+            unvisitedLabel: '未到访',
+            visaFree: '免签',
+            visaOnArrival: '落地签',
+            eVisa: '电子签',
+            visaRequired: '需要签证',
 
             asia: '亚洲',
             europe: '欧洲',
@@ -643,9 +677,11 @@
             americas: '美洲',
             region_other: '其他',
             disputed: '未被承认',
+            specialTerritories: '特殊领土',
             southAmerica: '南美洲',
             africa: '非洲',
             oceania: '大洋洲',
+            antarctica: '南极洲',
             middleEast: '中东',
 
             achievementsTitle: '成就',
@@ -685,6 +721,10 @@
             achJetSetDesc: '同一年内参观3个以上大洲',
             achYearRoundName: '全年旅行者',
             achYearRoundDesc: '在12个月份都有旅行',
+            achAntarcticaName: '冰雪探险家',
+            achAntarcticaDesc: '踏上南极洲',
+            achSpaceLaunchName: '太空探索者',
+            achSpaceLaunchDesc: '参观航天发射场（拜科努尔、卡纳维拉尔角或文昌）',
 
             achVisaDesc: '已获得{country}签证',
             achPowerTourName: '世界强国之旅',
@@ -734,6 +774,8 @@
             achMachuPicchuDesc: '参观马丘比丘',
             achSaltFlatsName: '天空之镜',
             achSaltFlatsDesc: '参观玻利维亚盐沼',
+            achPanmunjomName: '三八线',
+            achPanmunjomDesc: '参观板门店非军事区',
 
             visaAlgeria: '沙漠玫瑰',
             visaUSA: '帝国心态',
@@ -815,7 +857,7 @@
             returnVisits: 'Visites répétées',
             longestStays: 'Plus longs séjours',
             mostFlownAirlines: 'Compagnies les plus utilisées',
-            unvisitedNeighbours: 'Voisins non visités',
+            unvisitedNeighbours: 'Pays/lieux non visités',
 
             resetView: 'Réinitialiser la vue',
             pauseAnimation: "Mettre en pause l'animation",
@@ -884,7 +926,13 @@
             weeks: 'Semaines',
             daysUnit: 'Jours',
 
-            unvisitedNeighboursLabel: 'Voisins non visités',
+            unvisitedNeighboursLabel: 'Pays non visités',
+            unvisitedPlaces: 'Lieux non visités',
+            unvisitedLabel: 'Non visité',
+            visaFree: 'Sans visa',
+            visaOnArrival: 'Visa à l\'arrivée',
+            eVisa: 'e-Visa',
+            visaRequired: 'Visa requis',
 
             asia: 'Asie',
             europe: 'Europe',
@@ -892,9 +940,11 @@
             americas: 'Amériques',
             region_other: 'Autres',
             disputed: 'Non reconnus',
+            specialTerritories: 'Territoires spéciaux',
             southAmerica: 'Amérique du Sud',
             africa: 'Afrique',
             oceania: 'Océanie',
+            antarctica: 'Antarctique',
             middleEast: 'Moyen-Orient',
 
             achievementsTitle: 'Accomplissements',
@@ -934,6 +984,10 @@
             achJetSetDesc: 'Visiter 3 continents ou plus la même année',
             achYearRoundName: 'Voyageur toute l\'année',
             achYearRoundDesc: 'Voyager chaque mois de l\'année',
+            achAntarcticaName: 'Explorateur des glaces',
+            achAntarcticaDesc: 'Mettre le pied en Antarctique',
+            achSpaceLaunchName: 'Explorateur spatial',
+            achSpaceLaunchDesc: 'Visiter un site de lancement spatial (Baïkonour, Cap Canaveral ou Wenchang)',
 
             achVisaDesc: 'Visa obtenu pour {country}',
             achPowerTourName: 'Tour des puissances mondiales',
@@ -983,6 +1037,8 @@
             achMachuPicchuDesc: 'Visiter le Machu Picchu',
             achSaltFlatsName: 'Miroir du ciel',
             achSaltFlatsDesc: 'Visiter le Salar de Uyuni',
+            achPanmunjomName: 'Le 38e parallèle',
+            achPanmunjomDesc: 'Visiter la DMZ à Panmunjom',
 
             visaAlgeria: 'Rose du désert',
             visaUSA: 'Empire State of Mind',
@@ -1064,7 +1120,7 @@
             returnVisits: 'Повторные визиты',
             longestStays: 'Самые долгие пребывания',
             mostFlownAirlines: 'Самые частые авиакомпании',
-            unvisitedNeighbours: 'Непосещённые соседи',
+            unvisitedNeighbours: 'Непосещённые страны/места',
 
             resetView: 'Сбросить вид',
             pauseAnimation: 'Приостановить анимацию',
@@ -1133,7 +1189,13 @@
             weeks: 'Недели',
             daysUnit: 'Дни',
 
-            unvisitedNeighboursLabel: 'Непосещённые соседи',
+            unvisitedNeighboursLabel: 'Непосещённые страны',
+            unvisitedPlaces: 'Непосещённые места',
+            unvisitedLabel: 'Не посещено',
+            visaFree: 'Без визы',
+            visaOnArrival: 'Виза по прибытии',
+            eVisa: 'Электронная виза',
+            visaRequired: 'Виза обязательна',
 
             asia: 'Азия',
             europe: 'Европа',
@@ -1141,9 +1203,11 @@
             americas: 'Америка',
             region_other: 'Другое',
             disputed: 'Непризнанные',
+            specialTerritories: 'Особые территории',
             southAmerica: 'Южная Америка',
             africa: 'Африка',
             oceania: 'Океания',
+            antarctica: 'Антарктида',
             middleEast: 'Ближний Восток',
 
             achievementsTitle: 'Достижения',
@@ -1183,6 +1247,10 @@
             achJetSetDesc: 'Посетить 3+ континента за один календарный год',
             achYearRoundName: 'Круглогодичный путешественник',
             achYearRoundDesc: 'Совершать поездки в каждом из 12 месяцев',
+            achAntarcticaName: 'Ледяной исследователь',
+            achAntarcticaDesc: 'Ступить на Антарктиду',
+            achSpaceLaunchName: 'Космический исследователь',
+            achSpaceLaunchDesc: 'Посетить космодром (Байконур, мыс Канаверал или Вэньчан)',
 
             achVisaDesc: 'Виза получена: {country}',
             achPowerTourName: 'Тур мировых держав',
@@ -1232,6 +1300,8 @@
             achMachuPicchuDesc: 'Посетить Мачу-Пикчу',
             achSaltFlatsName: 'Зеркало неба',
             achSaltFlatsDesc: 'Посетить солончак Уюни',
+            achPanmunjomName: '38-я параллель',
+            achPanmunjomDesc: 'Посетить демилитаризованную зону в Пханмунджоме',
 
             visaAlgeria: 'Роза пустыни',
             visaUSA: 'Дух Эмпайр-стейт',
@@ -1313,7 +1383,7 @@
             returnVisits: 'Visitas repetidas',
             longestStays: 'Estancias más largas',
             mostFlownAirlines: 'Aerolíneas más utilizadas',
-            unvisitedNeighbours: 'Vecinos no visitados',
+            unvisitedNeighbours: 'Países/lugares no visitados',
 
             resetView: 'Restablecer vista',
             pauseAnimation: 'Pausar animación',
@@ -1382,7 +1452,13 @@
             weeks: 'Semanas',
             daysUnit: 'Días',
 
-            unvisitedNeighboursLabel: 'Vecinos no visitados',
+            unvisitedNeighboursLabel: 'Países no visitados',
+            unvisitedPlaces: 'Lugares no visitados',
+            unvisitedLabel: 'No visitado',
+            visaFree: 'Sin visa',
+            visaOnArrival: 'Visa a la llegada',
+            eVisa: 'e-Visa',
+            visaRequired: 'Visa requerida',
 
             asia: 'Asia',
             europe: 'Europa',
@@ -1390,9 +1466,11 @@
             americas: 'Américas',
             region_other: 'Otros',
             disputed: 'No reconocidos',
+            specialTerritories: 'Territorios especiales',
             southAmerica: 'América del Sur',
             africa: 'África',
             oceania: 'Oceanía',
+            antarctica: 'Antártida',
             middleEast: 'Oriente Medio',
 
             achievementsTitle: 'Logros',
@@ -1432,6 +1510,10 @@
             achJetSetDesc: 'Visitar 3+ continentes en el mismo año',
             achYearRoundName: 'Viajero todo el año',
             achYearRoundDesc: 'Hacer viajes en los 12 meses del año',
+            achAntarcticaName: 'Explorador del hielo',
+            achAntarcticaDesc: 'Pisar la Antártida',
+            achSpaceLaunchName: 'Explorador espacial',
+            achSpaceLaunchDesc: 'Visitar un sitio de lanzamiento espacial (Baikonur, Cabo Cañaveral o Wenchang)',
 
             achVisaDesc: 'Visado obtenido para {country}',
             achPowerTourName: 'Tour de potencias mundiales',
@@ -1481,6 +1563,8 @@
             achMachuPicchuDesc: 'Visitar Machu Picchu',
             achSaltFlatsName: 'Espejo del cielo',
             achSaltFlatsDesc: 'Visitar el Salar de Uyuni',
+            achPanmunjomName: 'El paralelo 38',
+            achPanmunjomDesc: 'Visitar la DMZ en Panmunjom',
 
             visaAlgeria: 'Rosa del desierto',
             visaUSA: 'Empire State of Mind',

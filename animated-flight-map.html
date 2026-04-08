@@ -862,6 +862,7 @@
             color: #ffffff;
             display: flex;
             flex-direction: column;
+            overflow: visible;
         }
 
         @media (max-width: 768px) {
@@ -983,8 +984,7 @@
             color: #ffffff;
             height: 1.6em;
             line-height: 1.4;
-            overflow: hidden;
-            max-width: 100%;
+            overflow: visible;
         }
 
         @media (max-width: 768px) {
@@ -1000,9 +1000,8 @@
         .stat-value.highlight {
             color: #4CAF50;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            height: 1.6em;
+            overflow: visible;
+            height: auto;
         }
 
         /* Animation effects for statistics */
@@ -1618,7 +1617,7 @@
 
         .widget-row-tooltip {
             position: fixed;
-            transform: translate(-50%, -100%);
+            transform: translateY(-100%);
             background: linear-gradient(180deg, rgba(44,44,44,0.98), rgba(32,32,32,0.98));
             border-radius: 8px;
             padding: 8px 12px;
@@ -1707,17 +1706,30 @@
         /* Unvisited Neighbors */
         .neighbors-legend {
             display: flex;
-            gap: 21px;
-            flex-wrap: wrap;
+            gap: 10px;
+            flex-wrap: nowrap;
             margin-top: 14px;
+            align-items: center;
         }
         .neighbors-legend-item {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 11px;
+            gap: 3px;
+            font-size: 10px;
             color: #b6b6b6;
             line-height: 0.5;
+            white-space: nowrap;
+        }
+        .neighbors-legend-visa {
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+            align-items: center;
+            padding: 4px 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.03);
+            width: 100%;
         }
         .neighbors-dot {
             display: inline-block;
@@ -1732,17 +1744,42 @@
         .neighbors-regions {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
-            margin-top: 18px;
+            grid-auto-flow: dense;
+            gap: 8px;
+            margin-top: 14px;
         }
         .neighbors-region {
             background: rgba(40, 40, 40, 0.3);
             border: 1px solid #2a2a2a;
             border-radius: 6px;
-            padding: 8px;
+            padding: 6px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
+        }
+        .neighbors-region.region-wide {
+            grid-column: span 2;
+        }
+        .neighbors-region.region-wide .neighbors-region-list {
+            columns: 2;
+            column-gap: 10px;
+        }
+        .neighbors-region.region-wide .un-row {
+            break-inside: avoid;
+        }
+        .neighbors-region.region-full {
+            grid-column: 1 / -1;
+        }
+        .neighbors-region.region-full .neighbors-region-list {
+            columns: 3;
+            column-gap: 10px;
+        }
+        .neighbors-region.region-full .un-row {
+            break-inside: avoid;
+            padding: 3px 0;
+        }
+        .neighbors-region.region-full .un-name {
+            font-size: 11px;
         }
         .neighbors-region-label {
             font-size: 9px;
@@ -1766,13 +1803,13 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 7px 0;
+            padding: 4px 0;
             border-bottom: 1px solid #2a2a2a;
             cursor: default;
         }
         .un-row:last-child { border-bottom: none; }
         .un-name {
-            font-size: 12px;
+            font-size: 11px;
             color: #ccc;
             white-space: nowrap;
             min-width: 0;
@@ -1780,9 +1817,6 @@
             display: flex;
             align-items: center;
             gap: 4px;
-        }
-        .un-borders {
-            display: none;
         }
 
         /* Return Visits */
@@ -2116,7 +2150,7 @@
 
             <!-- Row 5: Unvisited Neighbors (full) -->
             <div class="widget-card full">
-                <div class="widget-title" data-i18n="unvisitedNeighbours">Unvisited Neighbours</div>
+                <div class="widget-title" data-i18n="unvisitedNeighbours">Unvisited Countries/Places</div>
                 <div id="unvisitedNeighbors"></div>
             </div>
         </div>
@@ -2140,6 +2174,7 @@
     <script src="widget/cost-choropleth.js"></script>
     <script src="widget/duration-trend.js"></script>
     <script src="widget/records-cards.js"></script>
+    <script src="data/visa-sg.js"></script>
     <script src="widget/unvisited-neighbors.js"></script>
     <script src="widget/return-visits.js"></script>
     <script src="widget/longest-stays.js"></script>

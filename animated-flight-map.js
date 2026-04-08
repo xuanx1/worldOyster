@@ -360,7 +360,7 @@ class AnimatedFlightMap {
             minZoom: 1.45,
             maxZoom: 12,
             zoomControl: false,
-            dragging: false,
+            dragging: true,
             worldCopyJump: true,
             maxBounds: worldBounds,
             maxBoundsViscosity: 1.0 // Makes the bounds "sticky"
@@ -515,19 +515,8 @@ class AnimatedFlightMap {
     }
 
     updatePanningState() {
-        const currentZoom = this.map.getZoom();
-        const minZoom = this.map.options.minZoom;
-        
-        // Enable panning only when zoomed in beyond the minimum zoom level
-        if (currentZoom > minZoom) {
-            if (!this.map.dragging.enabled()) {
-                this.map.dragging.enable();
-            }
-        } else {
-            if (this.map.dragging.enabled()) {
-                this.map.dragging.disable();
-            }
-            this.map.setView([20, 100], minZoom);
+        if (!this.map.dragging.enabled()) {
+            this.map.dragging.enable();
         }
     }
 

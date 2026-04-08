@@ -23,6 +23,9 @@
     let goldFrequentFlyer = false;   // Frequent Flyer (now platinum)
     let goldNewWorld = false;        // New World Explorer gold
     let goldEU = false;              // EU Complete gold
+    let goldAntarctica = false;       // Visit Antarctica gold
+    let silverSpaceLaunch = false;    // Space launch site silver
+    const spaceLaunchSites = new Set(); // tracks which launch sites visited
     const continentsPerYear = {};    // year → Set of continents visited
     const monthsWithTrips = new Set(); // month indices (0-11) with any trip
     let cityVisitCounts = {};        // cityKey → visit count
@@ -41,6 +44,9 @@
         'Philippines': 'ph', 'India': 'in', 'Sri Lanka': 'lk', 'Bangladesh': 'bd',
         'Bhutan': 'bt', 'Nepal': 'np', 'Pakistan': 'pk', 'Afghanistan': 'af',
         'Maldives': 'mv', 'Mongolia': 'mn', 'Brunei': 'bn', 'Timor-Leste': 'tl',
+        'Andaman and Nicobar Islands': 'in',
+        'Christmas Island': 'cx', 'Cocos Islands': 'cc',
+        'British Indian Ocean Territory': 'io',
         'Uzbekistan': 'uz', 'Kazakhstan': 'kz', 'Turkmenistan': 'tm',
         'Kyrgyzstan': 'kg', 'Tajikistan': 'tj',
         'Azerbaijan': 'az', 'Georgia': 'ge', 'Armenia': 'am',
@@ -48,7 +54,7 @@
         'Israel': 'il', 'Palestine': 'ps', 'Jordan': 'jo', 'Lebanon': 'lb',
         'Saudi Arabia': 'sa', 'UAE': 'ae', 'Oman': 'om', 'Kuwait': 'kw',
         'Qatar': 'qa', 'Bahrain': 'bh', 'Iraq': 'iq', 'Iran': 'ir',
-        'Syria': 'sy', 'Yemen': 'ye', 'Turkey': 'tr',
+        'Syria': 'sy', 'Yemen': 'ye', 'Socotra': 'ye', 'Turkey': 'tr',
         // Europe
         'UK': 'gb', 'Ireland': 'ie', 'France': 'fr', 'Germany': 'de',
         'Italy': 'it', 'Spain': 'es', 'Portugal': 'pt', 'Netherlands': 'nl',
@@ -67,6 +73,7 @@
         'Ukraine': 'ua',
         'Faroe Islands': 'fo', 'Greenland': 'gl', 'Guernsey': 'gg',
         'Jersey': 'je', 'Isle of Man': 'im',
+        'Svalbard': 'sj', 'Azores': 'pt', 'Madeira': 'pt', 'Canary Islands': 'es',
         // Africa
         'Egypt': 'eg', 'Morocco': 'ma', 'Tunisia': 'tn', 'Algeria': 'dz',
         'Libya': 'ly', 'Sudan': 'sd', 'South Sudan': 'ss',
@@ -85,6 +92,8 @@
         'Eritrea': 'er', 'Somalia': 'so', 'Angola': 'ao',
         'Lesotho': 'ls', 'Eswatini': 'sz',
         'Western Sahara': 'eh', 'São Tomé and Príncipe': 'st',
+        'Réunion': 're', 'Mayotte': 'yt', 'Saint Helena': 'sh',
+        'Ascension Island': 'sh', 'Tristan da Cunha': 'sh',
         // North America
         'USA': 'us', 'Canada': 'ca', 'Mexico': 'mx',
         'Cuba': 'cu', 'Jamaica': 'jm', 'Haiti': 'ht',
@@ -99,6 +108,10 @@
         'Bermuda': 'bm', 'Cayman Islands': 'ky',
         'Turks and Caicos Islands': 'tc',
         'British Virgin Islands': 'vg', 'Anguilla': 'ai', 'Montserrat': 'ms',
+        'Aruba': 'aw', 'Curaçao': 'cw', 'Sint Maarten': 'sx', 'Bonaire': 'bq',
+        'Puerto Rico': 'pr', 'US Virgin Islands': 'vi',
+        'Guadeloupe': 'gp', 'Martinique': 'mq', 'Saint Barthélemy': 'bl',
+        'French Guiana': 'gf',
         // South America
         'Colombia': 'co', 'Peru': 'pe', 'Bolivia': 'bo', 'Chile': 'cl',
         'Brazil': 'br', 'Argentina': 'ar', 'Uruguay': 'uy', 'Paraguay': 'py',
@@ -110,10 +123,17 @@
         'Vanuatu': 'vu', 'Solomon Islands': 'sb', 'Kiribati': 'ki',
         'Micronesia': 'fm', 'Marshall Islands': 'mh', 'Palau': 'pw',
         'Tuvalu': 'tv', 'Nauru': 'nr', 'Niue': 'nu', 'Cook Islands': 'ck',
+        'American Samoa': 'as', 'French Polynesia': 'pf', 'Guam': 'gu', 'Hawaii': 'us',
+        'New Caledonia': 'nc', 'Norfolk Island': 'nf', 'Northern Mariana Islands': 'mp',
+        'Pitcairn Islands': 'pn', 'Tokelau': 'tk', 'Wallis and Futuna': 'wf',
         // Unrecognised territories
         'Transnistria': 'transnistria', 'Abkhazia': 'abkhazia',
         'South Ossetia': 'south-ossetia', 'Northern Cyprus': 'trnc',
-        'Somaliland': 'somaliland', 'Republic of Artsakh': 'artsakh'
+        'Somaliland': 'somaliland', 'Artsakh': 'artsakh',
+        'Antarctica': 'aq', 'GBAO': 'tj', 'Baikonur': 'kz',
+        'Kaliningrad': 'ru', 'Ceuta': 'es', 'Melilla': 'es',
+        'Rapa Nui': 'cl', 'Galapagos': 'ec',
+        'Kish Island': 'ir', 'Panmunjom': 'kr'
     };
 
     // Expose for use by other modules (e.g. current journey flags)
@@ -268,7 +288,7 @@
     };
 
     const UNRECOGNISED_TERRITORIES = [
-        'Transnistria', 'Abkhazia', 'South Ossetia', 'Northern Cyprus', 'Somaliland', 'Republic of Artsakh'
+        'Kosovo', 'Transnistria', 'Abkhazia', 'South Ossetia', 'Northern Cyprus', 'Somaliland', 'Artsakh'
     ];
 
     function trophySVG(color, size) {
@@ -831,6 +851,15 @@
             total: 12
         });
 
+        // Gold — Visit Antarctica
+        achievements.push({
+            tier: 'gold', id: 'antarctica',
+            name: t('achAntarcticaName'),
+            desc: t('achAntarcticaDesc'),
+            earned: goldAntarctica,
+            earnedDate: earnedDates['antarctica']
+        });
+
         // Silver — visa achievements
         const VISA_I18N = {
             'Algeria': 'visaAlgeria', 'USA': 'visaUSA', 'China': 'visaChina',
@@ -893,6 +922,15 @@
             });
         });
 
+        // Silver — Space Explorer
+        achievements.push({
+            tier: 'silver', id: 'spacelaunch',
+            name: t('achSpaceLaunchName'),
+            desc: t('achSpaceLaunchDesc'),
+            earned: silverSpaceLaunch,
+            earnedDate: earnedDates['spacelaunch']
+        });
+
         // Bronze — special locations first
         const SPECIAL_I18N = {
             'versailles': ['achVersaillesName','achVersaillesDesc'],
@@ -912,7 +950,8 @@
             'nyc': ['achNYCName','achNYCDesc'],
             'nola': ['achNOLAName','achNOLADesc'],
             'cusco': ['achMachuPicchuName','achMachuPicchuDesc'],
-            'uyuni': ['achSaltFlatsName','achSaltFlatsDesc']
+            'uyuni': ['achSaltFlatsName','achSaltFlatsDesc'],
+            'panmunjom': ['achPanmunjomName','achPanmunjomDesc']
         };
         SPECIAL_BRONZE.forEach(sb => {
             const keys = SPECIAL_I18N[sb.id];
@@ -1358,6 +1397,12 @@
             name: 'Mirror of the Sky',
             desc: 'Visit the Bolivia Salt Flats',
             match: city => (city.name || '').trim().toLowerCase() === 'uyuni'
+        },
+        {
+            id: 'panmunjom',
+            name: 'The 38th Parallel',
+            desc: 'Visit the DMZ at Panmunjom',
+            match: city => ['panmunjom', 'dmz', 'jsa'].includes((city.name || '').trim().toLowerCase())
         }
     ];
 
@@ -1510,6 +1555,13 @@
                     queue('gold', _t('achNewWorldName'), _t('achNewWorldDesc'), 'newworld');
                 }
             }
+
+            // Gold: Visit Antarctica
+            if (!goldAntarctica && country === 'Antarctica') {
+                goldAntarctica = true;
+                earnedDates['antarctica'] = city.flightDate || null;
+                queue('gold', _t('achAntarcticaName'), _t('achAntarcticaDesc'), 'antarctica');
+            }
         }
 
         // Silver visa — runs on every visit so date-gated visas (e.g. Turkey) trigger on later flights
@@ -1553,12 +1605,24 @@
                     'nyc': ['achNYCName','achNYCDesc'],
                     'nola': ['achNOLAName','achNOLADesc'],
                     'cusco': ['achMachuPicchuName','achMachuPicchuDesc'],
-                    'uyuni': ['achSaltFlatsName','achSaltFlatsDesc']
+                    'uyuni': ['achSaltFlatsName','achSaltFlatsDesc'],
+            'panmunjom': ['achPanmunjomName','achPanmunjomDesc']
                 };
                 const keys = SPECIAL_I18N[sb.id];
                 queue('bronze', keys ? _t(keys[0]) : sb.name, keys ? _t(keys[1]) : sb.desc, `special-${sb.id}`);
             }
         });
+
+        // Silver: Space Explorer — visit any space launch site
+        if (!silverSpaceLaunch) {
+            const _cn = (city.name || '').trim().toLowerCase();
+            if (['baikonur'].includes(_cn) || ['cape canaveral', 'kennedy space center'].includes(_cn) || ['wenchang'].includes(_cn)) {
+                spaceLaunchSites.add(_cn === 'kennedy space center' ? 'cape canaveral' : _cn);
+                silverSpaceLaunch = true;
+                earnedDates['spacelaunch'] = city.flightDate || null;
+                queue('silver', _t('achSpaceLaunchName'), _t('achSpaceLaunchDesc'), 'spacelaunch');
+            }
+        }
 
         // Gold: Jet Set Year
         if (!goldJetSetYear && city.flightDate) {
@@ -1651,6 +1715,9 @@
         goldFrequentFlyer = false;
         goldNewWorld = false;
         goldEU = false;
+        goldAntarctica = false;
+        silverSpaceLaunch = false;
+        spaceLaunchSites.clear();
         Object.keys(continentsPerYear).forEach(k => delete continentsPerYear[k]);
         monthsWithTrips.clear();
         cityVisitCounts = {};
@@ -1717,6 +1784,9 @@
                     if (!goldEU && EU_COUNTRIES.has(country) && [...EU_COUNTRIES].every(c => seenCountries.has(c))) {
                         goldEU = true; earnedDates['euComplete'] = city.flightDate || null;
                     }
+                    if (!goldAntarctica && country === 'Antarctica') {
+                        goldAntarctica = true; earnedDates['antarctica'] = city.flightDate || null;
+                    }
                 }
             }
             const cityName = (city.name || '').trim().toLowerCase();
@@ -1755,6 +1825,14 @@
                     earnedDates[`special-${sb.id}`] = city.flightDate || null;
                 }
             });
+            // Silver: Space Explorer pre-compute
+            if (!silverSpaceLaunch) {
+                const _scn = (city.name || '').trim().toLowerCase();
+                if (['baikonur', 'cape canaveral', 'kennedy space center', 'wenchang'].includes(_scn)) {
+                    silverSpaceLaunch = true;
+                    earnedDates['spacelaunch'] = city.flightDate || null;
+                }
+            }
             // 10-year anniversary
             if (firstTripDate && city.flightDate && !platinum10Year) {
                 const currentDate = new Date(city.flightDate);

@@ -80,11 +80,16 @@ Singapore,Johor Bahru,bus,2,3/8/2022
 Johor Bahru,Singapore,bus,2,3/8/2022
 Singapore,Johor Bahru,bus,2,11/8/2022
 Johor Bahru,Singapore,bus,2,11/8/2022
+Seoul,Paju,train,1.05,19/8/2022
+Paju,Panmunjom,car,8,19/8/2022
+Panmunjom,Seoul,car,21,19/8/2022
 Seoul,Busan,train,20.35,21/8/2022
 Busan,Daegu,train,20.35,21/8/2022
 Daegu,Busan,train,20.35,21/8/2022
 Busan,Daejeon,train,20.35,22/8/2022
 Daejeon,Busan,train,20.35,22/8/2022
+Seoul,Incheon,train,1.25,25/8/2022
+Incheon,Seoul,train,1.25,25/8/2022
 Milan,San Marino,train,19.5,31/10/2022
 San Marino,Milan,train,19.5,31/10/2022
 Milan,Verona,train,30.45,10/11/2022
