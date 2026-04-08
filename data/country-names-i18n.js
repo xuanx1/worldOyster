@@ -195,7 +195,7 @@
         'South Ossetia': { ar: 'أوسيتيا الجنوبية', zh: '南奥塞梯', fr: 'Ossétie du Sud', ru: 'Южная Осетия', es: 'Osetia del Sur' },
         'Northern Cyprus': { ar: 'قبرص الشمالية', zh: '北塞浦路斯', fr: 'Chypre du Nord', ru: 'Северный Кипр', es: 'Chipre del Norte' },
         'Somaliland': { ar: 'أرض الصومال', zh: '索马里兰', fr: 'Somaliland', ru: 'Сомалиленд', es: 'Somalilandia' },
-        'Artsakh': { ar: 'جمهورية أرتساخ', zh: '阿尔察赫共和国', fr: "République d'Artsakh", ru: 'Республика Арцах', es: 'República de Artsaj' },
+        'Artsakh': { ar: 'جمهورية أرتساخ', zh: '阿尔察赫', fr: "Artsakh", ru: 'Арцах', es: 'Artsaj' },
         'UAE': { ar: 'الإمارات', zh: '阿联酋', fr: 'EAU', ru: 'ОАЭ', es: 'EAU' },
         'Uganda': { ar: 'أوغندا', zh: '乌干达', fr: 'Ouganda', ru: 'Уганда', es: 'Uganda' },
         'UK': { ar: 'المملكة المتحدة', zh: '英国', fr: 'Royaume-Uni', ru: 'Великобритания', es: 'Reino Unido' },

@@ -569,7 +569,7 @@
             mainTitle2: '你的舞台？🦪',
 
             export: '导出',
-            insights: '数据洞察',
+            insights: '数据面板',
             close: '关闭',
 
             travelStatistics: '旅行统计',
