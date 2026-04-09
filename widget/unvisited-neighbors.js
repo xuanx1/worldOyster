@@ -38,29 +38,29 @@
         'Turkey': ['Greece', 'Bulgaria', 'Georgia', 'Armenia', 'Azerbaijan', 'Iran', 'Iraq', 'Syria'],
         'Cyprus': ['Turkey'],
         'Belgium': ['France', 'Netherlands', 'Germany'],
-        'Japan': ['South Korea', 'China', 'ROC (Taiwan)'],
-        'South Korea': ['North Korea', 'Japan'],
-        'China': ['North Korea', 'South Korea', 'Japan', 'ROC (Taiwan)', 'Mongolia', 'Russia', 'Kazakhstan', 'Kyrgyzstan', 'Tajikistan', 'Afghanistan', 'Pakistan', 'India', 'Nepal', 'Bhutan', 'Myanmar', 'Laos', 'Vietnam'],
-        'North Korea': ['South Korea', 'China', 'Russia'],
-        'ROC (Taiwan)': ['China', 'Japan', 'Philippines'],
+        'Japan': ['ROK Korea', 'PR China', 'ROC Taiwan'],
+        'ROK Korea': ['DPR Korea', 'Japan'],
+        'PR China': ['DPR Korea', 'ROK Korea', 'Japan', 'ROC Taiwan', 'Mongolia', 'Russia', 'Kazakhstan', 'Kyrgyzstan', 'Tajikistan', 'Afghanistan', 'Pakistan', 'India', 'Nepal', 'Bhutan', 'Myanmar', 'Laos', 'Vietnam'],
+        'DPR Korea': ['ROK Korea', 'PR China', 'Russia'],
+        'ROC Taiwan': ['PR China', 'Japan', 'Philippines'],
         'Singapore': ['Malaysia', 'Indonesia'],
         'Malaysia': ['Singapore', 'Indonesia', 'Thailand', 'Brunei'],
         'Indonesia': ['Malaysia', 'Singapore', 'Timor-Leste', 'Papua New Guinea'],
-        'Myanmar': ['China', 'India', 'Bangladesh', 'Laos', 'Thailand'],
+        'Myanmar': ['PR China', 'India', 'Bangladesh', 'Laos', 'Thailand'],
         'Sri Lanka': ['India'],
         'Thailand': ['Myanmar', 'Laos', 'Cambodia', 'Malaysia'],
-        'Vietnam': ['China', 'Laos', 'Cambodia'],
-        'Laos': ['China', 'Myanmar', 'Thailand', 'Vietnam', 'Cambodia'],
+        'Vietnam': ['PR China', 'Laos', 'Cambodia'],
+        'Laos': ['PR China', 'Myanmar', 'Thailand', 'Vietnam', 'Cambodia'],
         'Cambodia': ['Thailand', 'Laos', 'Vietnam'],
-        'Philippines': ['ROC (Taiwan)', 'Malaysia', 'Indonesia'],
-        'India': ['Pakistan', 'China', 'Nepal', 'Bhutan', 'Bangladesh', 'Myanmar', 'Sri Lanka'],
+        'Philippines': ['ROC Taiwan', 'Malaysia', 'Indonesia'],
+        'India': ['Pakistan', 'PR China', 'Nepal', 'Bhutan', 'Bangladesh', 'Myanmar', 'Sri Lanka'],
         'Bangladesh': ['India', 'Myanmar'],
-        'Bhutan': ['China', 'India'],
+        'Bhutan': ['PR China', 'India'],
         'Uzbekistan': ['Kazakhstan', 'Kyrgyzstan', 'Tajikistan', 'Turkmenistan', 'Afghanistan'],
-        'Kazakhstan': ['Russia', 'China', 'Kyrgyzstan', 'Uzbekistan', 'Turkmenistan'],
+        'Kazakhstan': ['Russia', 'PR China', 'Kyrgyzstan', 'Uzbekistan', 'Turkmenistan'],
         'Turkmenistan': ['Kazakhstan', 'Uzbekistan', 'Afghanistan', 'Iran'],
-        'Mongolia': ['China', 'Russia'],
-        'Russia': ['Norway', 'Finland', 'Estonia', 'Latvia', 'Lithuania', 'Poland', 'Belarus', 'Ukraine', 'Georgia', 'Azerbaijan', 'Kazakhstan', 'China', 'Mongolia', 'North Korea'],
+        'Mongolia': ['PR China', 'Russia'],
+        'Russia': ['Norway', 'Finland', 'Estonia', 'Latvia', 'Lithuania', 'Poland', 'Belarus', 'Ukraine', 'Georgia', 'Azerbaijan', 'Kazakhstan', 'PR China', 'Mongolia', 'DPR Korea'],
         'Estonia': ['Russia', 'Latvia', 'Finland'],
         'Ukraine': ['Poland', 'Slovakia', 'Hungary', 'Romania', 'Moldova', 'Russia', 'Belarus'],
         'Georgia': ['Russia', 'Turkey', 'Armenia', 'Azerbaijan'],
@@ -106,11 +106,11 @@
         'Sudan': ['Egypt', 'Ethiopia', 'South Sudan', 'Eritrea', 'Libya', 'Chad', 'Central African Republic'],
         'Yemen': ['Saudi Arabia', 'Oman'],
         'Libya': ['Egypt', 'Tunisia', 'Algeria', 'Niger', 'Chad', 'Sudan'],
-        'Pakistan': ['India', 'China', 'Afghanistan', 'Iran'],
-        'Nepal': ['India', 'China'],
-        'Afghanistan': ['Pakistan', 'Iran', 'Turkmenistan', 'Uzbekistan', 'Tajikistan', 'China'],
-        'Kyrgyzstan': ['Kazakhstan', 'Uzbekistan', 'Tajikistan', 'China'],
-        'Tajikistan': ['Kyrgyzstan', 'Uzbekistan', 'Afghanistan', 'China']
+        'Pakistan': ['India', 'PR China', 'Afghanistan', 'Iran'],
+        'Nepal': ['India', 'PR China'],
+        'Afghanistan': ['Pakistan', 'Iran', 'Turkmenistan', 'Uzbekistan', 'Tajikistan', 'PR China'],
+        'Kyrgyzstan': ['Kazakhstan', 'Uzbekistan', 'Tajikistan', 'PR China'],
+        'Tajikistan': ['Kyrgyzstan', 'Uzbekistan', 'Afghanistan', 'PR China']
     };
 
     // Coordinates for countries too small or missing from 110m GeoJSON
@@ -155,10 +155,10 @@
         'Czechia': 'Czech Republic',
         'Bosnia and Herz.': 'Bosnia and Herzegovina',
         'United Arab Emirates': 'UAE',
-        'Taiwan': 'ROC (Taiwan)',
+        'Taiwan': 'ROC Taiwan',
         'Myanmar': 'Myanmar',
-        'Dem. Rep. Korea': 'North Korea',
-        'Korea': 'South Korea',
+        'Dem. Rep. Korea': 'DPR Korea',
+        'Korea': 'ROK Korea',
         'Macedonia': 'North Macedonia',
         'eSwatini': 'Eswatini',
         'Lao PDR': 'Laos',
@@ -172,8 +172,9 @@
         'Dem. Rep. Congo': 'DR Congo',
         'Congo': 'Republic of the Congo',
         "CA'te d'Ivoire": "Côte d'Ivoire",
-        'W. Sahara': 'Western Sahara',
-        'N. Cyprus': 'Northern Cyprus'
+        'W. Sahara': 'Sahrawi Republic',
+        'N. Cyprus': 'Northern Cyprus',
+        'China': 'PR China'
     };
 
     function waitForData(cb) {
@@ -224,13 +225,13 @@
         'Jersey': 'special', 'Madeira': 'special', 'Svalbard': 'special',
         // Asia
         'Afghanistan': 'asia', 'Armenia': 'asia', 'Bangladesh': 'asia',
-        'Bhutan': 'asia', 'Brunei': 'asia', 'Cambodia': 'asia', 'China': 'asia',
+        'Bhutan': 'asia', 'Brunei': 'asia', 'Cambodia': 'asia', 'PR China': 'asia',
         'Hong Kong SAR': 'special', 'India': 'asia', 'Indonesia': 'asia',
         'Iran': 'asia', 'Iraq': 'asia', 'Japan': 'asia', 'Kazakhstan': 'asia',
         'Kyrgyzstan': 'asia', 'Laos': 'asia', 'Macau SAR': 'special', 'Malaysia': 'asia',
         'Maldives': 'asia', 'Mongolia': 'asia', 'Myanmar': 'asia', 'Nepal': 'asia',
-        'North Korea': 'asia', 'Pakistan': 'asia', 'Philippines': 'asia', 'ROC (Taiwan)': 'asia',
-        'Singapore': 'asia', 'South Korea': 'asia', 'Sri Lanka': 'asia',
+        'DPR Korea': 'asia', 'Pakistan': 'asia', 'Philippines': 'asia', 'ROC Taiwan': 'asia',
+        'Singapore': 'asia', 'ROK Korea': 'asia', 'Sri Lanka': 'asia',
         'Syria': 'asia', 'Tajikistan': 'asia', 'Thailand': 'asia', 'Timor-Leste': 'asia',
         'Turkmenistan': 'asia', 'Uzbekistan': 'asia', 'Vietnam': 'asia',
         // Middle East
@@ -256,7 +257,7 @@
         'Seychelles': 'africa', 'Sierra Leone': 'africa', 'Somalia': 'africa',
         'South Africa': 'africa', 'South Sudan': 'africa', 'Sudan': 'africa',
         'Tanzania': 'africa', 'Togo': 'africa', 'Tunisia': 'africa', 'Uganda': 'africa',
-        'Western Sahara': 'disputed', 'Zambia': 'africa', 'Zimbabwe': 'africa',
+        'Sahrawi Republic': 'disputed', 'Zambia': 'africa', 'Zimbabwe': 'africa',
         // African territories
         'Mayotte': 'special', 'Réunion': 'special', 'Saint Helena': 'special',
         'Ascension Island': 'special', 'Tristan da Cunha': 'special',
@@ -307,7 +308,10 @@
         'Somaliland': 'disputed',
         'Artsakh': 'disputed',
         // Special (standalone)
-        'Antarctica': 'special', 'Gorno-Badakhshan': 'special', 'Kish Island': 'special', 'Panmunjom': 'special'
+        'Antarctica': 'special', 'Gorno-Badakhshan': 'special', 'Kish Island': 'special', 'Panmunjom': 'special',
+        'Kaliningrad': 'special', 'Baikonur': 'special',
+        'Ceuta': 'special', 'Melilla': 'special',
+        'Rapa Nui': 'special', 'Galapagos': 'special'
     };
 
     // Continent association for special territories (for sub-grouping in legend)
@@ -352,29 +356,47 @@
         const cityCountryMap = window.CITY_TO_COUNTRY || {};
         const visited = new Set();
 
+        // Helper: extract clean city name from a flight label like
+        // "Hong Kong / Hong Kong International (HKG/VHHH)"  →  "Hong Kong"
+        function extractCity(raw) {
+            if (!raw) return '';
+            const slash = raw.indexOf(' / ');
+            return (slash > 0 ? raw.substring(0, slash) : raw.split('(')[0]).trim();
+        }
+
+        // Helper: mark a city (and its country / territory) as visited
+        function markCity(cityName) {
+            if (!cityName) return;
+            const country = cityCountryMap[cityName];
+            if (country) visited.add(TERRITORY_MAP[country] || country);
+            if (CITY_TERRITORY[cityName]) visited.add(CITY_TERRITORY[cityName]);
+        }
+
         data.forEach(j => {
             if (j.type === 'land') {
-                const c1 = cityCountryMap[j.origin];
-                const c2 = cityCountryMap[j.destination];
-                if (c1) visited.add(TERRITORY_MAP[c1] || c1);
-                if (c2) visited.add(TERRITORY_MAP[c2] || c2);
-                // Check city names for territory matches
-                if (CITY_TERRITORY[j.origin]) visited.add(CITY_TERRITORY[j.origin]);
-                if (CITY_TERRITORY[j.destination]) visited.add(CITY_TERRITORY[j.destination]);
+                markCity(j.origin);
+                markCity(j.destination);
             } else {
+                // Resolve via airport code
                 const fromCode = j.fromCode || (j.from && j.from.match(/\(([A-Z]{3})\//)?.[1]);
                 const toCode = j.toCode || (j.to && j.to.match(/\(([A-Z]{3})\//)?.[1]);
                 const fc = countryMap[fromCode];
                 const tc = countryMap[toCode];
                 if (fc) visited.add(TERRITORY_MAP[fc] || fc);
                 if (tc) visited.add(TERRITORY_MAP[tc] || tc);
-                // Check city names in flight labels
-                const fromCity = j.from && j.from.split('(')[0].trim();
-                const toCity = j.to && j.to.split('(')[0].trim();
-                if (CITY_TERRITORY[fromCity]) visited.add(CITY_TERRITORY[fromCity]);
-                if (CITY_TERRITORY[toCity]) visited.add(CITY_TERRITORY[toCity]);
+                // Resolve via city name in label
+                markCity(extractCity(j.from));
+                markCity(extractCity(j.to));
             }
         });
+
+        // Also check the cities array (covers any source)
+        const cities = (window.flightMap && window.flightMap.cities) || [];
+        cities.forEach(c => {
+            const name = c.name && c.name.trim();
+            markCity(name);
+        });
+
         return visited;
     }
 
@@ -449,6 +471,18 @@
         // Hide tooltip when mouse leaves the map
         mapDiv.addEventListener('mouseleave', hideMapTip);
 
+        // Track last hovered GeoJSON layer to force-reset on next hover
+        // (bringToFront can swallow mouseout on the previous layer)
+        var _hoveredLayer = null;
+        var _hoveredReset = null;
+        function clearHovered() {
+            if (_hoveredLayer && _hoveredReset) {
+                _hoveredReset.call(_hoveredLayer);
+                _hoveredLayer = null;
+                _hoveredReset = null;
+            }
+        }
+
         // Custom pane: above overlay (400) but below tooltip (650)
         map.createPane('dotPane');
         map.getPane('dotPane').style.zIndex = 600;
@@ -498,8 +532,7 @@
                     matchedCountries.add(appName);
 
                     if (visited.has(appName)) {
-                        const _vSpecial = COUNTRY_REGION[appName] === 'special';
-                        return { fillColor: '#4CAF50', fillOpacity: 0.45, color: _vSpecial ? '#B76E79' : '#4CAF50', weight: _vSpecial ? 2 : 1, opacity: 0.6 };
+                        return { fillColor: '#4CAF50', fillOpacity: 0.45, color: '#4CAF50', weight: 1, opacity: 0.6 };
                     }
                     if (COUNTRY_REGION[appName]) {
                         const _isSpecial = COUNTRY_REGION[appName] === 'special';
@@ -529,26 +562,26 @@
                     if (visited.has(appName)) {
                         const _vLabel = window.i18n ? window.i18n.t('visited') : 'Visited';
                         const _dn = window.translateCountry ? window.translateCountry(appName) : appName;
-                        layer.on('mouseover', function (e) { showMapTip(`<b>${_dn}</b><br>${_vLabel}`, e); this.setStyle({ weight: 2, fillOpacity: 0.7 }); this.bringToFront(); });
+                        const _vReset = function () { hideMapTip(); this.setStyle({ weight: 1, fillOpacity: 0.45 }); };
+                        layer.on('mouseover', function (e) { clearHovered(); showMapTip(`<b>${_dn}</b><br>${_vLabel}`, e); this.setStyle({ weight: 2, fillOpacity: 0.7 }); this.bringToFront(); _hoveredLayer = this; _hoveredReset = _vReset; });
                         layer.on('mousemove', moveMapTip);
-                        layer.on('mouseout', function () { hideMapTip(); this.setStyle({ weight: 1, fillOpacity: 0.45 }); });
+                        layer.on('mouseout', function () { _vReset.call(this); if (_hoveredLayer === this) _hoveredLayer = null; });
                     } else if (COUNTRY_REGION[appName]) {
                         const _dn2 = window.translateCountry ? window.translateCountry(appName) : appName;
                         const _uLabel = window.i18n ? window.i18n.t('unvisitedLabel') : 'Unvisited';
                         const _sp = COUNTRY_REGION[appName] === 'special';
                         const _outlineColor = _sp ? '#B76E79' : '#FFB74D';
+                        const _uReset = function () { hideMapTip(); this.setStyle({ weight: _sp ? 2 : 1, fillOpacity: 1, fillColor: '#1a1a2e', color: _outlineColor }); applyHatch(this, visa); };
                         layer.on('mouseover', function (e) {
+                            clearHovered();
                             showMapTip(`<b>${_dn2}</b><br>${_uLabel}${visaTipHtml(visa)}`, e);
                             this.setStyle({ weight: 2.5, fillOpacity: 1, fillColor: '#1a1a2e', color: '#fff' });
                             this.bringToFront();
                             applyHatch(this, visa);
+                            _hoveredLayer = this; _hoveredReset = _uReset;
                         });
                         layer.on('mousemove', moveMapTip);
-                        layer.on('mouseout', function () {
-                            hideMapTip();
-                            this.setStyle({ weight: _sp ? 2 : 1, fillOpacity: 1, fillColor: '#1a1a2e', color: _outlineColor });
-                            applyHatch(this, visa);
-                        });
+                        layer.on('mouseout', function () { _uReset.call(this); if (_hoveredLayer === this) _hoveredLayer = null; });
                     }
                 }
 
@@ -609,7 +642,7 @@
                     let dotFill, fillOp, strokeColor, weight, opacity, radius;
 
                     if (isVisited) {
-                        dotFill = '#4CAF50'; fillOp = 0.45; strokeColor = isSpecial ? '#B76E79' : '#4CAF50'; weight = isSpecial ? 2 : 1; opacity = 0.6; radius = 5;
+                        dotFill = '#4CAF50'; fillOp = 0.45; strokeColor = '#4CAF50'; weight = 1; opacity = 0.6; radius = 5;
                     } else if (isUnvisited) {
                         dotFill = visaColor(country); fillOp = 0.5; strokeColor = isSpecial ? '#B76E79' : '#FFB74D'; weight = isSpecial ? 2 : 1.5; opacity = 0.8; radius = 5;
                     } else {
@@ -678,19 +711,19 @@
             }
             return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg">${defs}<rect x="1" y="1" width="${s-2}" height="${s-2}" rx="2" fill="${fillAttr}" stroke="${stroke}" stroke-width="1.5" opacity="0.9"/></svg>`;
         }
-        // Count visa categories among unvisited
-        var visaCounts = { free: 0, arrival: 0, evisa: 0, required: 0 };
-        unvisited.forEach(function (c) {
-            var v = visaData[c];
-            if (v && visaCounts.hasOwnProperty(v)) visaCounts[v]++;
-        });
-
         // Collect unrecognised/disputed territories not yet visited
         const disputedTerritories = Object.keys(COUNTRY_REGION)
             .filter(c => COUNTRY_REGION[c] === 'disputed' && !visited.has(c));
         // Collect special territories not yet visited
         const specialTerritories = Object.keys(COUNTRY_REGION)
             .filter(c => COUNTRY_REGION[c] === 'special' && !visited.has(c));
+
+        // Count visa categories among ALL unvisited (countries + special + disputed)
+        var visaCounts = { free: 0, arrival: 0, evisa: 0, required: 0 };
+        unvisited.concat(specialTerritories, disputedTerritories).forEach(function (c) {
+            var v = visaData[c];
+            if (v && visaCounts.hasOwnProperty(v)) visaCounts[v]++;
+        });
 
         let legend = `<div class="neighbors-legend">
             <span class="neighbors-legend-item" data-legend="visited">${legendSvg('rgba(76,175,80,0.5)', '#4CAF50', '')} ${_t('visited')} (${visited.size})</span>
@@ -880,7 +913,7 @@
             Object.keys(countryLayers).forEach(function (country) {
                 var isVisited = visited.has(country);
                 var visa = visaData[country] || '';
-                var type = COUNTRY_REGION[country] === 'special' ? 'special' : (isVisited ? 'visited' : 'unvisited');
+                var type = isVisited ? 'visited' : (COUNTRY_REGION[country] === 'special' ? 'special' : 'unvisited');
                 var match = false;
                 if (filter === 'visited') match = isVisited;
                 else if (filter === 'unvisited') match = type === 'unvisited';
@@ -1036,7 +1069,7 @@
                     return { fillColor: 'transparent', fillOpacity: 0, color: 'transparent', weight: 0, opacity: 0 };
                 }
                 pipMatched.add(an);
-                if (visited.has(an)) { const _ps = COUNTRY_REGION[an] === 'special'; return { fillColor: '#4CAF50', fillOpacity: 0.35, color: _ps ? '#B76E79' : '#4CAF50', weight: _ps ? 1.5 : 0.5, opacity: 0.5 }; }
+                if (visited.has(an)) { return { fillColor: '#4CAF50', fillOpacity: 0.35, color: '#4CAF50', weight: 0.5, opacity: 0.5 }; }
                 if (COUNTRY_REGION[an]) { const _ps2 = COUNTRY_REGION[an] === 'special'; return { fillColor: '#1a1a2e', fillOpacity: 1, color: _ps2 ? '#B76E79' : '#FFB74D', weight: _ps2 ? 1.5 : 0.5, opacity: 0.6 }; }
                 return { fillColor: '#fff', fillOpacity: 0.02, color: '#444', weight: 0.2, opacity: 0.2 };
             }
@@ -1094,7 +1127,7 @@
                 var isU = !!COUNTRY_REGION[country] && !isV;
                 var _pSp = COUNTRY_REGION[country] === 'special';
                 var dFill, dOp, dStroke, dW;
-                if (isV) { dFill = '#4CAF50'; dOp = 0.4; dStroke = _pSp ? '#B76E79' : '#4CAF50'; dW = _pSp ? 1.5 : 0.5; }
+                if (isV) { dFill = '#4CAF50'; dOp = 0.4; dStroke = '#4CAF50'; dW = 0.5; }
                 else if (isU) { dFill = visaColor(country); dOp = 0.45; dStroke = _pSp ? '#B76E79' : '#FFB74D'; dW = _pSp ? 1.5 : 1; }
                 else { dFill = '#fff'; dOp = 0.02; dStroke = '#444'; dW = 0.2; }
                 var dot = L.circleMarker(coords, { radius: 3, fillColor: isU ? '#1a1a2e' : dFill, fillOpacity: isU ? 1 : dOp, color: dStroke, weight: dW, opacity: 0.7 }).addTo(pipMap);
@@ -1164,7 +1197,7 @@
                     var an = NAME_MAP[l.feature.properties.NAME] || l.feature.properties.NAME;
                     var v = visaData[an];
                     if (visited.has(an)) {
-                        l.setStyle({ fillColor: '#4CAF50', fillOpacity: 0.35, color: _puSp ? '#B76E79' : '#4CAF50', weight: _puW });
+                        l.setStyle({ fillColor: '#4CAF50', fillOpacity: 0.35, color: '#4CAF50', weight: _puW });
                     } else {
                         l.setStyle({ fillColor: '#1a1a2e', fillOpacity: 1, color: _puColor, weight: _puW });
                         if (v && l._path) l._path.setAttribute('fill', 'url(#pip-hatch-' + v + ')');
@@ -1177,7 +1210,7 @@
                 var isU = !!COUNTRY_REGION[name] && !isV;
                 var dv = visaData[name] || '';
                 dots.forEach(function (d) {
-                    if (isV) d.setStyle({ radius: 3, fillOpacity: 0.4, color: _puSp ? '#B76E79' : '#4CAF50', weight: _puW });
+                    if (isV) d.setStyle({ radius: 3, fillOpacity: 0.4, color: '#4CAF50', weight: _puW });
                     else if (isU) {
                         d.setStyle({ radius: 3, fillOpacity: 1, fillColor: '#1a1a2e', color: _puColor, weight: _puSp ? 1.5 : 1 });
                         if (dv) { var el = d.getElement(); if (el) el.setAttribute('fill', 'url(#pip-hatch-' + dv + ')'); }

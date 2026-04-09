@@ -37,8 +37,8 @@
     // Complete list of 195 sovereign states + key territories
     const COUNTRY_ISO = {
         // Asia
-        'Japan': 'jp', 'South Korea': 'kr', 'North Korea': 'kp', 'China': 'cn',
-        'Hong Kong SAR': 'hk', 'Macau SAR': 'mo', 'ROC (Taiwan)': 'tw',
+        'Japan': 'jp', 'ROK Korea': 'kr', 'DPR Korea': 'kp', 'PR China': 'cn',
+        'Hong Kong SAR': 'hk', 'Macau SAR': 'mo', 'ROC Taiwan': 'tw',
         'Singapore': 'sg', 'Malaysia': 'my', 'Indonesia': 'id', 'Thailand': 'th',
         'Vietnam': 'vn', 'Cambodia': 'kh', 'Laos': 'la', 'Myanmar': 'mm',
         'Philippines': 'ph', 'India': 'in', 'Sri Lanka': 'lk', 'Bangladesh': 'bd',
@@ -91,7 +91,7 @@
         'Cape Verde': 'cv', 'Mauritania': 'mr', 'Djibouti': 'dj',
         'Eritrea': 'er', 'Somalia': 'so', 'Angola': 'ao',
         'Lesotho': 'ls', 'Eswatini': 'sz',
-        'Western Sahara': 'eh', 'São Tomé and Príncipe': 'st',
+        'Sahrawi Republic': 'eh', 'São Tomé and Príncipe': 'st',
         'Réunion': 're', 'Mayotte': 'yt', 'Saint Helena': 'sh',
         'Ascension Island': 'sh', 'Tristan da Cunha': 'sh',
         // North America
@@ -191,8 +191,8 @@
     // ── Country → Continent mapping (complete) ──
     const COUNTRY_TO_CONTINENT = {
         // Asia
-        'Japan': 'Asia', 'South Korea': 'Asia', 'North Korea': 'Asia', 'China': 'Asia',
-        'Hong Kong SAR': 'Asia', 'Macau SAR': 'Asia', 'ROC (Taiwan)': 'Asia',
+        'Japan': 'Asia', 'ROK Korea': 'Asia', 'DPR Korea': 'Asia', 'PR China': 'Asia',
+        'Hong Kong SAR': 'Asia', 'Macau SAR': 'Asia', 'ROC Taiwan': 'Asia',
         'Singapore': 'Asia', 'Malaysia': 'Asia', 'Indonesia': 'Asia', 'Thailand': 'Asia',
         'Vietnam': 'Asia', 'Cambodia': 'Asia', 'Laos': 'Asia', 'Myanmar': 'Asia',
         'Philippines': 'Asia', 'India': 'Asia', 'Sri Lanka': 'Asia', 'Bangladesh': 'Asia',
@@ -243,7 +243,7 @@
         'Cape Verde': 'Africa', 'Mauritania': 'Africa', 'Djibouti': 'Africa',
         'Eritrea': 'Africa', 'Somalia': 'Africa', 'Angola': 'Africa',
         'Lesotho': 'Africa', 'Eswatini': 'Africa',
-        'Western Sahara': 'Africa', 'São Tomé and Príncipe': 'Africa',
+        'Sahrawi Republic': 'Africa', 'São Tomé and Príncipe': 'Africa',
 
         // North America
         'USA': 'North America', 'Canada': 'North America', 'Mexico': 'North America',
@@ -768,7 +768,7 @@
         });
 
         // Gold — Superpower Passport (requires visa for all 5: Italy/EU, China, USA, India, Russia)
-        const BIG_FIVE_VISA = ['Italy', 'China', 'USA', 'India', 'Russia'];
+        const BIG_FIVE_VISA = ['Italy', 'PR China', 'USA', 'India', 'Russia'];
         const bigFiveCount = BIG_FIVE_VISA.filter(c => visaAwarded[c]).length;
         achievements.push({
             tier: 'gold', id: 'bigfive',
@@ -862,9 +862,9 @@
 
         // Silver — visa achievements
         const VISA_I18N = {
-            'Algeria': 'visaAlgeria', 'USA': 'visaUSA', 'China': 'visaChina',
+            'Algeria': 'visaAlgeria', 'USA': 'visaUSA', 'PR China': 'visaChina',
             'Israel': 'visaIsrael', 'Turkey': 'visaTurkey', 'Italy': 'visaItaly',
-            'Russia': 'visaRussia', 'North Korea': 'visaNorthKorea',
+            'Russia': 'visaRussia', 'DPR Korea': 'visaNorthKorea',
             'India': 'visaIndia', 'Turkmenistan': 'visaTurkmenistan'
         };
         Object.entries(VISA_COUNTRIES).forEach(([country, label]) => {
@@ -878,7 +878,7 @@
         });
 
         // Silver — World Power Tour
-        const POWER_FIVE = ['France', 'China', 'USA', 'India', 'Russia'];
+        const POWER_FIVE = ['France', 'PR China', 'USA', 'India', 'Russia'];
         const powerFiveCount = POWER_FIVE.filter(c => seenCountries.has(c)).length;
         achievements.push({
             tier: 'silver', id: 'powerfive',
@@ -1419,18 +1419,18 @@
     const VISA_COUNTRIES = {
         'Algeria':      'Desert Rose',
         'USA':          'Empire State of Mind',
-        'China':        'Middle Kingdom',
+        'PR China':        'Middle Kingdom',
         'Israel':       'TAN DEX TUAN',
         'Turkey':       'Istanbul, Not Constantinople',
         'Italy':        'Dove Vai?',
         'Russia':       'Matryoshka',
-        'North Korea':  'Kim Says Hi',
+        'DPR Korea':  'Kim Says Hi',
         'India':        'No, I Want The Sticker',
         'Turkmenistan': 'Gates of Hell'
     };
     // Countries in VISA_COUNTRIES that require an explicit visa sticker/stamp
     // and should NOT be auto-awarded simply by visiting the country
-    const VISA_MANUAL = new Set(['China']);
+    const VISA_MANUAL = new Set(['PR China']);
     // Countries whose visa trophy should only auto-award from a specific date
     const VISA_AFTER_DATE = { 'Turkey': new Date('2024-02-08') };
     let visaAwarded = {}; // country → true
@@ -1498,7 +1498,7 @@
 
             // Silver: World Power Tour
             if (!silverBigFive) {
-                const POWER_FIVE = ['France', 'China', 'USA', 'India', 'Russia'];
+                const POWER_FIVE = ['France', 'PR China', 'USA', 'India', 'Russia'];
                 if (POWER_FIVE.every(c => seenCountries.has(c))) {
                     silverBigFive = true;
                     earnedDates['powerfive'] = city.flightDate || null;
@@ -1508,7 +1508,7 @@
 
             // Gold: Superpower Passport (visa required for all 5 incl. China)
             if (!goldBigFive) {
-                const BIG_FIVE_VISA = ['Italy', 'China', 'USA', 'India', 'Russia'];
+                const BIG_FIVE_VISA = ['Italy', 'PR China', 'USA', 'India', 'Russia'];
                 if (BIG_FIVE_VISA.every(c => visaAwarded[c])) {
                     goldBigFive = true;
                     earnedDates['bigfive'] = city.flightDate || null;
@@ -1583,7 +1583,7 @@
 
             // Gold: Superpower Passport (visa required for all 5 incl. China)
             if (!goldBigFive) {
-                const BIG_FIVE_VISA = ['Italy', 'China', 'USA', 'India', 'Russia'];
+                const BIG_FIVE_VISA = ['Italy', 'PR China', 'USA', 'India', 'Russia'];
                 if (BIG_FIVE_VISA.every(c => visaAwarded[c])) {
                     goldBigFive = true;
                     earnedDates['bigfive'] = city.flightDate || null;
@@ -1814,7 +1814,7 @@
             }
             // Track bigfive (visa required for all 5 incl. China)
             if (!goldBigFive) {
-                const BIG_FIVE_VISA = ['Italy', 'China', 'USA', 'India', 'Russia'];
+                const BIG_FIVE_VISA = ['Italy', 'PR China', 'USA', 'India', 'Russia'];
                 if (BIG_FIVE_VISA.every(c => visaAwarded[c])) {
                     goldBigFive = true;
                     earnedDates['bigfive'] = city.flightDate || null;
@@ -1822,7 +1822,7 @@
             }
             // Track powerfive
             if (!silverBigFive) {
-                const POWER_FIVE = ['France', 'China', 'USA', 'India', 'Russia'];
+                const POWER_FIVE = ['France', 'PR China', 'USA', 'India', 'Russia'];
                 if (POWER_FIVE.every(c => seenCountries.has(c))) {
                     silverBigFive = true;
                     earnedDates['powerfive'] = city.flightDate || null;

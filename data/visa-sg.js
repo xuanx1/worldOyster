@@ -3,8 +3,8 @@
 // Categories: 'free' = visa-free, 'arrival' = visa on arrival, 'evisa' = e-Visa, 'required' = visa required
 window.VISA_SG = {
     // Asia
-    'Japan': 'free', 'South Korea': 'free', 'China': 'free',
-    'Hong Kong SAR': 'free', 'Macau SAR': 'free', 'ROC (Taiwan)': 'free',
+    'Japan': 'free', 'ROK Korea': 'free', 'PR China': 'free',
+    'Hong Kong SAR': 'free', 'Macau SAR': 'free', 'ROC Taiwan': 'free',
     'Malaysia': 'free', 'Indonesia': 'free', 'Thailand': 'free',
     'Vietnam': 'free', 'Cambodia': 'free', 'Laos': 'free',
     'Myanmar': 'free', 'Philippines': 'free', 'Brunei': 'free',
@@ -16,7 +16,7 @@ window.VISA_SG = {
     'Kyrgyzstan': 'free', 'Tajikistan': 'free',
     'Gorno-Badakhshan': 'evisa',
     'Azerbaijan': 'evisa', 'Georgia': 'free', 'Armenia': 'free',
-    'North Korea': 'required',
+    'DPR Korea': 'required',
     'Andaman and Nicobar Islands': 'evisa',
     'Christmas Island': 'free', 'Cocos Islands': 'free',
     'British Indian Ocean Territory': 'required',
@@ -69,7 +69,7 @@ window.VISA_SG = {
     'Somalia': 'evisa', 'South Africa': 'free',
     'South Sudan': 'evisa', 'Sudan': 'required',
     'Tanzania': 'free', 'Togo': 'evisa', 'Tunisia': 'free',
-    'Uganda': 'evisa', 'Western Sahara': 'required',
+    'Uganda': 'evisa', 'Sahrawi Republic': 'required',
     'Zambia': 'free', 'Zimbabwe': 'free',
     'Réunion': 'free', 'Mayotte': 'free',
     'Saint Helena': 'free', 'Ascension Island': 'evisa', 'Tristan da Cunha': 'free',

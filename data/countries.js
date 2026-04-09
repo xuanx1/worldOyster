@@ -88,20 +88,20 @@ window.AIRPORT_TO_COUNTRY = {
     'NRT': 'Japan', 'HND': 'Japan', 'KIX': 'Japan', 'NGO': 'Japan', 'CTS': 'Japan', 'ITM': 'Japan',
 
     // Asia - South Korea
-    'ICN': 'South Korea', 'GMP': 'South Korea', 'PUS': 'South Korea', 'CJU': 'South Korea',
+    'ICN': 'ROK Korea', 'GMP': 'ROK Korea', 'PUS': 'ROK Korea', 'CJU': 'ROK Korea',
 
     // Asia - China
-    'PVG': 'China', 'PEK': 'China', 'CAN': 'China', 'PKX': 'China', 'XIY': 'China',
-    'WUH': 'China', 'CKG': 'China', 'TFU': 'China', 'HAK': 'China', 'LHW': 'China',
+    'PVG': 'PR China', 'PEK': 'PR China', 'CAN': 'PR China', 'PKX': 'PR China', 'XIY': 'PR China',
+    'WUH': 'PR China', 'CKG': 'PR China', 'TFU': 'PR China', 'HAK': 'PR China', 'LHW': 'PR China',
 
     // Asia - North Korea
-    'FNJ': 'North Korea',
+    'FNJ': 'DPR Korea',
 
     // Asia - Hong Kong
-    'HKG': 'China',
+    'HKG': 'PR China',
 
     // Asia - Taiwan
-    'TPE': 'ROC (Taiwan)', 'TSA': 'ROC (Taiwan)',
+    'TPE': 'ROC Taiwan', 'TSA': 'ROC Taiwan',
 
     // Asia - Singapore
     'SIN': 'Singapore',
@@ -256,15 +256,15 @@ window.CITY_TO_COUNTRY = {
     'Larnaca': 'Cyprus', 'Kyrenia': 'Northern Cyprus',
 
     // Asia
-    'Seoul': 'South Korea', 'Busan': 'South Korea', 'Pusan': 'South Korea', 'Daegu': 'South Korea', 'Daejeon': 'South Korea',
-    'Incheon': 'South Korea', 'Paju': 'South Korea', 'Panmunjom': 'South Korea',
-    'Pyongyang': 'North Korea', 'Kaesong': 'North Korea', 'Nampo': 'North Korea', 'Sariwon': 'North Korea',
-    'Dandong': 'China',
-    'Beijing': 'China', 'Peking': 'China', 'Tianjin': 'China', 'Shanghai': 'China', 'Chengdu': 'China', 'Chongqing': 'China', 'Wuhan': 'China',
-    'Nanyang': 'China', 'Xian': 'China', "Xi'an": 'China', 'Lanzhou': 'China', 'Haikou': 'China',
-    'Guangzhou': 'China', 'Shenzhen': 'China', 'Foshan': 'China',
-    'Hong Kong': 'China', 'Macau': 'China', 'Zhuhai': 'China',
-    'Taipei': 'ROC (Taiwan)', 'Taichung': 'ROC (Taiwan)', 'Kaohsiung': 'ROC (Taiwan)',
+    'Seoul': 'ROK Korea', 'Busan': 'ROK Korea', 'Pusan': 'ROK Korea', 'Daegu': 'ROK Korea', 'Daejeon': 'ROK Korea',
+    'Incheon': 'ROK Korea', 'Paju': 'ROK Korea', 'Panmunjom': 'ROK Korea',
+    'Pyongyang': 'DPR Korea', 'Kaesong': 'DPR Korea', 'Nampo': 'DPR Korea', 'Sariwon': 'DPR Korea',
+    'Dandong': 'PR China',
+    'Beijing': 'PR China', 'Peking': 'PR China', 'Tianjin': 'PR China', 'Shanghai': 'PR China', 'Chengdu': 'PR China', 'Chongqing': 'PR China', 'Wuhan': 'PR China',
+    'Nanyang': 'PR China', 'Xian': 'PR China', "Xi'an": 'PR China', 'Lanzhou': 'PR China', 'Haikou': 'PR China',
+    'Guangzhou': 'PR China', 'Shenzhen': 'PR China', 'Foshan': 'PR China',
+    'Hong Kong': 'PR China', 'Macau': 'PR China', 'Zhuhai': 'PR China',
+    'Taipei': 'ROC Taiwan', 'Taichung': 'ROC Taiwan', 'Kaohsiung': 'ROC Taiwan',
     'Kuala Lumpur': 'Malaysia',
     'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
     'Penang': 'Malaysia', 'Kota Kinabalu': 'Malaysia',
@@ -311,7 +311,7 @@ window.CITY_TO_COUNTRY = {
     'Giza': 'Egypt',
 
 
-    'Jeju': 'South Korea',
+    'Jeju': 'ROK Korea',
     'Dhaka': 'Bangladesh',
     'Baku': 'Azerbaijan',
 

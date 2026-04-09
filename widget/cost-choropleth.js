@@ -36,14 +36,15 @@
         'Czechia': 'Czech Republic',
         'Bosnia and Herz.': 'Bosnia and Herzegovina',
         'United Arab Emirates': 'UAE',
-        'Taiwan': 'ROC (Taiwan)',
+        'Taiwan': 'ROC Taiwan',
         'Myanmar': 'Myanmar',
-        'Dem. Rep. Korea': 'North Korea',
-        'Korea': 'South Korea',
+        'Dem. Rep. Korea': 'DPR Korea',
+        'Korea': 'ROK Korea',
         'Macedonia': 'North Macedonia',
         'eSwatini': 'Eswatini',
         'Lao PDR': 'Laos',
-        'Palestinian Territories': 'Palestine'
+        'Palestinian Territories': 'Palestine',
+        'China': 'PR China'
     };
 
     function waitForData(cb) {
@@ -198,6 +199,16 @@
                     };
                 }
 
+                var _hoveredLayer = null;
+                var _hoveredReset = null;
+                function clearHovered() {
+                    if (_hoveredLayer && _hoveredReset) {
+                        _hoveredReset.call(_hoveredLayer);
+                        _hoveredLayer = null;
+                        _hoveredReset = null;
+                    }
+                }
+
                 function onFeature(feature, layer) {
                     const geoName = feature.properties.NAME;
                     const appName = NAME_MAP[geoName] || geoName;
@@ -216,16 +227,22 @@
                         });
                     }
 
+                    const resetStyle = function () {
+                        if (s) this.setStyle({ weight: 1, fillOpacity: 0.5 + intensity * 0.35 });
+                        this.closeTooltip();
+                    };
                     layer.on('mouseover', function () {
                         if (s) {
+                            clearHovered();
                             this.setStyle({ weight: 2, fillOpacity: 0.85 });
                             this.bringToFront();
+                            _hoveredLayer = this;
+                            _hoveredReset = resetStyle;
                         }
                     });
                     layer.on('mouseout', function () {
-                        if (s) {
-                            this.setStyle({ weight: 1, fillOpacity: 0.5 + intensity * 0.35 });
-                        }
+                        resetStyle.call(this);
+                        if (_hoveredLayer === this) _hoveredLayer = null;
                     });
                 }
 
