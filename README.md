@@ -11,8 +11,6 @@ An animated journey map visualising my travel history and its environmental impa
 
 ### 🌐 Multilingual Support
 - Full i18n across all widgets and UI — **English, Arabic, Chinese, French, Russian, Spanish**
-- Language selector in the header; all labels, tooltips, legends, and achievements translate live
-- Default language: English
 
 ### 🎮 Interactive Timeline Controls
 - **Video-like scrubber**: Drag the glowing timeline head to jump to any point in the journey
@@ -24,6 +22,7 @@ An animated journey map visualising my travel history and its environmental impa
 ### 🌍 Dynamic Map Visualisation
 - **Animated dot**: A moving marker traces the route in real-time
 - **Continuous path lines**: Green gradient polylines draw the traveled route
+- **Seamless world wrap**: Pan continuously across the antimeridian without seams
 - **Flight route toggle**: Show/hide all route lines with a single button
 - **Follow-dot toggle**: Camera can lock onto or release from the moving marker
 - **Interactive city markers**: Cities appear on arrival with hover tooltips
@@ -53,19 +52,30 @@ An animated journey map visualising my travel history and its environmental impa
 - **Increment animations**: Each stat shows a +delta badge when it updates
 - **CO₂ comparisons**: Tiered contextual metaphors — laptop production, motorcycle emissions, global per-capita average, annual car emissions, household emissions, small-town emissions
 - **Distance metaphors**: "To the Moon" (384,400 km) and "Around Earth" (40,075 km) comparisons
+- **Scrolling ticker tape**: Auto-rotating travel facts and statistics
+- **Data export**: Export full journey data as JSON
+
+### 💱 Cost & Exchange Rate Adjustment
+- **CPI-based inflation adjustment**: All costs adjusted to 2025 SGD using Singapore CPI data
+- **Historical SGD/USD exchange rates**: Year-by-year rates from 2017–2026 for accurate USD conversion
+- **Dual price chart**: Nominal vs. real (inflation-adjusted) cost per leg
 
 ### 📈 Charts
-- **Price chart**: Adjusted S$ cost over time
+- **Price chart**: Nominal and inflation-adjusted S$ cost over time
 - **Leg efficiency chart**: Cost efficiency per journey leg
 - **Period filters**: ALL, 1Y, 3Y, 5Y, 7Y, 10Y
 - **Scrollable chart preview** with thumb slider
+
+### 💬 Danmaku Overlay
+- Scrolling bullet-comment style messages over the map
+- Displays travel facts and milestones as the animation plays
 
 ### 📋 Insight Widgets
 - **Spending Heatmap** — monthly spending by year
 - **Cost Choropleth** — world map coloured by total spend per country
 - **Duration Trend** — avg/total trip duration over time
 - **Records Cards** — personal travel records (longest flight, farthest city, etc.)
-- **Unvisited Neighbours** — countries bordering visited ones, with flag icons
+- **Unvisited Neighbours** — bordering countries of visited nations, with flag icons and trophy indicators
 - **Return Visits** — cities visited more than once
 - **Longest Stays** — cities with the most days spent
 - **Top Airlines** — most-flown carriers
@@ -76,6 +86,7 @@ An animated journey map visualising my travel history and its environmental impa
 - Milestone awards: city counts, continent coverage, multi-year travel, ASEAN/EU/Superpower sets
 - Special location awards for notable places
 - Achievement panel with earned/locked badges & progress
+- **Unrecognised territories**: Flags and data for Abkhazia, Artsakh, Somaliland, South Ossetia, Transnistria, TRNC
 
 ### 🌿 Environmental Impact Tracking
 - **Mode-specific emission factors**:

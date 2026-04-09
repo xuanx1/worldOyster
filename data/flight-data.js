@@ -47,7 +47,7 @@ class FlightDataManager {
     // Parse CSV data
     async loadCSVData() {
         try {
-            const response = await fetch('./flightdiary.csv');
+            const response = await fetch('./data/flightdiary.csv');
             const csvText = await response.text();
             
             const lines = csvText.split('\n').filter(line => line.trim());
@@ -80,7 +80,7 @@ class FlightDataManager {
     // Load land journey data from CSV
     async loadLandJourneyData() {
         try {
-            const response = await fetch('./land-journey.csv');
+            const response = await fetch('./data/land-journey.csv');
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
