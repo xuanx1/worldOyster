@@ -367,7 +367,7 @@ window.CITY_COORDINATES = {
     'Christmas Island': [-10.49, 105.63],
     'Cocos Islands': [-12.19, 96.83],
     'British Indian Ocean Territory': [-6.34, 71.88],
-    'GBAO': [38.35, 71.55],
+    'Gorno-Badakhshan': [38.35, 71.55],
     'Baikonur': [45.62, 63.31],
     'Kish Island': [26.53, 54.02],
     // Africa
@@ -404,7 +404,7 @@ window.CITY_COORDINATES = {
     'Puerto Rico': [18.22, -66.59],
     'Guadeloupe': [16.27, -61.55],
     'Martinique': [14.64, -61.02],
-    'Sint Maarten': [18.04, -63.07],
+    'Saint Martin / Sint Maarten': [18.04, -63.07],
     'Saint Barthélemy': [17.90, -62.83],
     'Bonaire': [12.15, -68.27],
     'French Guiana': [3.93, -53.13],

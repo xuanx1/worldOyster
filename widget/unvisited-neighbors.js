@@ -127,7 +127,7 @@
         'Bahrain', 'Singapore', 'Brunei', 'Timor-Leste', 'Maldives',
         'Hong Kong SAR', 'Macau SAR', 'Socotra', 'Somaliland', 'Artsakh',
         'Andaman and Nicobar Islands', 'Christmas Island', 'Cocos Islands',
-        'British Indian Ocean Territory', 'GBAO', 'Baikonur', 'Kish Island', 'Panmunjom',
+        'British Indian Ocean Territory', 'Gorno-Badakhshan', 'Baikonur', 'Kish Island', 'Panmunjom',
         // Africa
         'Djibouti', 'Eswatini', 'Lesotho', 'Comoros', 'Mauritius', 'Seychelles',
         'Cape Verde', 'São Tomé and Príncipe', 'Réunion', 'Mayotte',
@@ -137,7 +137,7 @@
         'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines',
         'Bermuda', 'Cayman Islands', 'Turks and Caicos Islands', 'British Virgin Islands',
         'Anguilla', 'Montserrat', 'Aruba', 'Curaçao', 'US Virgin Islands',
-        'Puerto Rico', 'Guadeloupe', 'Martinique', 'Sint Maarten',
+        'Puerto Rico', 'Guadeloupe', 'Martinique', 'Saint Martin / Sint Maarten',
         'Saint Barthélemy', 'Bonaire', 'French Guiana', 'Rapa Nui', 'Galapagos',
         // Pacific
         'Samoa', 'Tonga', 'Kiribati', 'Micronesia', 'Marshall Islands', 'Palau',
@@ -284,7 +284,7 @@
         'Guadeloupe': 'special', 'Martinique': 'special',
         'Montserrat': 'special', 'Puerto Rico': 'special',
         'Saint Barthélemy': 'special',
-        'Sint Maarten': 'special', 'Turks and Caicos Islands': 'special',
+        'Saint Martin / Sint Maarten': 'special', 'Turks and Caicos Islands': 'special',
         'US Virgin Islands': 'special',
         // Oceania
         'Australia': 'oceania', 'Fiji': 'oceania', 'Kiribati': 'oceania',
@@ -307,7 +307,7 @@
         'Somaliland': 'disputed',
         'Artsakh': 'disputed',
         // Special (standalone)
-        'Antarctica': 'special', 'Kish Island': 'special', 'Panmunjom': 'special'
+        'Antarctica': 'special', 'Gorno-Badakhshan': 'special', 'Kish Island': 'special', 'Panmunjom': 'special'
     };
 
     // Continent association for special territories (for sub-grouping in legend)
@@ -322,7 +322,7 @@
         'Hong Kong SAR': 'asia', 'Macau SAR': 'asia', 'Socotra': 'asia',
         'Andaman and Nicobar Islands': 'asia', 'Christmas Island': 'asia',
         'Cocos Islands': 'asia', 'British Indian Ocean Territory': 'asia',
-        'GBAO': 'asia', 'Baikonur': 'asia',
+        'Gorno-Badakhshan': 'asia', 'Baikonur': 'asia',
         'Kish Island': 'asia', 'Panmunjom': 'asia',
         // Africa
         'Mayotte': 'africa', 'Réunion': 'africa', 'Saint Helena': 'africa',
@@ -334,7 +334,7 @@
         'Anguilla': 'americas', 'Aruba': 'americas', 'Bonaire': 'americas',
         'British Virgin Islands': 'americas', 'Cayman Islands': 'americas',
         'Curaçao': 'americas', 'Montserrat': 'americas',
-        'Sint Maarten': 'americas', 'Turks and Caicos Islands': 'americas',
+        'Saint Martin / Sint Maarten': 'americas', 'Turks and Caicos Islands': 'americas',
         'Rapa Nui': 'americas', 'Galapagos': 'americas',
         // Oceania
         'American Samoa': 'oceania', 'Cook Islands': 'oceania', 'French Polynesia': 'oceania',
@@ -469,6 +469,10 @@
             return VISA_MAP_COLORS[visaData[country]] || '#FFB74D';
         }
 
+        // Countries whose GeoJSON polygons cross the antimeridian and render
+        // incorrectly — use dot markers for these instead.
+        const SKIP_GEOJSON = new Set();
+
         fetch('asset/ne_110m_countries.geojson')
             .then(r => r.json())
             .then(geo => {
@@ -488,6 +492,9 @@
                 function styleFeature(feature) {
                     const geoName = feature.properties.NAME;
                     const appName = NAME_MAP[geoName] || geoName;
+                    if (SKIP_GEOJSON.has(appName)) {
+                        return { fillColor: 'transparent', fillOpacity: 0, color: 'transparent', weight: 0, opacity: 0 };
+                    }
                     matchedCountries.add(appName);
 
                     if (visited.has(appName)) {
@@ -514,6 +521,7 @@
                 function onFeature(feature, layer) {
                     const geoName = feature.properties.NAME;
                     const appName = NAME_MAP[geoName] || geoName;
+                    if (SKIP_GEOJSON.has(appName)) return;
                     if (!countryLayers[appName]) countryLayers[appName] = [];
                     const visa = visaData[appName] || '';
                     countryLayers[appName].push({ layer: layer, type: 'geo', visa: visa });
@@ -951,7 +959,25 @@
             });
 
             if (bounds) {
-                map.flyToBounds(bounds, { padding: [40, 40], maxZoom: 5, duration: 0.5 });
+                // Antimeridian-crossing polygons produce bounds spanning the globe —
+                // recalculate using the wrapped longitude so flyToBounds works correctly.
+                if ((bounds.getEast() - bounds.getWest()) > 300) {
+                    var fixedBounds = null;
+                    layers.forEach(function (entry) {
+                        if (entry.type !== 'geo') return;
+                        var b = entry.layer.getBounds();
+                        if (!b || Math.abs(b.getCenter().lng) > 180) return;
+                        // Wrap coordinates: shift negative lngs by +360 so they sit next to positive ones
+                        var sw = b.getSouthWest(), ne = b.getNorthEast();
+                        var wLng = sw.lng < 0 ? sw.lng + 360 : sw.lng;
+                        var eLng = ne.lng < 0 ? ne.lng + 360 : ne.lng;
+                        var wb = L.latLngBounds([sw.lat, Math.min(wLng, eLng)], [ne.lat, Math.max(wLng, eLng)]);
+                        if (!fixedBounds) fixedBounds = wb; else fixedBounds.extend(wb);
+                    });
+                    if (fixedBounds) map.flyToBounds(fixedBounds, { padding: [40, 40], maxZoom: 5, duration: 0.5 });
+                } else {
+                    map.flyToBounds(bounds, { padding: [40, 40], maxZoom: 5, duration: 0.5 });
+                }
             } else if (SMALL_COUNTRY_COORDS[name]) {
                 var c = SMALL_COUNTRY_COORDS[name];
                 map.flyTo(c, 5, { duration: 0.5 });
@@ -1006,6 +1032,9 @@
             function pipStyle(feature) {
                 const gn = feature.properties.NAME;
                 const an = NAME_MAP[gn] || gn;
+                if (SKIP_GEOJSON.has(an)) {
+                    return { fillColor: 'transparent', fillOpacity: 0, color: 'transparent', weight: 0, opacity: 0 };
+                }
                 pipMatched.add(an);
                 if (visited.has(an)) { const _ps = COUNTRY_REGION[an] === 'special'; return { fillColor: '#4CAF50', fillOpacity: 0.35, color: _ps ? '#B76E79' : '#4CAF50', weight: _ps ? 1.5 : 0.5, opacity: 0.5 }; }
                 if (COUNTRY_REGION[an]) { const _ps2 = COUNTRY_REGION[an] === 'special'; return { fillColor: '#1a1a2e', fillOpacity: 1, color: _ps2 ? '#B76E79' : '#FFB74D', weight: _ps2 ? 1.5 : 0.5, opacity: 0.6 }; }
@@ -1013,6 +1042,7 @@
             }
             function pipOnFeature(feature, layer) {
                 const an = NAME_MAP[feature.properties.NAME] || feature.properties.NAME;
+                if (SKIP_GEOJSON.has(an)) return;
                 if (!pipLayers[an]) pipLayers[an] = [];
                 pipLayers[an].push(layer);
             }
@@ -1108,7 +1138,19 @@
                     if (!bounds) bounds = L.latLngBounds(ll, ll);
                 });
             }
-            if (bounds) pipMap.flyToBounds(bounds, { padding: [20, 20], maxZoom: 5, duration: 0.3 });
+            if (bounds && (bounds.getEast() - bounds.getWest()) > 300) {
+                var fixedPipBounds = null;
+                if (layers) layers.forEach(function (l) {
+                    var b = l.getBounds();
+                    if (!b) return;
+                    var sw = b.getSouthWest(), ne = b.getNorthEast();
+                    var wLng = sw.lng < 0 ? sw.lng + 360 : sw.lng;
+                    var eLng = ne.lng < 0 ? ne.lng + 360 : ne.lng;
+                    var wb = L.latLngBounds([sw.lat, Math.min(wLng, eLng)], [ne.lat, Math.max(wLng, eLng)]);
+                    if (!fixedPipBounds) fixedPipBounds = wb; else fixedPipBounds.extend(wb);
+                });
+                if (fixedPipBounds) pipMap.flyToBounds(fixedPipBounds, { padding: [20, 20], maxZoom: 5, duration: 0.3 });
+            } else if (bounds) pipMap.flyToBounds(bounds, { padding: [20, 20], maxZoom: 5, duration: 0.3 });
             else if (SMALL_COUNTRY_COORDS[name]) pipMap.flyTo(SMALL_COUNTRY_COORDS[name], 4, { duration: 0.3 });
         }
         function pipUnhighlight(name) {

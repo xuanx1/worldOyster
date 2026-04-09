@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /c/Users/65963/Desktop/worldOyster/*.js)",
+      "Bash(ls \"c:/Users/65963/Desktop/worldOyster/\"*.csv)",
+      "Bash(ls \"c:/Users/65963/Desktop/worldOyster/data/\"*.csv)",
+      "Bash(curl -L -o \"Inter-Regular.woff2\" \"https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hiA.woff2\")",
+      "Bash(curl -L -o \"Inter-Medium.woff2\" \"https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuI6fAZ9hiA.woff2\")",
+      "Bash(curl -L -o \"Inter-SemiBold.woff2\" \"https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hiA.woff2\")",
+      "Bash(curl -L -o \"Inter-Bold.woff2\" \"https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYAZ9hiA.woff2\")",
+      "Bash(cp \"c:/Windows/Fonts/segoeui.ttf\" \"c:/Users/65963/Desktop/worldOyster/asset/font/SegoeUI/segoeui.ttf\")",
+      "Bash(cp \"c:/Windows/Fonts/segoeuib.ttf\" \"c:/Users/65963/Desktop/worldOyster/asset/font/SegoeUI/segoeuib.ttf\")",
+      "Bash(cp \"c:/Windows/Fonts/segoeuil.ttf\" \"c:/Users/65963/Desktop/worldOyster/asset/font/SegoeUI/segoeuil.ttf\")",
+      "Bash(cp \"c:/Windows/Fonts/segoeuisl.ttf\" \"c:/Users/65963/Desktop/worldOyster/asset/font/SegoeUI/segoeuisl.ttf\")",
+      "Bash(cp \"c:/Windows/Fonts/segoeuii.ttf\" \"c:/Users/65963/Desktop/worldOyster/asset/font/SegoeUI/segoeuii.ttf\")",
+      "Bash(cp \"c:/Windows/Fonts/segoeuiz.ttf\" \"c:/Users/65963/Desktop/worldOyster/asset/font/SegoeUI/segoeuiz.ttf\")",
+      "Bash(cp \"c:/Windows/Fonts/segoesc.ttf\" \"c:/Users/65963/Desktop/worldOyster/asset/font/SegoeUI/segoesc.ttf\")",
+      "Bash(cp \"c:/Windows/Fonts/segoescb.ttf\" \"c:/Users/65963/Desktop/worldOyster/asset/font/SegoeUI/segoescb.ttf\")"
+    ]
+  }
+}

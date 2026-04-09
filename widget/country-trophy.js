@@ -108,7 +108,7 @@
         'Bermuda': 'bm', 'Cayman Islands': 'ky',
         'Turks and Caicos Islands': 'tc',
         'British Virgin Islands': 'vg', 'Anguilla': 'ai', 'Montserrat': 'ms',
-        'Aruba': 'aw', 'Curaçao': 'cw', 'Sint Maarten': 'sx', 'Bonaire': 'bq',
+        'Aruba': 'aw', 'Curaçao': 'cw', 'Saint Martin / Sint Maarten': 'sx', 'Bonaire': 'bq',
         'Puerto Rico': 'pr', 'US Virgin Islands': 'vi',
         'Guadeloupe': 'gp', 'Martinique': 'mq', 'Saint Barthélemy': 'bl',
         'French Guiana': 'gf',
@@ -130,7 +130,7 @@
         'Transnistria': 'transnistria', 'Abkhazia': 'abkhazia',
         'South Ossetia': 'south-ossetia', 'Northern Cyprus': 'trnc',
         'Somaliland': 'somaliland', 'Artsakh': 'artsakh',
-        'Antarctica': 'aq', 'GBAO': 'tj', 'Baikonur': 'kz',
+        'Antarctica': 'aq', 'Gorno-Badakhshan': 'tj', 'Baikonur': 'kz',
         'Kaliningrad': 'ru', 'Ceuta': 'es', 'Melilla': 'es',
         'Rapa Nui': 'cl', 'Galapagos': 'ec',
         'Kish Island': 'ir', 'Panmunjom': 'kr'
