@@ -39,12 +39,15 @@
         'Taiwan': 'ROC Taiwan',
         'Myanmar': 'Myanmar',
         'Dem. Rep. Korea': 'DPR Korea',
+        'North Korea': 'DPR Korea',
         'Korea': 'ROK Korea',
+        'South Korea': 'ROK Korea',
         'Macedonia': 'North Macedonia',
         'eSwatini': 'Eswatini',
         'Lao PDR': 'Laos',
         'Palestinian Territories': 'Palestine',
-        'China': 'PR China'
+        'China': 'PR China',
+        'N. Cyprus': 'Northern Cyprus'
     };
 
     function waitForData(cb) {
@@ -154,6 +157,24 @@
             minZoom: 1
         }).addTo(map);
 
+        // Single shared tooltip for all map layers (avoids bringToFront swallowing Leaflet tooltip events)
+        const mapTip = document.createElement('div');
+        mapTip.className = 'widget-map-tooltip';
+        mapTip.style.cssText = 'position:fixed;pointer-events:none;display:none;z-index:9999;padding:6px 10px;border-radius:4px;';
+        document.body.appendChild(mapTip);
+        function showMapTip(html, e) {
+            mapTip.innerHTML = html;
+            mapTip.style.display = 'block';
+            mapTip.style.left = (e.originalEvent.clientX + 12) + 'px';
+            mapTip.style.top = (e.originalEvent.clientY - 12) + 'px';
+        }
+        function moveMapTip(e) {
+            mapTip.style.left = (e.originalEvent.clientX + 12) + 'px';
+            mapTip.style.top = (e.originalEvent.clientY - 12) + 'px';
+        }
+        function hideMapTip() { mapTip.style.display = 'none'; }
+        mapDiv.addEventListener('mouseleave', hideMapTip);
+
         // Shift GeoJSON coordinates by a longitude offset
         function shiftGeo(source, lngOffset) {
             if (lngOffset === 0) return source;
@@ -221,29 +242,26 @@
 
                         const valFmt = s >= 1000 ? 'S$' + (s / 1000).toFixed(1) + 'k' : 'S$' + s.toFixed(0);
                         const _dn = window.translateCountry ? window.translateCountry(appName) : appName;
-                        layer.bindTooltip(`<b>${_dn}</b><br>${valFmt}`, {
-                            className: 'widget-map-tooltip',
-                            sticky: true
-                        });
-                    }
+                        const tipHtml = `<b>${_dn}</b><br>${valFmt}`;
 
-                    const resetStyle = function () {
-                        if (s) this.setStyle({ weight: 1, fillOpacity: 0.5 + intensity * 0.35 });
-                        this.closeTooltip();
-                    };
-                    layer.on('mouseover', function () {
-                        if (s) {
+                        const resetStyle = function () {
+                            hideMapTip();
+                            this.setStyle({ weight: 1, fillOpacity: 0.5 + intensity * 0.35 });
+                        };
+                        layer.on('mouseover', function (e) {
                             clearHovered();
+                            showMapTip(tipHtml, e);
                             this.setStyle({ weight: 2, fillOpacity: 0.85 });
                             this.bringToFront();
                             _hoveredLayer = this;
                             _hoveredReset = resetStyle;
-                        }
-                    });
-                    layer.on('mouseout', function () {
-                        resetStyle.call(this);
-                        if (_hoveredLayer === this) _hoveredLayer = null;
-                    });
+                        });
+                        layer.on('mousemove', moveMapTip);
+                        layer.on('mouseout', function () {
+                            resetStyle.call(this);
+                            if (_hoveredLayer === this) _hoveredLayer = null;
+                        });
+                    }
                 }
 
                 // Render GeoJSON at -360, 0, +360 so shapes always visible when panning
@@ -283,14 +301,11 @@
                             opacity: 1
                         }).addTo(map);
 
-                        dot.bindTooltip(`<b>${_dn}</b><br>${valFmt}`, {
-                            className: 'widget-map-tooltip',
-                            sticky: true
-                        });
-
+                        const tipHtml = `<b>${_dn}</b><br>${valFmt}`;
                         dot.getElement().style.pointerEvents = 'auto';
-                        dot.on('mouseover', function () { this.setStyle({ radius: 8, fillOpacity: 1 }); });
-                        dot.on('mouseout', function () { this.setStyle({ radius: 6, fillOpacity: 0.8 }); });
+                        dot.on('mouseover', function (e) { showMapTip(tipHtml, e); this.setStyle({ radius: 8, fillOpacity: 1 }); });
+                        dot.on('mousemove', moveMapTip);
+                        dot.on('mouseout', function () { hideMapTip(); this.setStyle({ radius: 6, fillOpacity: 0.8 }); });
 
                         if (!countryLayers[country]) countryLayers[country] = [];
                         countryLayers[country].push({ layer: dot, type: 'dot', intensity: intensity });
