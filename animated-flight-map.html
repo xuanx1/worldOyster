@@ -1766,6 +1766,14 @@
             flex-shrink: 1;
             min-width: 0;
             overflow: hidden;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            user-select: none;
+        }
+        .neighbors-legend-item.legend-active {
+            opacity: 1 !important;
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
         .neighbors-legend-visa {
             display: flex;

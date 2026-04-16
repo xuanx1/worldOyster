@@ -886,74 +886,84 @@
         legend += '</div>';
         container.insertAdjacentHTML('beforeend', legend);
 
-        // Legend hover — dim everything except the hovered category
+        // Legend click — toggle filters, supports multiple active at once
         const legendEl = container.querySelector('.neighbors-legend');
         const allRows = container.querySelectorAll('.un-row');
-        let activeLegend = null;
+        const activeFilters = new Set();
+        const TYPE_FILTERS = new Set(['visited', 'unvisited', 'special']);
+        const VISA_FILTERS = new Set(['free', 'arrival', 'evisa', 'required']);
 
-        function dimForLegend(filter) {
-            activeLegend = filter;
+        // Split active filters into type group and visa group
+        function getFilterGroups() {
+            var types = [], visas = [];
+            activeFilters.forEach(function (f) {
+                if (TYPE_FILTERS.has(f)) types.push(f);
+                else if (VISA_FILTERS.has(f)) visas.push(f);
+            });
+            return { types: types, visas: visas };
+        }
+
+        function rowMatchesGroups(row, groups) {
+            // Union within each group, intersect across groups
+            var typeOk = groups.types.length === 0 || groups.types.some(function (f) {
+                if (f === 'visited') return false;
+                return row.dataset.type === f;
+            });
+            var visaOk = groups.visas.length === 0 || groups.visas.indexOf(row.dataset.visa) !== -1;
+            return typeOk && visaOk;
+        }
+
+        function countryMatchesGroups(country, groups) {
+            var isVisited = visited.has(country);
+            var visa = visaData[country] || '';
+            var type = isVisited ? 'visited' : (COUNTRY_REGION[country] === 'special' ? 'special' : 'unvisited');
+            var typeOk = groups.types.length === 0 || groups.types.indexOf(type) !== -1;
+            var visaOk = groups.visas.length === 0 || groups.visas.indexOf(visa) !== -1;
+            return typeOk && visaOk;
+        }
+
+        function applyLegendFilters() {
+            var hasFilters = activeFilters.size > 0;
+            var groups = hasFilters ? getFilterGroups() : null;
+            // Rows
             allRows.forEach(function (row) {
-                let match = false;
-                if (filter === 'visited') {
-                    match = false; // no visited rows in the list
-                } else if (filter === 'unvisited') {
-                    match = row.dataset.type === 'unvisited';
-                } else if (filter === 'special') {
-                    match = row.dataset.type === 'special';
-                } else {
-                    // visa type filter
-                    match = row.dataset.visa === filter;
-                }
-                row.style.opacity = match ? '1' : '0.15';
+                if (!hasFilters) { row.style.opacity = '1'; return; }
+                row.style.opacity = rowMatchesGroups(row, groups) ? '1' : '0.15';
             });
-            // Dim legend items too
+            // Legend items
             legendEl.querySelectorAll('.neighbors-legend-item').forEach(function (item) {
-                item.style.opacity = item.dataset.legend === filter ? '1' : '0.35';
+                if (!hasFilters) { item.style.opacity = '1'; item.classList.remove('legend-active'); return; }
+                var isActive = activeFilters.has(item.dataset.legend);
+                item.style.opacity = isActive ? '1' : '0.35';
+                item.classList.toggle('legend-active', isActive);
             });
-            // Dim map layers
+            // Map layers
             Object.keys(countryLayers).forEach(function (country) {
-                var isVisited = visited.has(country);
-                var visa = visaData[country] || '';
-                var type = isVisited ? 'visited' : (COUNTRY_REGION[country] === 'special' ? 'special' : 'unvisited');
-                var match = false;
-                if (filter === 'visited') match = isVisited;
-                else if (filter === 'unvisited') match = type === 'unvisited';
-                else if (filter === 'special') match = type === 'special';
-                else match = visa === filter;
                 countryLayers[country].forEach(function (entry) {
+                    if (!hasFilters) {
+                        if (entry.type === 'geo' && entry.layer._path) entry.layer._path.style.opacity = '';
+                        else if (entry.type === 'dot') { var el = entry.layer.getElement(); if (el) el.style.opacity = ''; }
+                        return;
+                    }
+                    var op = countryMatchesGroups(country, groups) ? '1' : '0.1';
                     if (entry.type === 'geo' && entry.layer._path) {
-                        entry.layer._path.style.opacity = match ? '1' : '0.1';
+                        entry.layer._path.style.opacity = op;
                     } else if (entry.type === 'dot') {
                         var el = entry.layer.getElement();
-                        if (el) el.style.opacity = match ? '1' : '0.1';
+                        if (el) el.style.opacity = op;
                     }
                 });
             });
         }
 
-        function undimLegend() {
-            activeLegend = null;
-            allRows.forEach(function (row) { row.style.opacity = '1'; });
-            legendEl.querySelectorAll('.neighbors-legend-item').forEach(function (item) { item.style.opacity = '1'; });
-            Object.keys(countryLayers).forEach(function (country) {
-                countryLayers[country].forEach(function (entry) {
-                    if (entry.type === 'geo' && entry.layer._path) {
-                        entry.layer._path.style.opacity = '';
-                    } else if (entry.type === 'dot') {
-                        var el = entry.layer.getElement();
-                        if (el) el.style.opacity = '';
-                    }
-                });
-            });
-        }
-
-        legendEl.addEventListener('mouseover', function (e) {
+        legendEl.addEventListener('click', function (e) {
             var item = e.target.closest('.neighbors-legend-item[data-legend]');
             if (!item) return;
-            dimForLegend(item.dataset.legend);
+            var filter = item.dataset.legend;
+            if (activeFilters.has(filter)) activeFilters.delete(filter);
+            else activeFilters.add(filter);
+            applyLegendFilters();
         });
-        legendEl.addEventListener('mouseleave', undimLegend);
 
         const tip = document.createElement('div');
         tip.className = 'widget-row-tooltip';
