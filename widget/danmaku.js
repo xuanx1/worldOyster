@@ -23,7 +23,7 @@
 
 
         'Wuhan': [
-            'officer: what were you doing in turkey?'
+            'officer: what were you doing in turkey? <br> me: student exchange <br> officer: we\'ll check your passport',
         ],
 
         'Shenzhen': [
@@ -141,7 +141,7 @@
         ],
 
         'Kuwait City': [
-            'officer: you go israel?<br>me: what\'s that<br>officer: we check your passport<br>me: nice' ,
+            'officer: you go israel?<br>me: what\'s that <br> officer: we check your passport' ,
         ],
 
         'Istanbul': [
@@ -266,7 +266,8 @@
         ],
 
         'New York': [
-            'central park is the only peace in manhattan'
+            'central park is the only peace in manhattan',
+            'cbp: what are you doing in afghanistan, me: thats tunesia'
         ],
         'Philadelphia': [
             'philly cheesesteak: pat\'s or geno\'s?',
@@ -354,23 +355,21 @@
 
     function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-    // Track recently shown messages to prevent duplicates across barrages
-    var recentMessages = [];
+    // Track shown comments per city — never repeat on return visits
+    var shownPerCity = {};
 
     // Pick a subset of comments for this city arrival (no duplicates)
     function getComments(city) {
         var pool = COMMENTS[city.name];
         if (!pool) return [];
-        // Filter out recently shown
-        var available = pool.filter(function (m) { return recentMessages.indexOf(m) === -1; });
-        if (!available.length) available = pool.slice();
+        if (!shownPerCity[city.name]) shownPerCity[city.name] = {};
+        var seen = shownPerCity[city.name];
+        var available = pool.filter(function (m) { return !seen[m]; });
+        if (!available.length) return [];
         var shuffled = available.sort(function () { return Math.random() - 0.5; });
         var count = Math.min(3 + Math.floor(Math.random() * 3), shuffled.length);
         var picked = shuffled.slice(0, count);
-        recentMessages = recentMessages.concat(picked).slice(-20);
-        // Prepend translated city name if different from English
-        var tc = window.translateCity ? window.translateCity(city.name) : city.name;
-        if (tc && tc !== city.name) picked.unshift(tc);
+        picked.forEach(function (m) { seen[m] = true; });
         return picked;
     }
 
@@ -388,22 +387,42 @@
             'font-family:\"Segoe UI\",sans-serif;font-weight:400;will-change:transform,opacity;' +
             'text-shadow:1px 1px 3px rgba(0,0,0,0.9),0 0 6px rgba(0,0,0,0.5);' +
             'animation:danmaku-slide var(--dm-dur) linear forwards;' +
+        '}' +
+        '.dm-city-label{' +
+            'display:block;font-weight:600;font-size:0.85em;' +
+            'color:#4CAF50;text-transform:uppercase;letter-spacing:0.2em;margin-bottom:2px;' +
         '}';
     document.head.appendChild(style);
 
+    // Compute usable vertical range (below header, above bottom)
+    var LANE_HEIGHT = 48; // px per lane — enough for label + comment text
+
+    function getHeaderBottom() {
+        var h = mapDiv.querySelector('.header') || document.querySelector('.header');
+        return h ? h.offsetHeight + 8 : 60;
+    }
+
+    function getLanes() {
+        var top = getHeaderBottom();
+        var bottom = overlay.offsetHeight - 20;
+        var count = Math.max(1, Math.floor((bottom - top) / LANE_HEIGHT));
+        var lanes = [];
+        for (var i = 0; i < count; i++) lanes.push(top + i * LANE_HEIGHT);
+        return lanes;
+    }
+
     // Launch a single danmaku bullet — supports <br> in text for line breaks
-    function fireBullet(text, lane, totalLanes) {
+    function fireBullet(text, topPx, cityLabel) {
         var el = document.createElement('span');
         el.className = 'dm-bullet';
         var hasBr = /<br>/i.test(text);
         var safe = text.replace(/</g, '&lt;').replace(/&lt;br>/gi, '<br>');
-        el.innerHTML = hasBr ? safe : '\u201C' + safe + '\u201D';
-        var fontSize = 14 + Math.floor(Math.random() * 8); // 14-21px
-        var top = (lane / totalLanes) * 85 + 5; // 5%-90% of height
+        var body = hasBr ? safe : '\u201C' + safe + '\u201D';
+        el.innerHTML = (cityLabel ? '<span class="dm-city-label">' + cityLabel + '</span>' : '') + body;
+        var fontSize = 14 + Math.floor(Math.random() * 4); // 14-17px
         var duration = 6 + Math.random() * 3.6; // 6-9.6s
-        // Measure width after adding to DOM (hidden), then set dist
         el.style.cssText =
-            'top:' + top + '%;right:0;font-size:' + fontSize + 'px;' +
+            'top:' + topPx + 'px;right:0;font-size:' + fontSize + 'px;' +
             'color:' + pick(colours) + ';' +
             '--dm-dur:' + duration.toFixed(2) + 's;visibility:hidden;';
         overlay.appendChild(el);
@@ -417,17 +436,19 @@
     function fireBarrage(city) {
         var msgs = getComments(city);
         if (!msgs.length) return;
-        var lanes = 7;
-        var usedLanes = [];
-        for (var i = 0; i < lanes; i++) usedLanes.push(i);
-        for (var j = usedLanes.length - 1; j > 0; j--) {
+        var tc = window.translateCity ? window.translateCity(city.name) : city.name;
+        var label = (tc && tc !== city.name) ? (tc + ' / ' + city.name) : city.name;
+        var lanes = getLanes();
+        // Shuffle lanes
+        for (var j = lanes.length - 1; j > 0; j--) {
             var k = Math.floor(Math.random() * (j + 1));
-            var tmp = usedLanes[j]; usedLanes[j] = usedLanes[k]; usedLanes[k] = tmp;
+            var tmp = lanes[j]; lanes[j] = lanes[k]; lanes[k] = tmp;
         }
         msgs.forEach(function (msg, idx) {
             var delay = idx * (300 + Math.random() * 400);
+            var topPx = lanes[idx % lanes.length];
             setTimeout(function () {
-                fireBullet(msg, usedLanes[idx % lanes], lanes);
+                fireBullet(msg, topPx, label);
             }, delay);
         });
     }
@@ -458,6 +479,7 @@
             } else if (idx < lastIndex) {
                 // Scrubbed backwards — clear fired history so replays work
                 firedForIndex = {};
+                shownPerCity = {};
                 lastIndex = idx;
             }
         }, 200);

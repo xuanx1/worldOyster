@@ -1409,9 +1409,9 @@ class AnimatedFlightMap {
             this.updateStatistics();
             this.currentCityIndex++;
 
-            // Continue to next city after a brief pause
+            // Continue to next city after a brief pause (scaled by speed)
             setTimeout(() => {
-                // Stale chain check again (scrub could happen during the 500ms pause)
+                // Stale chain check again (scrub could happen during the pause)
                 if (gen !== this._animationGen) return;
 
                 // Check if we should pause after this flight completed
@@ -1422,7 +1422,7 @@ class AnimatedFlightMap {
                 if (this.isAnimating) {
                     this.animateToNextCity();
                 }
-            }, 500);
+            }, Math.max(50, 500 / this.speedMultiplier));
         });
     }
 
@@ -2063,11 +2063,17 @@ class AnimatedFlightMap {
     }
 
     panToVisible(latLng, animate) {
-        const header = document.querySelector('.card-container .header');
-        const cityList = document.querySelector('.city-list-container');
-        const hH = header ? header.offsetHeight : 0;
-        const cH = cityList ? cityList.offsetHeight : 0;
-        const containerH = this.map.getContainer().offsetHeight;
+        // Cache DOM measurements — recompute at most every 500ms
+        const now = performance.now();
+        if (!this._panCache || now - this._panCache.t > 500) {
+            const header = document.querySelector('.card-container .header');
+            const cityList = document.querySelector('.city-list-container');
+            const hH = header ? header.offsetHeight : 0;
+            const cH = cityList ? cityList.offsetHeight : 0;
+            const containerH = this.map.getContainer().offsetHeight;
+            this._panCache = { hH, cH, containerH, t: now };
+        }
+        const { hH, cH, containerH } = this._panCache;
         const visibleCenterY = hH + (containerH - hH - cH) / 2;
         const geoCenterY = containerH / 2;
         const dy = visibleCenterY - geoCenterY;
@@ -2077,7 +2083,9 @@ class AnimatedFlightMap {
         if (animate) {
             this.map.setView(adjusted, this.map.getZoom(), { animate: true, duration: 0.5 });
         } else {
-            this.map.panTo(adjusted, { animate: false });
+            const speed = this.speedMultiplier || 1;
+            const dur = speed >= 100 ? 0.05 : speed >= 20 ? 0.08 : 0.15;
+            this.map.setView(adjusted, this.map.getZoom(), { animate: true, duration: dur, easeLinearity: 1 });
         }
     }
 

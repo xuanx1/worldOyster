@@ -1,4 +1,6 @@
 origin,destination,mode,cost_sgd,date
+Singapore,Pengerang,ferry,13,13/10/2018
+Pengerang,Singapore,ferry,13,14/10/2018
 Sapporo,Tokyo,train,55,23/12/2018
 Tokyo,Osaka,train,35,27/12/2018
 Osaka,Kyoto,train,15,28/12/2018
@@ -88,6 +90,8 @@ Busan,Daegu,train,20.35,21/8/2022
 Daegu,Busan,train,20.35,21/8/2022
 Busan,Daejeon,train,20.35,22/8/2022
 Daejeon,Busan,train,20.35,22/8/2022
+Jeju,Seogwipo,bus,1.2,23/8/2022
+Seogwipo,Jeju,bus,1.2,23/8/2022
 Seoul,Incheon,train,1.25,25/8/2022
 Incheon,Seoul,train,1.25,25/8/2022
 Milan,San Marino,train,19.5,31/10/2022
@@ -311,3 +315,5 @@ Ashgabat,Darvaza,car,22,10/10/2026
 Darvaza,Dashoguz,car,21,11/10/2026
 Dashoguz,Nukus,car,9,11/10/2026
 Nukus,Tashkent,train,16.31,11/10/2026
+Jeju,Seogwipo,car,1.2,23/8/2022
+Seogwipo,Jeju,car,1.2,23/8/2022

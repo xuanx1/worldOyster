@@ -267,7 +267,7 @@ window.CITY_TO_COUNTRY = {
     'Taipei': 'ROC Taiwan', 'Taichung': 'ROC Taiwan', 'Kaohsiung': 'ROC Taiwan',
     'Kuala Lumpur': 'Malaysia',
     'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
-    'Penang': 'Malaysia', 'Kota Kinabalu': 'Malaysia',
+    'Penang': 'Malaysia', 'Pengerang': 'Malaysia', 'Kota Kinabalu': 'Malaysia',
     'Moscow': 'Russia', 'St. Petersburg': 'Russia', 'Tallinn': 'Estonia',
     'Da Nang': 'Vietnam', 'Danang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh City (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam', 'Hue': 'Vietnam',
     'Vientiane': 'Laos', 'Luang Prabang': 'Laos',
@@ -312,6 +312,7 @@ window.CITY_TO_COUNTRY = {
 
 
     'Jeju': 'ROK Korea',
+    'Seogwipo': 'ROK Korea',
     'Dhaka': 'Bangladesh',
     'Baku': 'Azerbaijan',
 

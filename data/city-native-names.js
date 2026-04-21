@@ -207,6 +207,7 @@
     "Yogyakarta": "ꦔꦪꦺꦴꦒꦾꦏꦂꦠ",
     "Surakarta": "ꦯꦸꦫꦏꦂꦠ / سوراكارتا",
     "Penang": "Pulau Pinang",
+    "Pengerang": "Pengerang",
     "Phuket": "ภูเก็ต",
     "Kota Kinabalu": "Kota Kinabalu",
     "Phnom Penh": "ភ្នំពេញ",
@@ -237,6 +238,7 @@
     "Chiang Rai": "เชียงราย",
     "Ayutthaya": "อยุธยา",
     "Jeju": "제주도",
+    "Seogwipo": "서귀포",
 
     /* --- Middle East & North Africa --- */
     "Dubai": "دبي",
