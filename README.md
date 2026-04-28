@@ -1,6 +1,8 @@
 # [Is the World Your Oyster?](https://xuanx1.github.io/worldOyster/animated-flight-map.html) 🗺️✈️
 An animated journey map visualising my travel history and its environmental impact. [**Preview**](https://xuanx1.github.io/worldOyster/animated-flight-map.html)
 
+https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
+
 <img width="1290" height="2796" alt="127 0 0 1_5500_animated-flight-map html(iPhone 14 Pro Max)" src="https://github.com/user-attachments/assets/c9d5f456-c813-4c4e-9d26-a936f76b22ec" />
 
 ![Screenshot 2026-03-28 215025](https://github.com/user-attachments/assets/98246798-5803-4a36-8876-85bfd2dcb69c)
