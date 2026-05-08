@@ -209,6 +209,7 @@
     "Penang": "Pulau Pinang",
     "Pengerang": "Pengerang",
     "Phuket": "ภูเก็ต",
+    "Hatyai": "หาดใหญ่",
     "Kota Kinabalu": "Kota Kinabalu",
     "Phnom Penh": "ភ្នំពេញ",
     "Siem Reap": "ក្រុងសៀមរាប",

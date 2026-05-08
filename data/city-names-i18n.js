@@ -108,6 +108,7 @@
         "Guwahati":      { ar:"غواهاتي", zh:"古瓦哈提", ru:"Гувахати" },
         "Haikou":        { ar:"هايكو", zh:"海口", ru:"Хайкоу" },
         "Hamburg":       { ar:"هامبورغ", zh:"汉堡", fr:"Hambourg", ru:"Гамбург", es:"Hamburgo" },
+        "Hatyai":        { ar:"هات ياي", zh:"合艾", ru:"Хатъяй" },
         "Hangzhou":      { ar:"هانغتشو", zh:"杭州", ru:"Ханчжоу" },
         "Hanoi":         { ar:"هانوي", zh:"河内", fr:"Hanoï", ru:"Ханой" },
         "Helsinki":      { ar:"هلسنكي", zh:"赫尔辛基", ru:"Хельсинки" },
