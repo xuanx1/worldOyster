@@ -293,6 +293,8 @@ Paro,Thimphu,car,26,28/5/2026
 Thimphu,Punakha,car,31.8,30/5/2026
 Punakha,Paro,car,58.52,1/6/2026
 Singapore,Hatyai,bus,72,12/6/2026
+Hatyai,Songkhla,bus,1.57,13/6/2026
+Songkhla,Hatyai,bus,2,13/6/2026
 Hatyai,Singapore,bus,71,14/6/2026
 Taipei,Taichung,train,31,5/7/2026
 Taichung,Kaohsiung,train,35,5/7/2026

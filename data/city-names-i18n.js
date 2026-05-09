@@ -278,6 +278,7 @@
         "Singapore":     { ar:"سنغافورة", zh:"新加坡", fr:"Singapour", ru:"Сингапур", es:"Singapur" },
         "Skopje":        { ar:"سكوبيي", zh:"斯科普里", ru:"Скопье" },
         "Sofia":         { ar:"صوفيا", zh:"索非亚", ru:"София" },
+        "Songkhla":      { ar:"سونغكلا", zh:"宋卡", ru:"Сонгкхла" },
         "St. Petersburg":{ ar:"سانت بطرسبرغ", zh:"圣彼得堡", fr:"Saint-Pétersbourg", ru:"Санкт-Петербург", es:"San Petersburgo" },
         "Stockholm":     { ar:"ستوكهولم", zh:"斯德哥尔摩", ru:"Стокгольм", es:"Estocolmo" },
         "Stuttgart":     { ar:"شتوتغارت", zh:"斯图加特", ru:"Штутгарт" },

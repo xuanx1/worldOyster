@@ -204,6 +204,7 @@ window.CITY_COORDINATES = {
     'Pengerang': [1.3652, 104.1086],
     'Phuket': [7.8804, 98.3923],
     'Hatyai': [7.0086, 100.4747],
+    'Songkhla': [7.1996, 100.5959],
     'Kota Kinabalu': [5.9804, 116.0735],
     'Phnom Penh': [11.5564, 104.9282],
     'Siem Reap': [13.3633, 103.8600],

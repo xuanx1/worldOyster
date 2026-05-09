@@ -286,7 +286,7 @@ window.CITY_TO_COUNTRY = {
     'Ulaanbaatar': 'Mongolia',
     'Turkmenabat': 'Turkmenistan', 'Merv': 'Turkmenistan', 'Mary': 'Turkmenistan',
     'Ashgabat': 'Turkmenistan', 'Darvaza': 'Turkmenistan', 'Dashoguz': 'Turkmenistan',
-    'Chiang Mai': 'Thailand','Bangkok': 'Thailand', 'Phuket': 'Thailand', 'Hatyai': 'Thailand',
+    'Chiang Mai': 'Thailand','Bangkok': 'Thailand', 'Phuket': 'Thailand', 'Hatyai': 'Thailand', 'Songkhla': 'Thailand',
     'Yogyakarta': 'Indonesia', 'Surakarta': 'Indonesia', 'Jakarta': 'Indonesia', 'Bandung': 'Indonesia',
 
     // North America
