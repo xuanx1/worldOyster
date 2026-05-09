@@ -144,6 +144,7 @@
     "Chongqing": "重庆",
     "Hangzhou": "杭州",
     "Nanjing": "南京",
+    "Nanning": "南宁",
     "Kunming": "昆明",
     "Haikou": "海口",
     "Hong Kong": "香港",

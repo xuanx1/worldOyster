@@ -201,6 +201,7 @@
         "Nairobi":       { ar:"نيروبي", zh:"内罗毕", ru:"Найроби" },
         "Nampo":         { ar:"نامبو", zh:"南浦", ru:"Нампхо" },
         "Nanjing":       { ar:"نانجينغ", zh:"南京", fr:"Nankin", ru:"Нанкин" },
+        "Nanning":       { ar:"نانينغ", zh:"南宁", ru:"Наньнин" },
         "Nanyang":       { ar:"نانيانغ", zh:"南阳", ru:"Наньян" },
         "Naples":        { ar:"نابولي", zh:"那不勒斯", fr:"Naples", ru:"Неаполь", es:"Nápoles" },
         "New Cairo City":{ ar:"القاهرة الجديدة", zh:"新开罗", fr:"Nouveau Caire", ru:"Новый Каир", es:"Nueva El Cairo" },
