@@ -281,7 +281,7 @@ window.CITY_TO_COUNTRY = {
     'Colombo': 'Sri Lanka', 'Kandy': 'Sri Lanka', 'Galle': 'Sri Lanka', 'Sigiriya': 'Sri Lanka', 'Dambulla': 'Sri Lanka', 'Anuradhapura': 'Sri Lanka',
     'Dhaka': 'Bangladesh',
     'Paro': 'Bhutan', 'Thimphu': 'Bhutan', 'Punakha': 'Bhutan',
-    'Tashkent': 'Uzbekistan', 'Samarkand': 'Uzbekistan', 'Bukhara': 'Uzbekistan', 'Nukus': 'Uzbekistan',
+    'Tashkent': 'Uzbekistan', 'Samarkand': 'Uzbekistan', 'Bukhara': 'Uzbekistan', 'Khiva': 'Uzbekistan',
     'Shymkent': 'Kazakhstan', 'Baikonur': 'Kazakhstan',
     'Ulaanbaatar': 'Mongolia',
     'Turkmenabat': 'Turkmenistan', 'Merv': 'Turkmenistan', 'Mary': 'Turkmenistan',

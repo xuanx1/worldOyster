@@ -225,7 +225,7 @@
     "Shymkent": "Шымкент",
     "Samarkand": "Самарқанд",
     "Bukhara": "Бухоро",
-    "Nukus": "Нөкис",
+    "Khiva": "Xiva",
     "Turkmenabat": "Türkmenabat",
     "Merv": "Merw",
     "Mary": "Mary",
