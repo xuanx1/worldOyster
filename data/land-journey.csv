@@ -25,11 +25,11 @@ Milan,Verona,train,7,14/2/2021
 Verona,Venice,train,12,14/2/2021
 Venice,Verona,train,12,17/2/2021
 Verona,Milan,train,7,17/2/2021
-Milan,Turin,train,5,21/5/2021
-Turin,Milan,train,5,21/5/2021
 Milan,Verona,train,15,7/5/2021
 Verona,Brescia,bus,10,9/5/2021
 Brescia,Milan,bus,5,9/5/2021
+Milan,Turin,train,5,21/5/2021
+Turin,Milan,train,5,21/5/2021
 Milan,Florence,train,21,9/7/2021
 Florence,Rome,train,27,12/7/2021
 Rome,Vatican City,metro,2,13/7/2021
@@ -92,6 +92,8 @@ Busan,Daejeon,train,20.35,22/8/2022
 Daejeon,Busan,train,20.35,22/8/2022
 Jeju,Seogwipo,bus,1.2,23/8/2022
 Seogwipo,Jeju,bus,1.2,23/8/2022
+Jeju,Seogwipo,car,1.2,23/8/2022
+Seogwipo,Jeju,car,1.2,23/8/2022
 Seoul,Incheon,train,1.25,25/8/2022
 Incheon,Seoul,train,1.25,25/8/2022
 Milan,San Marino,train,19.5,31/10/2022
@@ -147,6 +149,7 @@ Lisbon,Seville,bus,26.32,20/6/2023
 Seville,Malaga,bus,21.79,21/6/2023
 Malaga,La Linea de la Concepcion,bus,27.44,22/6/2023
 Gibraltar,Tangier,ferry,55.49,23/6/2023
+La Linea de la Concepcion,Gibraltar,walk,0,23/6/2023
 Tangier,Chefchaoun,bus,12.8,24/6/2023
 Chefchaoun,Tangier,bus,11.38,24/6/2023
 Tangier,Rabat,train,14.34,25/6/2023
@@ -170,6 +173,7 @@ Tallinn,Helsinki,ferry,32.25,13/8/2023
 Singapore,Batam,ferry,38,4/9/2023
 Batam,Singapore,ferry,38,5/9/2023
 Abu Dhabi,Sharjah,bus,13.76,14/9/2023
+Zurich,Milan,train,45,15/9/2023
 Milan,Novara,train,13,15/10/2023
 Novara,Milan,train,13,15/10/2023
 Milan,Rome,train,39.09,2/11/2023
@@ -181,6 +185,7 @@ Pilsen,Prague,bus,8.42,25/11/2023
 Prague,Vienna,train,10.73,26/11/2023
 Vienna,Prague,train,10.73,27/11/2023
 Amsterdam,Cologne,bus,82.47,21/12/2023
+Cologne,Amsterdam,bus,82.47,22/12/2023
 Belgrade,Novi Sad,train,4.5,31/12/2023
 Novi Sad,Belgrade,train,4.5,31/12/2023
 Istanbul,Ankara,train,19.22,10/2/2024
@@ -202,12 +207,14 @@ Tbilisi,Batumi,train,25,5/4/2024
 Batumi,Kutaisi,bus,10,6/4/2024
 Kutaisi,Batumi,train,1,6/4/2024
 Ankara,Istanbul,train,19.24,11/4/2024
+Giza,Cairo,car,2,14/4/2024
 Cairo,Alexandria,bus,9.28,15/4/2024
 Alexandria,Cairo,bus,6.31,15/4/2024
 Cairo,Luxor,bus,7.71,15/4/2024
 Luxor,Cairo,bus,7.71,17/4/2024
 Cairo,New Cairo City,car,6.82,18/4/2024
 New Cairo City,Cairo,car,6.47,18/4/2024
+Cairo,Giza,car,2,19/4/2024
 Sarajevo,Mostar,bus,15,7/5/2024
 Mostar,Sarajevo,train,10,7/5/2024
 Sarajevo,Visoko,bus,4.5,8/5/2024
@@ -254,6 +261,7 @@ Ollantaytambo,Aguas Caliente,train,98.62,7/9/2025
 Aguas Caliente,Cusco,train,98.62,8/9/2025
 Lima,Ica,bus,28.2,15/9/2025
 Huacachina,Lima,bus,23.83,15/9/2025
+Ica,Huacachina,car,2,15/9/2025
 Jakarta,Bandung,train,23.5,19/10/2025
 Bandung,Jakarta,train,23.5,19/10/2025
 Bangkok,Vientiane,train,26,14/11/2025
@@ -280,15 +288,9 @@ Yangon,Bago,train,1.5,20/3/2026
 Bago,Yangon,train,1.5,20/3/2026
 Singapore,Kuala Lumpur,train,28.76,3/4/2026
 Kuala Lumpur,Singapore,train,28.76,5/4/2026
-Chongqing,Chengdu,train,17.66,2/5/2026
-Zurich,Milan,train,45,15/9/2023
-La Linea de la Concepcion,Gibraltar,walk,0,23/6/2023
-Cologne,Amsterdam,bus,82.47,22/12/2023
-Giza,Cairo,car,2,14/4/2024
-Cairo,Giza,car,2,19/4/2024
-Ica,Huacachina,car,2,15/9/2025
 Amritsar,Lahore,car,26,24/4/2026
 Lahore,Amritsar,car,26,25/4/2026
+Chongqing,Chengdu,train,17.66,2/5/2026
 Paro,Thimphu,car,26,28/5/2026
 Thimphu,Punakha,car,31.8,30/5/2026
 Punakha,Paro,car,58.52,1/6/2026
@@ -320,5 +322,23 @@ Ashgabat,Darvaza,car,22,10/10/2026
 Darvaza,Dashoguz,car,21,11/10/2026
 Dashoguz,Khiva,car,9,11/10/2026
 Khiva,Tashkent,train,68.38,11/10/2026
-Jeju,Seogwipo,car,1.2,23/8/2022
-Seogwipo,Jeju,car,1.2,23/8/2022
+Kaliningrad,Vilnus,bus,58,24/12/2026
+Vilnus,Minsk,bus,57,25/12/2026
+Minsk,Vilnus,bus,56,27/12/2026
+Vilnus,Riga,train,12.2,28/12/2026
+Riga,Tallinn,bus,16.5,29/12/2026
+Tallinn,St. Petersburg,bus,65,30/12/2026
+Tokyo,Chiba,train,3.5,6/1/2027
+Chiba,Kawasaki,train,7.5,6/1/2027
+Kawasaki,Yokohama,train,1.5,6/1/2027
+Yokohama,Tokyo,train,4,6/1/2027
+Tokyo,Otsuki,train,23.5,7/1/2027
+Otsuki,Fujiyoshida,train,8.5,7/1/2027
+Fujiyoshida,Otsuki,train,8.5,7/1/2027
+Otsuki,Tokyo,train,23.5,7/1/2027
+Tokyo,Nagoya,train,91.5,7/1/2027
+Nagoya,Osaka,train,54,8/1/2027
+Osaka,Kyoto,train,4.5,9/1/2027
+Kyoto,Kobe,train,9,9/1/2027
+Kobe,Osaka,train,3.5,9/1/2027
+Osaka,Tokyo,train,119,10/1/2027

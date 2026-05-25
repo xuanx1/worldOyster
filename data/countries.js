@@ -107,7 +107,7 @@ window.AIRPORT_TO_COUNTRY = {
     'SIN': 'Singapore',
 
     // Asia - Malaysia
-    'KUL': 'Malaysia', 'BKI': 'Malaysia',
+    'KUL': 'Malaysia', 'BKI': 'Malaysia', 'KCH': 'Malaysia',
 
     // Asia - Indonesia
     'CGK': 'Indonesia', 'YIA': 'Indonesia',
@@ -178,7 +178,8 @@ window.AIRPORT_TO_COUNTRY = {
     'YYZ': 'Canada', 'YVR': 'Canada', 'YUL': 'Canada', 'YYC': 'Canada',
 
     // Russia & Former Soviet Union
-    'VKO': 'Russia',
+    'VKO': 'Russia', 'SVO': 'Russia', 'DME': 'Russia', 'LED': 'Russia',
+    'VOG': 'Russia', 'KGD': 'Russia',
     'KBP': 'Ukraine', 'LWO': 'Ukraine', 'TMR': 'Algeria'
 };
 
@@ -186,6 +187,8 @@ window.AIRPORT_TO_COUNTRY = {
 window.CITY_TO_COUNTRY = {
     // Japan
     'Sapporo': 'Japan', 'Tokyo': 'Japan', 'Osaka': 'Japan', 'Kyoto': 'Japan', 'Nara': 'Japan',
+    'Nagoya': 'Japan', 'Kobe': 'Japan', 'Chiba': 'Japan', 'Kawasaki': 'Japan', 'Yokohama': 'Japan',
+    'Otsuki': 'Japan', 'Fujiyoshida': 'Japan',
 
     // Europe - Germany
     'Berlin': 'Germany', 'Munich': 'Germany', 'Hamburg': 'Germany', 'Cologne': 'Germany',
@@ -267,8 +270,9 @@ window.CITY_TO_COUNTRY = {
     'Taipei': 'ROC Taiwan', 'Taichung': 'ROC Taiwan', 'Kaohsiung': 'ROC Taiwan',
     'Kuala Lumpur': 'Malaysia',
     'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
-    'Penang': 'Malaysia', 'Pengerang': 'Malaysia', 'Kota Kinabalu': 'Malaysia',
-    'Moscow': 'Russia', 'St. Petersburg': 'Russia', 'Tallinn': 'Estonia',
+    'Penang': 'Malaysia', 'Pengerang': 'Malaysia', 'Kota Kinabalu': 'Malaysia', 'Kuching': 'Malaysia',
+    'Moscow': 'Russia', 'St. Petersburg': 'Russia', 'Volgograd': 'Russia', 'Kaliningrad': 'Russia',
+    'Tallinn': 'Estonia', 'Riga': 'Latvia', 'Vilnius': 'Lithuania', 'Vilnus': 'Lithuania', 'Minsk': 'Belarus',
     'Da Nang': 'Vietnam', 'Danang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh City (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam', 'Hue': 'Vietnam', 'Hanoi': 'Vietnam',
     'Vientiane': 'Laos', 'Luang Prabang': 'Laos',
     'Phnom Penh': 'Cambodia', 'Siem Reap': 'Cambodia',

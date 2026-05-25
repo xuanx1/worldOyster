@@ -70,6 +70,11 @@ window.AIRPORT_COORDINATES = {
     'WAW': [52.1657, 20.9671],  // Warsaw
     'HAM': [53.6304, 9.9882],   // Hamburg
     'VKO': [55.5915, 37.2615],  // Moscow Vnukovo
+    'SVO': [55.9728, 37.4147],  // Moscow Sheremetyevo
+    'DME': [55.4087, 37.9063],  // Moscow Domodedovo
+    'LED': [59.8003, 30.2625],  // St Petersburg Pulkovo
+    'VOG': [48.7825, 44.3458],  // Volgograd
+    'KGD': [54.8900, 20.5926],  // Kaliningrad Khrabrovo
     'KBP': [50.3450, 30.8947],  // Kiev Boryspil
     'LWO': [49.8125, 23.9561],  // Lviv
 
@@ -113,8 +118,11 @@ window.AIRPORT_COORDINATES = {
 
     // Asia
     'HND': [35.5494, 139.7798], // Tokyo Haneda
+    'NRT': [35.7720, 140.3929], // Tokyo Narita
     'CTS': [42.7752, 141.6929], // Sapporo New Chitose
     'ITM': [34.7855, 135.4381], // Osaka Itami
+    'KIX': [34.4347, 135.2440], // Osaka Kansai
+    'NGO': [34.8584, 136.8054], // Nagoya Chubu Centrair
     'ICN': [37.4602, 126.4407], // Seoul Incheon
     'CJU': [33.5113, 126.4930], // Jeju
     'GMP': [37.5583, 126.7906], // Seoul Gimpo
@@ -148,6 +156,7 @@ window.AIRPORT_COORDINATES = {
     'VTE': [17.9883, 102.5633], // Vientiane Wattay
     'YIA': [-7.9006, 110.0568], // Yogyakarta International
     'BKI': [5.9372, 116.0517],  // Kota Kinabalu
+    'KCH': [1.4847, 110.3469],  // Kuching
     'TPE': [25.0777, 121.2320], // Taipei Taoyuan
     'DXB': [25.2532, 55.3657],  // Dubai International
     'KEF': [63.9850, -22.6059], // Keflavik International
@@ -220,6 +229,18 @@ window.AIRPORT_TO_CITY = {
     'VKO': 'Moscow',
     'DME': 'Moscow',
 
+    // St Petersburg area airports -> St. Petersburg
+    'LED': 'St. Petersburg',
+
+    // Volgograd
+    'VOG': 'Volgograd',
+
+    // Kaliningrad
+    'KGD': 'Kaliningrad',
+
+    // Nagoya
+    'NGO': 'Nagoya',
+
     // Chicago area airports -> Chicago
     'ORD': 'Chicago',
     'MDW': 'Chicago',
@@ -285,6 +306,9 @@ window.AIRPORT_TO_CITY = {
 
     // Kota Kinabalu area airports -> Kota Kinabalu
     'BKI': 'Kota Kinabalu',
+
+    // Kuching area airports -> Kuching
+    'KCH': 'Kuching',
 
     // Beirut area airports -> Beirut
     'BEY': 'Beirut',
