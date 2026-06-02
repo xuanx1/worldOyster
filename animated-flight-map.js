@@ -20,6 +20,7 @@ class AnimatedFlightMap {
         this.totalTime = 0; // Track total travel time in hours
         this.totalCO2 = 0; // Track total CO2 emissions in kg
         this.totalCostSGD = 0; // Track total cost in SGD (base currency)
+        this.totalCostUSD = 0; // Track total cost in USD, summed leg-by-leg at each leg's historical year SGD/USD rate
         
         // Scrubber properties
         this.isDragging = false;
@@ -1475,10 +1476,15 @@ class AnimatedFlightMap {
         this.totalTime += timeHours;
         this.totalCO2 += co2EmissionKg;
         this.totalCostSGD += costSGD;
-        
+        {
+            const _d = journeyData && journeyData.date;
+            const _usd = (window.ExchangeRates && _d) ? window.ExchangeRates.historicalSGDtoUSD(costSGD, _d) : null;
+            this.totalCostUSD += (_usd != null) ? _usd : costSGD * (this.exchangeRates.SGD_TO_USD || 0.787);
+        }
+
         // Show increment box - pass journey type for proper display
         const isLandJourney = journeyData && journeyData.type === 'land';
-        this.showIncrement(distanceKm, timeHours, co2EmissionKg, costSGD, isLandJourney);
+        this.showIncrement(distanceKm, timeHours, co2EmissionKg, costSGD, isLandJourney, journeyData && journeyData.date);
 
         // Store per-leg chart data and update chart
         // When cost is unknown (0), use null for all metrics so the chart bridges the gap
@@ -2185,7 +2191,8 @@ class AnimatedFlightMap {
         this.totalTime = 0;
         this.totalCO2 = 0;
         this.totalCostSGD = 0;
-        
+        this.totalCostUSD = 0;
+
         // Reset progress bar
         document.getElementById('progressFill').style.width = '0%';
         
@@ -2466,6 +2473,7 @@ class AnimatedFlightMap {
         this.totalTime = 0;
         this.totalCO2 = 0;
         this.totalCostSGD = 0;
+        this.totalCostUSD = 0;
         
         // Calculate statistics for journeys up to current position
         for (let i = 0; i < this.currentCityIndex; i++) {
@@ -2498,6 +2506,11 @@ class AnimatedFlightMap {
                 this.totalTime += timeHours;
                 this.totalCO2 += co2EmissionKg;
                 this.totalCostSGD += costSGD;
+                {
+                    const _d = journeyData && journeyData.date;
+                    const _usd = (window.ExchangeRates && _d) ? window.ExchangeRates.historicalSGDtoUSD(costSGD, _d) : null;
+                    this.totalCostUSD += (_usd != null) ? _usd : costSGD * (this.exchangeRates.SGD_TO_USD || 0.787);
+                }
 
                 // Store chart data for scrubber sync
                 const _costPerKm = (costSGD > 0 && distanceKm > 0) ? costSGD / distanceKm : null;
@@ -4311,7 +4324,7 @@ class AnimatedFlightMap {
                 },
                 costs: {
                     SGD: Math.round(this.totalCostSGD),
-                    USD: Math.round(this.totalCostSGD * (this.exchangeRates.SGD_TO_USD || 0.787))
+                    USD: Math.round(this.totalCostUSD)
                 }
             },
             cities: this.cities.map((city, index) => ({
@@ -4359,10 +4372,13 @@ class AnimatedFlightMap {
                     cost: (() => {
                         // Use actual cost from CSV if available, otherwise fall back to calculation
                         if (toCity.originalFlight && toCity.originalFlight.costSGD && toCity.originalFlight.costSGD > 0) {
-                            const actualCostUSD = toCity.originalFlight.costSGD * (this.exchangeRates.SGD_TO_USD || 0.787);
+                            const _sgd = toCity.originalFlight.costSGD;
+                            const _d = toCity.originalFlight.date;
+                            const _hist = (window.ExchangeRates && _d) ? window.ExchangeRates.historicalSGDtoUSD(_sgd, _d) : null;
+                            const actualCostUSD = (_hist != null) ? _hist : _sgd * (this.exchangeRates.SGD_TO_USD || 0.787);
                             return {
                                 USD: Math.round(actualCostUSD),
-                                SGD: Math.round(toCity.originalFlight.costSGD),
+                                SGD: Math.round(_sgd),
                                 source: "actual_csv_data"
                             };
                         } else {
@@ -4622,8 +4638,7 @@ class AnimatedFlightMap {
         // Separate USD and SGD cost displays
         if (totalCostUSDEl) {
             if (this.totalCostSGD > 0) {
-                const totalCostUSD = this.totalCostSGD * (this.exchangeRates.SGD_TO_USD || 0.787);
-                this.animateNumber(totalCostUSDEl, totalCostUSD, 800, (val) => `US$${Math.round(val).toLocaleString()}`);
+                this.animateNumber(totalCostUSDEl, this.totalCostUSD, 800, (val) => `US$${Math.round(val).toLocaleString()}`);
             } else {
                 totalCostUSDEl.textContent = '-';
             }
@@ -4799,7 +4814,7 @@ class AnimatedFlightMap {
     }
 
     // Show increment displays next to each stat
-    showIncrement(distance, time, co2, costSGD, isTrainJourney) {
+    showIncrement(distance, time, co2, costSGD, isTrainJourney, legDate) {
         console.log('showIncrement called:', { distance, time, co2, costSGD, isTrainJourney });
         
         const incDistance = document.getElementById('incDistance');
@@ -4848,9 +4863,10 @@ class AnimatedFlightMap {
                 incCO2.classList.add('show');
             }
             
-            // Update and show USD cost increment (convert from SGD)
+            // Update and show USD cost increment (convert from SGD at the leg's historical rate)
             if (incCostUSD) {
-                const costUSD = costSGD * (this.exchangeRates.SGD_TO_USD || 0.787);
+                const _hist = (window.ExchangeRates && legDate) ? window.ExchangeRates.historicalSGDtoUSD(costSGD, legDate) : null;
+                const costUSD = (_hist != null) ? _hist : costSGD * (this.exchangeRates.SGD_TO_USD || 0.787);
                 incCostUSD.textContent = `+US$${Math.round(costUSD)}`;
                 incCostUSD.classList.add('show');
             }

@@ -47,7 +47,7 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 | Total Distance | Kilometres traveled, with Moon/Earth circumference metaphors |
 | Total Time | Hours in transit |
 | CO₂ Emission | kg / tonnes with tiered real-world comparisons |
-| Cost (USD) | Live-converted at current exchange rate |
+| Cost (USD) | Summed leg-by-leg at each leg's historical SGD/USD rate (no flat-rate distortion of pre-2025 spend) |
 | Cost (SGD) | Base currency total |
 | Current Journey | Active leg highlighted in gold |
 
@@ -59,7 +59,7 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 
 ### 💱 Cost & Exchange Rate Adjustment
 - **CPI-based inflation adjustment**: All costs adjusted to 2025 SGD using Singapore CPI data
-- **Historical SGD/USD exchange rates**: Year-by-year rates from 2017–2026 for accurate USD conversion
+- **Historical SGD/USD exchange rates (2017–2026)**: Every leg is converted to USD at the SGD/USD rate of its own year, then summed. The grand USD total reflects what was actually paid in USD terms at the time — not today's rate applied to a decade of spend
 - **Dual price chart**: Nominal vs. real (inflation-adjusted) cost per leg
 
 ### 📈 Charts
