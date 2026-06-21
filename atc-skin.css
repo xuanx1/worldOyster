@@ -12,6 +12,11 @@
 @import url("asset/font/google-fonts.css");
 
 :root {
+  /* Uniform scale for the whole viz. JS sets this to
+     window.innerHeight / 740 on load/resize/orientation so the
+     entire lane (fonts, charts, gaps, scroll metrics) renders
+     proportionate to the actual screen height. */
+  --viz-scale: 1;
   --atc-bg:        #070b10;
   --atc-panel:     #0c131b;
   --atc-panel-2:   #0a0f16;
@@ -284,13 +289,7 @@
 @keyframes atc-boot-blink { 0%, 92%, 100% { opacity: 1; } 96% { opacity: 0.35; } }
 
 /* Mobile: keep the canvas as the map; drop the auxiliary chrome */
-@media (max-width: 768px) {
-  .atc-scope-tag, .atc-scope-mode,
-  .atc-scope-boot, .atc-scope-tip {
-    display: none !important;
-  }
-  .atc-scanlines, .atc-vignette { opacity: 0.7; }
-}
+
 
 /* ============================================================
    Right column: city list and travel stats SIDE BY SIDE,
@@ -299,7 +298,6 @@
    JS lifts .city-list-container out of the scope card so the
    `body > .city-list-container` selectors apply.
    ============================================================ */
-@media (min-width: 769px) {
   body > .city-list-container {
     position: absolute;
     left: calc(50% + 390px);
@@ -374,7 +372,6 @@
   body > .stats-section .stats-title { text-align: center; }
   body > .stats-section .stat-label { font-size: 0.72em; }
   body > .stats-section .stat-value { font-size: 1.1em; }
-}
 
 /* ============================================================
    Desktop: convert the whole page into a horizontal scroll lane.
@@ -490,25 +487,6 @@
               0 6px 18px rgba(0, 0, 0, 0.6) !important;
 }
 
-/* Export button — lifted out of the centred .bottom-bar and
-   placed as the very last item in the horizontal scroll lane,
-   AFTER the unvisited widget. JS moves the element into <body>
-   so it flows as a sibling of .widgets-section. */
-@media (min-width: 769px) {
-  body > #exportButton {
-    position: relative !important;
-    align-self: center !important;
-    flex: 0 0 auto !important;
-    margin: 0 !important;
-    transform: none !important;
-    z-index: 5 !important;
-    left: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    top: auto !important;
-  }
-}
-
 /* Main-map progress bar — flowing-green colour flow on the fill
    (replaces the static green linear-gradient from the inline CSS). */
 .progress-bar > .progress-fill {
@@ -525,7 +503,6 @@
               0 0 3px rgba(127, 224, 145, 0.8) !important;
 }
 
-@media (min-width: 769px) {
   body {
     overflow-x: auto !important;
     overflow-y: hidden !important;
@@ -533,18 +510,22 @@
     flex-direction: row !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    /* Match left/right breathing room to the top/bottom space
-       created by centering the 740px-tall content lane. */
-    /* Left padding only — the right gutter is rendered by body::after
-       below. Chromium drops padding-right at the far end of a
-       horizontally-scrolled flex container, so we replicate it with
-       a real flex spacer instead and zero out padding-right here
-       to avoid doubling. */
-    padding: 0 0 0 max(28px, calc((100vh - 740px) / 2)) !important;
-    gap: 40px !important;
+    /* No padding — both gutters are rendered as pseudo-elements
+       (::before for left, ::after for right). They share identical
+       styling so they're mathematically guaranteed to be the same
+       width. Inter-item spacing handled by margin-right on each
+       child (see body > *:not(:last-child) below). */
+    padding: 0 !important;
+    gap: 0 !important;
     min-width: 0 !important;
-    height: 100vh !important;
-    width: 100vw !important;
+    /* Uniform-scale the entire viz by viewport height: zoom only
+       shrinks when the viewport is shorter than 740px (capped at 1
+       in JS), so desktop renders at native design size. body's set
+       width/height are expanded by 1/scale so the rendered result
+       still fills the viewport exactly. */
+    zoom: var(--viz-scale) !important;
+    height: calc(100vh / var(--viz-scale)) !important;
+    width: calc(100vw / var(--viz-scale)) !important;
     box-sizing: border-box !important;
   }
   /* Existing absolute panels become inline flex items */
@@ -626,19 +607,27 @@
     height: 100% !important;
     align-items: stretch !important;
   }
-  /* Right gutter — Chromium drops padding-right at the far end of
-     a horizontally-scrolled flex container, so we hang an empty
-     flex spacer at the end. margin-left: -40px cancels the body's
-     40px gap before the spacer, so the visible right gutter is
-     exactly the same width as the left padding. */
-  body::after {
-    content: '';
-    display: block;
-    flex: 0 0 max(28px, calc((100vh - 740px) / 2));
-    align-self: stretch;
-    margin-left: -40px;
-    pointer-events: none;
+  /* Inter-item spacing via margin-right on each real child (except
+     the last). No flex gap. */
+  body > *:not(:last-child) {
+    margin-right: 40px !important;
   }
+  body > .widgets-section {
+    margin-right: 0 !important;
+  }
+  /* Both gutters share IDENTICAL pseudo-element styling so they are
+     guaranteed to render the same width. ::before is the very first
+     flex item (left gutter), ::after is the very last (right gutter). */
+  body::before,
+  body::after {
+    content: '' !important;
+    display: block !important;
+    flex: 0 0 80px !important;
+    align-self: stretch !important;
+    pointer-events: none !important;
+    margin: 0 !important;
+  }
+  .atc-right-gutter { display: none !important; }
   .widget-card {
     min-height: 0 !important;
     height: 100% !important;
@@ -1207,6 +1196,12 @@
     height: 100% !important;
     min-height: 0 !important;
     overflow: hidden !important;
+    /* Symmetric 16px horizontal padding INSIDE the widget — map sits
+       16px from the left border, regions strip sits 16px from the
+       right border. Vertical stays at the default 16px from inline
+       HTML, so all four sides are now 16px. */
+    padding-left: 16px !important;
+    padding-right: 16px !important;
   }
   /* Single-row grid: LEFT = map (full height), RIGHT = country
      region strip. Legend overlays the top of the map as an absolute
@@ -1278,7 +1273,7 @@
     flex-direction: row !important;
     gap: 12px !important;
     overflow: visible !important;
-    padding: 0 4px 0 8px !important;
+    padding: 0 !important;
     box-sizing: border-box !important;
     align-items: stretch !important;
     align-self: stretch !important;
@@ -1858,11 +1853,8 @@
     from { background-position-x: 0; }
     to   { background-position-x: -40vw; }
   }
-}
 
-@media (max-width: 768px) {
-  #atcScrollMeter { display: none !important; }
-}
+
 
 /* ============================================================
    Header ticker — promoted to a full-viewport-width top bar.
@@ -1870,20 +1862,20 @@
    visually to the very top of the page on desktop so it reads as
    a separate component sitting above the horizontal lane.
    ============================================================ */
-@media (min-width: 769px) {
   /* Position/layout only — keep the original font-size, letter-spacing
      and mask from the inline stylesheet. 10px breathing room above
-     the ticker so it doesn't sit flush with the window's top edge. */
+     the ticker so it doesn't sit flush with the window's top edge.
+     Width/top are scale-compensated so the ticker always stretches
+     the full actual viewport regardless of the body's zoom factor. */
   .header-ticker {
     position: fixed !important;
-    top: 10px !important;
+    top: calc(10px / var(--viz-scale)) !important;
     left: 0 !important;
     right: 0 !important;
-    width: 100vw !important;
+    width: calc(100vw / var(--viz-scale)) !important;
     margin: 0 !important;
     z-index: 9998 !important;
   }
-}
 
 /* ============================================================
    Main title "IS THE WORLD YOUR 🦪?".
@@ -2090,170 +2082,9 @@
    phone-friendly column widths. Same architecture as desktop,
    just scaled down so a 360-414px phone reads tidily.
    ============================================================ */
-@media (max-width: 480px) {
-  html, body {
-    overflow-y: hidden !important;
-    height: 100vh !important;
-    width: 100vw !important;
-    min-width: 0 !important;
-  }
-  body {
-    overflow-x: auto !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    padding: 0 0 0 14px !important;
-    gap: 16px !important;
-    min-width: 0 !important;
-    box-sizing: border-box !important;
-  }
-  body::after {
-    content: '';
-    display: block;
-    flex: 0 0 14px;
-    align-self: stretch;
-    margin-left: -16px;
-    pointer-events: none;
-  }
-  body > .title-section,
-  body > .stats-section,
-  body > .city-list-container,
-  body > .stats-citylist-group,
-  body > .widgets-section,
-  body > .card-column {
-    position: relative !important;
-    left: auto !important; right: auto !important;
-    top: auto !important; bottom: auto !important;
-    flex-shrink: 0 !important;
-    margin: 0 !important;
-  }
-  body > .card-column { width: auto !important; }
-  .card-container {
-    width: 320px !important;
-    height: 480px !important;
-  }
-  body > .title-section {
-    height: 480px !important;
-    width: 220px !important;
-    text-align: left !important;
-    align-items: flex-start !important;
-  }
-  body > .stats-citylist-group {
-    height: 480px !important;
-    flex-direction: column !important;
-  }
-  .stats-citylist-row {
-    flex-direction: row !important;
-    gap: 10px !important;
-  }
-  .stats-citylist-row > .stats-section,
-  .stats-citylist-row > .city-list-container {
-    width: 180px !important;
-    height: auto !important;
-    flex: 0 0 180px !important;
-  }
-  body > .widgets-section {
-    height: 480px !important;
-    max-height: 480px !important;
-    width: auto !important;
-    overflow: visible !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: transparent !important;
-  }
-  .widgets-inner {
-    display: grid !important;
-    grid-template-columns: 480px 420px 480px 880px !important;
-    grid-template-rows: 76px 1fr 1fr 1fr !important;
-    grid-template-areas:
-      "timeline timeline timeline timeline"
-      "stack    heatmap  choro   unvis"
-      "stack    heatmap  choro   unvis"
-      "stack    heatmap  choro   unvis" !important;
-    column-gap: 16px !important;
-    row-gap: 16px !important;
-    padding: 0 !important;
-    max-width: none !important;
-    height: 480px !important;
-  }
-  /* Scope/playbar/scrollmeter: scrollmeter hides on small screens */
-  #atcScrollMeter { display: none !important; }
-  .atc-playbar { padding: 4px 6px !important; gap: 4px !important; }
-  .atc-playbar .atc-pb-btn { padding: 3px 5px !important; font-size: 9px !important; }
-  .atc-playbar .atc-pb-status { font-size: 9px !important; }
-  .header-ticker {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100vw !important;
-    z-index: 9998 !important;
-  }
-  /* Hide the rotate-device prompt — phone portrait is supported */
-  .atc-rotate-prompt { display: none !important; }
-}
 
-/* ============================================================
-   TABLET PORTRAIT (481-1024px width, portrait orientation):
-   block the viz with a full-screen rotate-device overlay.
-   Tablet landscape (1024×768) is caught by the desktop
-   `@media (min-width: 769px)` block and renders normally.
-   ============================================================ */
-@media (min-width: 481px) and (max-width: 1024px) and (orientation: portrait) {
-  body > *:not(.atc-rotate-prompt) {
-    display: none !important;
-  }
-  html, body {
-    overflow: hidden !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: var(--atc-bg, #070b10) !important;
-  }
-  .atc-rotate-prompt {
-    position: fixed !important;
-    inset: 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 22px !important;
-    background: var(--atc-bg, #070b10) !important;
-    color: #4CAF50 !important;
-    font-family: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace !important;
-    text-align: center !important;
-    padding: 24px !important;
-    z-index: 999999 !important;
-  }
-  .atc-rotate-prompt .atc-rotate-icon {
-    width: 88px;
-    height: 88px;
-    color: #4CAF50;
-    animation: atcRotateNudge 2.4s ease-in-out infinite;
-    filter: drop-shadow(0 0 12px rgba(76, 175, 80, 0.55));
-  }
-  .atc-rotate-prompt .atc-rotate-title {
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.30em;
-    color: #b5f5b5;
-    text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(127, 224, 145, 0.65);
-  }
-  .atc-rotate-prompt .atc-rotate-body {
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    line-height: 1.6;
-    max-width: 360px;
-    color: #8b949e;
-  }
-}
-@keyframes atcRotateNudge {
-  0%, 100% { transform: rotate(-90deg); }
-  50%      { transform: rotate(0deg);   }
-}
-/* Hide the rotate prompt by default (only the tablet-portrait media
-   block above un-hides it). */
-.atc-rotate-prompt { display: none; }
+
+/* Rotate-device overlay disabled: viewport is pinned to width=1400 in
+   the HTML <meta> so phones and tablets render the desktop layout with
+   horizontal scrolling, the same as desktop. */
+.atc-rotate-prompt { display: none !important; }

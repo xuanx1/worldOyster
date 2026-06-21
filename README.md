@@ -63,12 +63,6 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - **Leg efficiency chart**: Cost efficiency per journey leg
 - **Period filters**: ALL, 1Y, 3Y, 5Y, 7Y, 10Y
 - **Scrollable chart preview** with thumb slider
-
-### 💬 Danmaku Overlay
-- Scrolling bullet-comment style messages over the map
-- Displays travel facts and milestones as the animation plays
-
-### 📋 Insight Widgets
 - **Spending Heatmap** — monthly spending by year
 - **Cost Choropleth** — world map coloured by total spend per country
 - **Duration Trend** — avg/total trip duration over time
@@ -99,12 +93,6 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
   - 🚶 Walking: 0.01 kg CO₂/km
   - 🚲 Cycling: 0.02 kg CO₂/km
 - **Real-time scrubbing**: Emissions recalculate instantly as you drag the timeline
-
-### 📱 Mobile Support
-- Responsive vertical layout on small screens
-- Touch-friendly controls and tap-to-pin popups
-- Dedicated mobile city list with two-column grid
-- Collapsible mini-map mode
 
 ---
 

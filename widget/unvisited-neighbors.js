@@ -203,7 +203,8 @@
         'DMZ': 'Panmunjom',
         'JSA': 'Panmunjom',
         'Kish': 'Kish Island',
-        'Kish Island': 'Kish Island'
+        'Kish Island': 'Kish Island',
+        'Kaliningrad': 'Kaliningrad'
     };
 
     // Region classification for grouping unvisited countries/places

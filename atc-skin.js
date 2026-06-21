@@ -400,12 +400,18 @@
       status.textContent = `LEG ${String(legIdx).padStart(3, '0')}/${String(totalLegs).padStart(3, '0')} · ${year}`;
     }
 
-    // Play/pause label mirrors animation state
+    // Play/pause label + icon mirror animation state
     const ppBtn = pb.querySelector('[data-act="playpause"]');
     if (ppBtn) {
       const lbl = ppBtn.querySelector('.atc-pb-lbl');
+      const svg = ppBtn.querySelector('svg');
       const animating = !!fm.isAnimating;
       if (lbl) lbl.textContent = animating ? 'PAUSE' : (legIdx >= totalLegs ? 'REPLAY' : 'PLAY');
+      if (svg) {
+        svg.innerHTML = animating
+          ? '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>'
+          : '<polygon points="6 4 20 12 6 20"/>';
+      }
       ppBtn.classList.toggle('atc-pb-on', animating);
     }
 
@@ -584,17 +590,34 @@
     // the source of truth for its own view; leaflet is untouched.
     let dragOriginX = 0, dragOriginY = 0;
     let didMove = false;
-    cv.addEventListener('mousedown', e => {
+    let dragPid = null;
+    // touch-action:none lets the canvas receive touch drags without
+    // the browser hijacking them for body horizontal scroll on mobile.
+    cv.style.touchAction = 'none';
+    cv.addEventListener('pointerdown', e => {
+      if (e.button !== undefined && e.button !== 0) return;
       dragging = true;
       lastX = dragOriginX = e.clientX;
       lastY = dragOriginY = e.clientY;
       didMove = false;
+      dragPid = e.pointerId;
+      if (cv.setPointerCapture && dragPid !== undefined) {
+        try { cv.setPointerCapture(dragPid); } catch (_) {}
+      }
       cv.style.cursor = 'grabbing';
     });
-    window.addEventListener('mouseup', () => {
-      if (dragging) { dragging = false; cv.style.cursor = ''; }
-    });
-    window.addEventListener('mousemove', e => {
+    const endDrag = () => {
+      if (!dragging) return;
+      dragging = false;
+      if (cv.releasePointerCapture && dragPid !== undefined) {
+        try { cv.releasePointerCapture(dragPid); } catch (_) {}
+      }
+      dragPid = null;
+      cv.style.cursor = '';
+    };
+    cv.addEventListener('pointerup', endDrag);
+    cv.addEventListener('pointercancel', endDrag);
+    cv.addEventListener('pointermove', e => {
       if (!dragging) return;
       const dx = e.clientX - lastX, dy = e.clientY - lastY;
       lastX = e.clientX; lastY = e.clientY;
@@ -800,7 +823,6 @@
      viewport-wide top bar.
      ---------------------------------------------------------------- */
   function prepareTopTicker() {
-    if (!window.matchMedia('(min-width: 769px)').matches) return;
     if (document.querySelector('.header-ticker')) {
       // already created — re-parent to body so it escapes any
       // backdrop-filter ancestor
@@ -818,7 +840,6 @@
   /* ---------- group stats-section + city-list into one panel with a
      shared "Travel Statistics" title above them ---------- */
   function groupStatsAndCityList() {
-    if (!window.matchMedia('(min-width: 769px)').matches) return;
     const stats = document.querySelector('body > .stats-section') ||
                   document.querySelector('.stats-section');
     const cityList = document.querySelector('body > .city-list-container') ||
@@ -860,7 +881,6 @@
      positions both absolutely; here we just re-parent the element so
      `body > .city-list-container` selectors apply. */
   function detachCityList() {
-    if (window.innerWidth < 769) return;          // mobile keeps original layout
     const cl = document.querySelector('.card-container > .city-list-container');
     if (!cl) return;
     const stats = document.querySelector('.stats-section');
@@ -882,8 +902,6 @@
      chart canvases, the inner city-list, choropleth ranking, etc.
      ============================================================ */
   function wireHorizontalWheel() {
-    if (!window.matchMedia('(min-width: 769px)').matches) return;
-
     const canConsumeVertical = (el) => {
       for (let n = el; n && n !== document.body; n = n.parentElement) {
         // canvas-based widgets (scope, charts, mini-maps) handle wheel themselves
@@ -920,7 +938,6 @@
      the viewport bottom, whose fill width tracks scrollLeft.
      ============================================================ */
   function wireScrollMeter() {
-    if (!window.matchMedia('(min-width: 769px)').matches) return;
 
     const meter = document.createElement('div');
     meter.id = 'atcScrollMeter';
@@ -948,7 +965,6 @@
      position styles directly on the overlay.
      ============================================================ */
   function positionYearOverlay() {
-    if (!window.matchMedia('(min-width: 769px)').matches) return;
     const ov = document.getElementById('yearOverlay');
     if (!ov) return;
     const mapBox = document.querySelector('.map-container');
@@ -1216,7 +1232,6 @@
           ensureRegionDivider(whiteSubB);
           const whiteSubA = whiteColEl && whiteColEl.querySelector(':scope > .atc-sub-col-a');
           if (whiteColEl && whiteSubA && whiteSubB) {
-            autoBalanceSubCols(whiteColEl, whiteSubA, whiteSubB);
             ensureRegionDivider(whiteSubB);
             syncSubColBGap(whiteSubA, whiteSubB);
           }
@@ -1299,7 +1314,6 @@
   }
 
   function wireWidgetRelocations() {
-    if (!window.matchMedia('(min-width: 769px)').matches) return;
     startUnvisitedStripObserver();
     // Observe the heatmap — when its DOM is wiped by its own
     // innerHTML rebuild, recreate our duration slot.
@@ -1386,7 +1400,6 @@
   ];
 
   function wireQuoteWidget() {
-    if (!window.matchMedia('(min-width: 769px)').matches) return;
     // Quote sits ON TOP of the Travel Statistics column —
     // inserted as the first child of .stats-citylist-group,
     // above the title and the stats/city-list row.
@@ -1505,7 +1518,6 @@
      land in their proper grid positions.
      ============================================================ */
   function wireParallaxScroll() {
-    if (!window.matchMedia('(min-width: 769px)').matches) return;
 
     // Selector → parallax FACTOR (-1..1). 0 = no parallax (matches
     // scroll exactly). Negative = drifts opposite to scroll
@@ -1585,7 +1597,6 @@
      Already-typed items are flagged so the animation never repeats.
      ============================================================ */
   function wireCityListTypewriter() {
-    if (!window.matchMedia('(min-width: 769px)').matches) return;
     const list = document.getElementById('cityList');
     if (!list) {
       setTimeout(wireCityListTypewriter, 400);
@@ -1647,7 +1658,6 @@
   let _cityMeterPctEl = null;
   let _cityMeterCountEl = null;
   function wireCityListProgressMeter() {
-    if (!window.matchMedia('(min-width: 769px)').matches) return;
     const setup = () => {
       const list = document.getElementById('cityList');
       const container = list && list.closest('.city-list-container');
@@ -1695,18 +1705,53 @@
     if (_cityMeterCountEl) _cityMeterCountEl.textContent = idx + '/' + total;
   }
 
-  /* Move the Export button to the end of the horizontal scroll
-     lane — AFTER the unvisited widget — so it sits at the
-     extreme right of the body's scroll content. */
-  function moveExportButtonToEnd() {
-    if (!window.matchMedia('(min-width: 769px)').matches) return;
-    const btn = document.getElementById('exportButton');
-    if (!btn) return;
-    if (btn.parentElement === document.body) return;
-    // Insert just before body::after spacer (which is the
-    // right-gutter pseudo and cannot host real children, so
-    // appendChild puts the button right before it naturally).
-    document.body.appendChild(btn);
+  /* Right-gutter spacer — appended as the LAST child of <body> so
+     the body's overflow-x scroll lane has a visible empty band on
+     its right that matches body's padding-left exactly. Done in JS
+     because Chromium drops padding-right at the far end of a
+     horizontally-scrolled flex container, and pseudo-element ::after
+     spacers behaved inconsistently with flex `gap`. The element's
+     flex-basis equals body's padding-left, and its margin-left
+     equals -1 * body's gap, so the visible right band lines up with
+     the left padding to the pixel. */
+  function ensureRightGutter() {
+    let g = document.querySelector('body > .atc-right-gutter');
+    if (!g) {
+      g = document.createElement('div');
+      g.className = 'atc-right-gutter';
+      document.body.appendChild(g);
+    } else if (g !== document.body.lastElementChild) {
+      document.body.appendChild(g);
+    }
+    function sync() {
+      if (g !== document.body.lastElementChild) document.body.appendChild(g);
+      const cs = getComputedStyle(document.body);
+      const padL = parseFloat(cs.paddingLeft) || 0;
+      g.style.flex = `0 0 ${padL}px`;
+      // Step 1: clear any prior margin compensation so we can measure
+      // the natural visible gap between the previous flex item and the
+      // gutter (which equals body's `gap` value in browsers that honour
+      // it strictly).
+      g.style.marginLeft = '0px';
+      // Force layout so getBoundingClientRect() reflects the cleared margin
+      void g.offsetWidth;
+      const prev = g.previousElementSibling;
+      if (!prev) return;
+      const prevRight = prev.getBoundingClientRect().right;
+      const gLeft = g.getBoundingClientRect().left;
+      const visibleGap = gLeft - prevRight;
+      // Step 2: pull the gutter LEFT by exactly the measured visible
+      // gap, so its left edge touches the previous item's right edge.
+      // Net visible right gutter = gutter.flex-basis = body.padding-left.
+      if (visibleGap > 0.5) {
+        g.style.marginLeft = `-${visibleGap}px`;
+      }
+    }
+    sync();
+    window.addEventListener('resize', sync);
+    setTimeout(sync, 200);
+    setTimeout(sync, 800);
+    setTimeout(sync, 2000);
   }
 
   /* ============================================================
@@ -1738,7 +1783,6 @@
     // wireParallaxScroll();
     wireCityListTypewriter();
     wireCityListProgressMeter();
-    moveExportButtonToEnd();
     startRenderLoop();
 
     // make sure the scope sizes correctly once flightMap has initialised
