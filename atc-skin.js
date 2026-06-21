@@ -284,10 +284,16 @@
     if (!ll) return;
 
     const from = cities[idx - 1], to = cities[idx];
-    const brg = bearing(ll.lat, ll.lng, to.lat, to.lng);
+    let brg = bearing(ll.lat, ll.lng, to.lat, to.lng);
+    if (!Number.isFinite(brg)) brg = displayBrg != null ? displayBrg : 0;
+    // Smooth the bearing toward the geometric value — when a leg ends
+    // and the next one starts in a different direction, the arrow
+    // visibly rotates over ~150ms instead of snapping.
+    if (displayBrg === null || !Number.isFinite(displayBrg)) displayBrg = brg;
+    displayBrg = lerpAngle(displayBrg, brg, 0.15);
     const isLand = legIsLand(to);
 
-    scope.blip = { lat: ll.lat, lng: ll.lng, brg, surface: !!isLand };
+    scope.blip = { lat: ll.lat, lng: ll.lng, brg: displayBrg, surface: !!isLand };
 
     // Progress along the active leg, measured along the great-circle
     // distance so the route fill stays in lock-step with the moving
