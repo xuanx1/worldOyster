@@ -136,6 +136,8 @@ window.AIRPORT_COORDINATES = {
     'BKK': [13.6900, 100.7501], // Bangkok Suvarnabhumi
     'SGN': [10.8188, 106.6519], // Ho Chi Minh City (Saigon)
     'DAD': [16.0439, 108.1987], // Da Nang
+    'HAN': [21.2187, 105.8048], // Hanoi Noi Bai
+    'KMG': [25.1019, 102.9292], // Kunming Changshui
     'ATQ': [31.7096, 74.7973],  // Amritsar
     'BOM': [19.0896, 72.8656],  // Mumbai
     'DEL': [28.5562, 77.1000],  // Delhi
@@ -248,6 +250,14 @@ window.AIRPORT_TO_CITY = {
     // Bangkok area airports -> Bangkok
     'BKK': 'Bangkok',
     'DMK': 'Bangkok',
+
+    // Vietnam
+    'HAN': 'Hanoi',
+    'SGN': 'Ho Chi Minh City',
+    'DAD': 'Da Nang',
+
+    // Kunming
+    'KMG': 'Kunming',
 
     // Myanmar airports -> Yangon / Mandalay
     'RGN': 'Yangon',

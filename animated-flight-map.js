@@ -90,7 +90,13 @@ class AnimatedFlightMap {
             // Re-translate main title
             const t = window.i18n ? window.i18n.t : function(k) { return k; };
             if (this._mainTitle) {
-                this._mainTitle.innerHTML = `<span class="title-text">${t('mainTitle1')}<br>${t('mainTitle2')}</span><span class="title-cursor fade-out"></span>`;
+                const wrapEmoji = (s) => String(s).replace(/\p{Extended_Pictographic}/gu, m => `<span class="title-emoji">${m}</span>`);
+                const body = `${wrapEmoji(t('mainTitle1'))}<br>${wrapEmoji(t('mainTitle2'))}`;
+                this._mainTitle.innerHTML =
+                    `<span class="title-text">${body}</span>` +
+                    `<span class="title-cursor fade-out"></span>` +
+                    `<span class="title-flow-layer" aria-hidden="true">${body}</span>`;
+                this._mainTitle.classList.add('flowing');
             }
             // Update chart dataset labels on language switch
             if (this.legChart) {
@@ -130,20 +136,45 @@ class AnimatedFlightMap {
 
         const lines = ['IS THE WORLD', 'YOUR \u{1F9AA}?'];
         const fullText = lines.join('\n');
+        // Grapheme-safe iteration so the 🦪 surrogate pair stays whole
+        const chars = Array.from(fullText);
         let charIdx = 0;
 
+        el.classList.remove('flowing');
         el.innerHTML = '<span class="title-text"></span><span class="title-cursor"></span>';
         const textEl = el.querySelector('.title-text');
+        const cursorEl = el.querySelector('.title-cursor');
+
+        const wrapEmoji = (s) => s.replace(/\p{Extended_Pictographic}/gu, m => `<span class="title-emoji">${m}</span>`);
+        const renderPartial = () => {
+            const text = chars.slice(0, charIdx).join('');
+            textEl.innerHTML = wrapEmoji(text).replace(/\n/g, '<br>');
+        };
 
         const typeInterval = setInterval(() => {
-            if (charIdx >= fullText.length) {
+            if (charIdx >= chars.length) {
                 clearInterval(typeInterval);
+                // Hold the cursor blink, fade it out, then add the
+                // gradient overlay on top of the white text so the
+                // green colour-flow sweeps in.
+                setTimeout(() => {
+                    if (cursorEl) cursorEl.classList.add('fade-out');
+                    // Build a clone of the rendered text as the .title-flow-layer
+                    const flow = document.createElement('span');
+                    flow.className = 'title-flow-layer';
+                    flow.setAttribute('aria-hidden', 'true');
+                    flow.innerHTML = textEl.innerHTML;
+                    el.appendChild(flow);
+                    requestAnimationFrame(() => requestAnimationFrame(() => {
+                        el.classList.add('flowing');
+                    }));
+                }, 2100);
                 this._typewriterDone = true;
                 this._tryStart();
                 return;
             }
             charIdx++;
-            textEl.innerHTML = fullText.substring(0, charIdx).split('\n').join('<br>');
+            renderPartial();
         }, 70);
     }
 
@@ -613,20 +644,25 @@ class AnimatedFlightMap {
     }
 
     addResetViewButton() {
+        // ATC-style stroke SVG icons replacing the emoji glyphs.
+        // currentColor lets the leaflet-control CSS drive the
+        // green/highlight colour.
+        const ICON = {
+          reset:  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/></svg>',
+          pause:  '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
+          play:   '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>',
+          ff:     '<svg viewBox="0 0 24 24" width="16" height="14" fill="currentColor"><polygon points="3 4 12 12 3 20"/><polygon points="13 4 22 12 13 20"/></svg>',
+          line:   '<svg viewBox="0 0 24 24" width="18" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12 H21"/></svg>',
+          dot:    '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><circle cx="12" cy="12" r="3.5"/></svg>',
+          target: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/><line x1="12" y1="1.5" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22.5" y2="12"/></svg>',
+          trophy: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 6h3v2a3 3 0 0 1-3 3"/><path d="M7 6H4v2a3 3 0 0 0 3 3"/></svg>'
+        };
+        this._atcIcon = ICON;
         // Create reset view control
         const ResetViewControl = L.Control.extend({
             onAdd: function(map) {
-                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                button.innerHTML = '↻';
-                button.style.backgroundColor = '#333';
-                button.style.color = '#fff';
-                button.style.width = '30px';
-                button.style.height = '30px';
-                button.style.display = 'flex';
-                button.style.alignItems = 'center';
-                button.style.justifyContent = 'center';
-                button.style.cursor = 'pointer';
-                button.style.fontSize = '16px';
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb');
+                button.innerHTML = ICON.reset + '<span class="atc-lb">RESET</span>';
                 button.title = window.i18n ? window.i18n.t('resetView') : 'Reset View';
                 
                 button.onclick = () => {
@@ -642,19 +678,9 @@ class AnimatedFlightMap {
         // Create play/pause animation control
         const PlayPauseAnimationControl = L.Control.extend({
             onAdd: function(map) {
-                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                button.innerHTML = '⏸️'; // Start with pause since animation auto-starts
-                button.style.backgroundColor = '#333';
-                button.style.color = '#fff';
-                button.style.width = '30px';
-                button.style.height = '30px';
-                button.style.display = 'flex';
-                button.style.alignItems = 'center';
-                button.style.justifyContent = 'center';
-                button.style.cursor = 'pointer';
-                button.style.fontSize = '14px';
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb');
+                button.innerHTML = ICON.pause + '<span class="atc-lb">PAUSE</span>';
                 button.title = window.i18n ? window.i18n.t('pauseAnimation') : 'Pause Animation';
-                button.style.marginTop = '2px';
                 
                 button.onclick = () => {
                     this.togglePlayPause();
@@ -668,19 +694,10 @@ class AnimatedFlightMap {
         // Create replay animation control
         const ReplayAnimationControl = L.Control.extend({
             onAdd: function(map) {
-                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                button.innerHTML = '▶️';
-                button.style.backgroundColor = '#4CAF50';
-                button.style.color = '#fff';
-                button.style.width = '30px';
-                button.style.height = '30px';
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb');
+                button.innerHTML = ICON.play + '<span class="atc-lb">REPLAY</span>';
                 button.style.display = 'none'; // Initially hidden
-                button.style.alignItems = 'center';
-                button.style.justifyContent = 'center';
-                button.style.cursor = 'pointer';
-                button.style.fontSize = '14px';
                 button.title = window.i18n ? window.i18n.t('playAnimation') : 'Play Animation';
-                button.style.marginTop = '2px';
                 
                 button.onclick = () => {
                     this.replayAnimation();
@@ -694,19 +711,9 @@ class AnimatedFlightMap {
         // Create fast forward control
         const FastForwardControl = L.Control.extend({
             onAdd: function(map) {
-                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                button.innerHTML = '⏩';
-                button.style.backgroundColor = '#333';
-                button.style.color = '#fff';
-                button.style.width = '30px';
-                button.style.height = '30px';
-                button.style.display = 'flex';
-                button.style.alignItems = 'center';
-                button.style.justifyContent = 'center';
-                button.style.cursor = 'pointer';
-                button.style.fontSize = '14px';
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb');
+                button.innerHTML = ICON.ff + '<span class="atc-lb atc-lb-speed">1×</span>';
                 button.title = window.i18n ? window.i18n.t('speed1x') : 'Speed: 1x (click to cycle)';
-                button.style.marginTop = '2px';
                 
                 button.onclick = () => {
                     this.cycleFastForward();
@@ -720,20 +727,9 @@ class AnimatedFlightMap {
         // Create toggle lines visibility control
         const ToggleLinesControl = L.Control.extend({
             onAdd: function(map) {
-                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                button.innerHTML = '━';
-                button.style.backgroundColor = '#333';
-                button.style.color = '#fff';
-                button.style.width = '30px';
-                button.style.height = '30px';
-                button.style.display = 'flex';
-                button.style.alignItems = 'center';
-                button.style.justifyContent = 'center';
-                button.style.cursor = 'pointer';
-                button.style.fontSize = '18px';
-                button.style.fontWeight = 'bold';
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb');
+                button.innerHTML = ICON.line + '<span class="atc-lb">ROUTES</span>';
                 button.title = window.i18n ? window.i18n.t('hideFlightLines') : 'Hide Flight Lines';
-                button.style.marginTop = '2px';
                 
                 button.onclick = () => {
                     this.toggleLinesVisibility();
@@ -747,19 +743,9 @@ class AnimatedFlightMap {
         // Create follow dot control
         const FollowDotControl = L.Control.extend({
             onAdd: function(map) {
-                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                button.innerHTML = '🎯';
-                button.style.backgroundColor = '#333';
-                button.style.color = '#fff';
-                button.style.width = '30px';
-                button.style.height = '30px';
-                button.style.display = 'flex';
-                button.style.alignItems = 'center';
-                button.style.justifyContent = 'center';
-                button.style.cursor = 'pointer';
-                button.style.fontSize = '14px';
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb');
+                button.innerHTML = ICON.target + '<span class="atc-lb">FOLLOW</span>';
                 button.title = window.i18n ? window.i18n.t('followDot') : 'Follow Flying Dot';
-                button.style.marginTop = '2px';
                 
                 button.onclick = () => {
                     this.toggleFollowDot();
@@ -770,27 +756,18 @@ class AnimatedFlightMap {
             }.bind(this)
         });
         
-        new ResetViewControl({ position: 'topright' }).addTo(this.map);
-        new PlayPauseAnimationControl({ position: 'topright' }).addTo(this.map);
-        new FastForwardControl({ position: 'topright' }).addTo(this.map);
-        new ReplayAnimationControl({ position: 'topright' }).addTo(this.map);
+        // Reset / Play-Pause / Replay / FastForward live in the
+        // bottom-left .atc-playbar (atc-skin.js). Only state-toggle
+        // map controls go in the top-right column to avoid duplicate
+        // buttons.
         new ToggleLinesControl({ position: 'topright' }).addTo(this.map);
         new FollowDotControl({ position: 'topright' }).addTo(this.map);
 
         // Achievements panel button
         const AchievementsControl = L.Control.extend({
             onAdd: function() {
-                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-                button.innerHTML = '🏆';
-                button.style.backgroundColor = '#333';
-                button.style.color = '#fff';
-                button.style.width = '30px';
-                button.style.height = '30px';
-                button.style.display = 'flex';
-                button.style.alignItems = 'center';
-                button.style.justifyContent = 'center';
-                button.style.cursor = 'pointer';
-                button.style.fontSize = '16px';
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb');
+                button.innerHTML = ICON.trophy + '<span class="atc-lb">TROPHY</span>';
                 button.title = window.i18n ? window.i18n.t('achievements') : 'Achievements';
                 button.onclick = (e) => {
                     L.DomEvent.stopPropagation(e);
@@ -1858,23 +1835,12 @@ class AnimatedFlightMap {
 
     updateFastForwardButton() {
         if (this.fastForwardButton) {
-            if (this.speedMultiplier === 1) {
-                this.fastForwardButton.style.backgroundColor = '#333';
-                this.fastForwardButton.style.opacity = '1';
-                this.fastForwardButton.title = window.i18n ? window.i18n.t('speed1x') : 'Speed: 1x (click to cycle)';
-            } else if (this.speedMultiplier === 10) {
-                this.fastForwardButton.style.backgroundColor = '#FF9800';
-                this.fastForwardButton.style.opacity = '1';
-                this.fastForwardButton.title = window.i18n ? window.i18n.t('speed10x') : 'Speed: 10x (click to cycle)';
-            } else if (this.speedMultiplier === 20) {
-                this.fastForwardButton.style.backgroundColor = '#F44336';
-                this.fastForwardButton.style.opacity = '1';
-                this.fastForwardButton.title = window.i18n ? window.i18n.t('speed20x') : 'Speed: 20x (click to cycle)';
-            } else if (this.speedMultiplier === 100) {
-                this.fastForwardButton.style.backgroundColor = '#9C27B0';
-                this.fastForwardButton.style.opacity = '1';
-                this.fastForwardButton.title = window.i18n ? window.i18n.t('speed100x') : 'Speed: 100x (click to cycle)';
-            }
+            const ICON = this._atcIcon || {};
+            const mul = this.speedMultiplier;
+            this.fastForwardButton.innerHTML = (ICON.ff || '⏩') + `<span class="atc-lb atc-lb-speed">${mul}×</span>`;
+            this.fastForwardButton.classList.toggle('atc-speed-active', mul !== 1);
+            const key = 'speed' + mul + 'x';
+            this.fastForwardButton.title = (window.i18n ? window.i18n.t(key) : null) || `Speed: ${mul}x (click to cycle)`;
         }
     }
 
@@ -1943,19 +1909,19 @@ class AnimatedFlightMap {
 
     updatePlayPauseButton() {
         if (this.playPauseButton) {
+            const ICON = this._atcIcon || {};
             if (this.pauseAfterCurrentFlight) {
-                // Show pending pause state
-                this.playPauseButton.innerHTML = '⏸️';
+                this.playPauseButton.innerHTML = (ICON.pause || '⏸️') + '<span class="atc-lb">PAUSE</span>';
                 this.playPauseButton.title = window.i18n ? window.i18n.t('pausingAfterFlight') : 'Pausing after current flight...';
-                this.playPauseButton.style.opacity = '0.7'; // Visual indication of pending state
+                this.playPauseButton.classList.add('atc-pending');
             } else if (this.isAnimating) {
-                this.playPauseButton.innerHTML = '⏸️';
+                this.playPauseButton.innerHTML = (ICON.pause || '⏸️') + '<span class="atc-lb">PAUSE</span>';
                 this.playPauseButton.title = window.i18n ? window.i18n.t('pauseAnimation') : 'Pause Animation';
-                this.playPauseButton.style.opacity = '1';
+                this.playPauseButton.classList.remove('atc-pending');
             } else {
-                this.playPauseButton.innerHTML = '▶️';
+                this.playPauseButton.innerHTML = (ICON.play || '▶️') + '<span class="atc-lb">PLAY</span>';
                 this.playPauseButton.title = window.i18n ? window.i18n.t('resumeAnimation') : 'Resume Animation';
-                this.playPauseButton.style.opacity = '1';
+                this.playPauseButton.classList.remove('atc-pending');
             }
         }
     }
@@ -2054,16 +2020,15 @@ class AnimatedFlightMap {
 
     updateToggleLinesButton() {
         if (this.toggleLinesButton) {
+            const ICON = this._atcIcon || {};
             if (this.linesVisible) {
-                this.toggleLinesButton.innerHTML = '━';
+                this.toggleLinesButton.innerHTML = (ICON.line || '━') + '<span class="atc-lb">ROUTES</span>';
                 this.toggleLinesButton.title = window.i18n ? window.i18n.t('hideFlightLines') : 'Hide Flight Lines';
-                this.toggleLinesButton.style.backgroundColor = '#333';
-                this.toggleLinesButton.style.opacity = '1';
+                this.toggleLinesButton.classList.remove('atc-off');
             } else {
-                this.toggleLinesButton.innerHTML = '•';
+                this.toggleLinesButton.innerHTML = (ICON.dot || '•') + '<span class="atc-lb">ROUTES</span>';
                 this.toggleLinesButton.title = window.i18n ? window.i18n.t('showFlightLines') : 'Show Flight Lines';
-                this.toggleLinesButton.style.backgroundColor = '#666';
-                this.toggleLinesButton.style.opacity = '0.5';
+                this.toggleLinesButton.classList.add('atc-off');
             }
         }
     }
@@ -2107,16 +2072,14 @@ class AnimatedFlightMap {
 
     updateFollowDotButton() {
         if (this.followDotButton) {
+            const ICON = this._atcIcon || {};
+            this.followDotButton.innerHTML = (ICON.target || '🎯') + '<span class="atc-lb">FOLLOW</span>';
             if (this.followDot) {
-                this.followDotButton.innerHTML = '🎯';
                 this.followDotButton.title = window.i18n ? window.i18n.t('stopFollowDot') : 'Stop Following Dot';
-                this.followDotButton.style.backgroundColor = '#4CAF50';
-                this.followDotButton.style.opacity = '1';
+                this.followDotButton.classList.add('atc-active');
             } else {
-                this.followDotButton.innerHTML = '🎯';
                 this.followDotButton.title = window.i18n ? window.i18n.t('followDot') : 'Follow Flying Dot';
-                this.followDotButton.style.backgroundColor = '#333';
-                this.followDotButton.style.opacity = '1';
+                this.followDotButton.classList.remove('atc-active');
             }
         }
     }
@@ -3702,6 +3665,19 @@ class AnimatedFlightMap {
         const _t = window.i18n ? window.i18n.t : function(k){return k;};
         const canvas = document.getElementById('legChart');
         if (!canvas || typeof Chart === 'undefined') return;
+        // Vertical gradient fill helpers — mirror the duration-trend
+        // chart so the leg-efficiency / price charts have the same
+        // area-under-the-line look. Returns null until chartArea is
+        // measured (first frame), then a CanvasGradient afterwards.
+        const gradFill = (rgbStr) => (ctx) => {
+            const chart = ctx.chart;
+            const { ctx: cv, chartArea } = chart;
+            if (!chartArea) return null;
+            const g = cv.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            g.addColorStop(0, `rgba(${rgbStr}, 0.45)`);
+            g.addColorStop(1, `rgba(${rgbStr}, 0)`);
+            return g;
+        };
         this.legChart = new Chart(canvas.getContext('2d'), {
             type: 'line',
             data: {
@@ -3711,22 +3687,24 @@ class AnimatedFlightMap {
                         label: _t('sgdPerKm'),
                         data: [],
                         borderColor: '#4CAF50',
-                        backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                        backgroundColor: gradFill('76, 175, 80'),
+                        fill: 'origin',
                         yAxisID: 'y1',
                         tension: 0.35,
                         pointRadius: 1.5,
-                        borderWidth: 0.5,
+                        borderWidth: 1.4,
                         spanGaps: true
                     },
                     {
                         label: _t('co2PerSgd'),
                         data: [],
                         borderColor: '#FF4444',
-                        backgroundColor: 'rgba(255, 68, 68, 0.7)',
+                        backgroundColor: gradFill('255, 68, 68'),
+                        fill: 'origin',
                         yAxisID: 'y2',
                         tension: 0.35,
                         pointRadius: 1.5,
-                        borderWidth: 0.5,
+                        borderWidth: 1.4,
                         spanGaps: true
                     }
                 ]
@@ -3780,19 +3758,21 @@ class AnimatedFlightMap {
                         label: _t('nominal'),
                         data: [],
                         borderColor: '#4CAF50',
-                        backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                        backgroundColor: gradFill('76, 175, 80'),
+                        fill: 'origin',
                         tension: 0.35,
                         pointRadius: 1.5,
-                        borderWidth: 0.5,
+                        borderWidth: 1.4,
                         spanGaps: true
                     }, {
                         label: _t('real2025'),
                         data: [],
                         borderColor: '#FF4444',
-                        backgroundColor: 'rgba(255, 68, 68, 0.7)',
+                        backgroundColor: gradFill('255, 68, 68'),
+                        fill: 'origin',
                         tension: 0.35,
                         pointRadius: 1.5,
-                        borderWidth: 0.5,
+                        borderWidth: 1.4,
                         spanGaps: true
                     }]
                 },
@@ -4533,13 +4513,13 @@ class AnimatedFlightMap {
                 
                 let metaphor = '';
                 if (moonTimes >= 1) {
-                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${moonTimes.toFixed(2)}x ${window.i18n ? window.i18n.t('toTheMoon') : 'To the Moon'}</span>`;
+                    metaphor = `<span style="display:block; font-size: 0.65em; font-weight: 700; color: #4CAF50; line-height: 1; margin-top: 0;">${moonTimes.toFixed(2)}x ${window.i18n ? window.i18n.t('toTheMoon') : 'To the Moon'}</span>`;
                 } else if (moonTimes >= 0.1) {
-                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${(moonTimes * 100).toFixed(0)}% ${window.i18n ? window.i18n.t('toTheMoon') : 'To the Moon'}</span>`;
+                    metaphor = `<span style="display:block; font-size: 0.65em; font-weight: 700; color: #4CAF50; line-height: 1; margin-top: 0;">${(moonTimes * 100).toFixed(0)}% ${window.i18n ? window.i18n.t('toTheMoon') : 'To the Moon'}</span>`;
                 } else if (earthTimes >= 1) {
-                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${earthTimes.toFixed(1)}x ${window.i18n ? window.i18n.t('aroundEarth') : 'Around Earth'}</span>`;
+                    metaphor = `<span style="display:block; font-size: 0.65em; font-weight: 700; color: #4CAF50; line-height: 1; margin-top: 0;">${earthTimes.toFixed(1)}x ${window.i18n ? window.i18n.t('aroundEarth') : 'Around Earth'}</span>`;
                 } else if (earthTimes >= 0.1) {
-                    metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #4CAF50;">${(earthTimes * 100).toFixed(0)}% ${window.i18n ? window.i18n.t('aroundEarth') : 'Around Earth'}</span>`;
+                    metaphor = `<span style="display:block; font-size: 0.65em; font-weight: 700; color: #4CAF50; line-height: 1; margin-top: 0;">${(earthTimes * 100).toFixed(0)}% ${window.i18n ? window.i18n.t('aroundEarth') : 'Around Earth'}</span>`;
                 }
                 
                 this.animateNumber(totalDistanceEl, distanceKm, 800, (val) => `${Math.round(val).toLocaleString()} km ${metaphor}`);
@@ -4556,9 +4536,9 @@ class AnimatedFlightMap {
                 
                 let timeMetaphor = '';
                 if (totalWeeks >= 1) {
-                    timeMetaphor = `<br><span style="font-size: 0.65em; font-weight: 900; color: #4CAF50;">${totalWeeks.toFixed(1)} ${window.i18n ? window.i18n.t('weeks') : 'Weeks'}</span>`;
+                    timeMetaphor = `<span style="display:block; font-size: 0.65em; font-weight: 700; color: #4CAF50; line-height: 1; margin-top: 0;">${totalWeeks.toFixed(1)} ${window.i18n ? window.i18n.t('weeks') : 'Weeks'}</span>`;
                 } else if (totalDays >= 1) {
-                    timeMetaphor = `<br><span style="font-size: 0.65em; font-weight: 900; color: #4CAF50;">${totalDays.toFixed(1)} ${window.i18n ? window.i18n.t('daysUnit') : 'Days'}</span>`;
+                    timeMetaphor = `<span style="display:block; font-size: 0.65em; font-weight: 700; color: #4CAF50; line-height: 1; margin-top: 0;">${totalDays.toFixed(1)} ${window.i18n ? window.i18n.t('daysUnit') : 'Days'}</span>`;
                 }
                 
                 this.animateNumber(totalTimeEl, totalMinutes, 700, (val) => {
@@ -4600,27 +4580,27 @@ class AnimatedFlightMap {
                 // Tiered comparisons - each shows ~2x to ~10x range
                 if (smallTownYears >= 0.00225) {
                     // 90+ tons: Small town
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${(smallTownYears * 100).toFixed(2)}% ${_t('annualTownEmission')}</span>`;
+                    co2Metaphor = `<span style="display:block; font-size: 0.65em; font-weight: 700; color: #FF5722; line-height: 1; margin-top: 0;">${(smallTownYears * 100).toFixed(2)}% ${_t('annualTownEmission')}</span>`;
                 }
                 else if (homesEquivalent >= 3) {
                     // 22.5+ tons: Home (3x → 12x at 90)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${homesEquivalent.toFixed(1)}x ${_t('annualHouseholdEmission')}</span>`;
+                    co2Metaphor = `<span style="display:block; font-size: 0.65em; font-weight: 700; color: #FF5722; line-height: 1; margin-top: 0;">${homesEquivalent.toFixed(1)}x ${_t('annualHouseholdEmission')}</span>`;
                 }
                 else if (carsEquivalent >= 3) {
                     // 13.8+ tons: Car (3x → 4.9x at 22.5)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${carsEquivalent.toFixed(1)}x ${_t('annualCarEmission')}</span>`;
+                    co2Metaphor = `<span style="display:block; font-size: 0.65em; font-weight: 700; color: #FF5722; line-height: 1; margin-top: 0;">${carsEquivalent.toFixed(1)}x ${_t('annualCarEmission')}</span>`;
                 }
                 else if (personYears >= 2) {
                     // 8+ tons: Per capita (2x → 3.45x at 13.8)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${personYears.toFixed(1)}x ${_t('annualGlobalPerCapitaEmission')}</span>`;
+                    co2Metaphor = `<span style="display:block; font-size: 0.65em; font-weight: 700; color: #FF5722; line-height: 1; margin-top: 0;">${personYears.toFixed(1)}x ${_t('annualGlobalPerCapitaEmission')}</span>`;
                 }
                 else if (motorcyclesEquivalent >= 2) {
                     // 5+ tons: Motorcycle (2x → 3.2x at 8)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${motorcyclesEquivalent.toFixed(1)}x ${_t('annualMotorcycleEmission')}</span>`;
+                    co2Metaphor = `<span style="display:block; font-size: 0.65em; font-weight: 700; color: #FF5722; line-height: 1; margin-top: 0;">${motorcyclesEquivalent.toFixed(1)}x ${_t('annualMotorcycleEmission')}</span>`;
                 }
                 else if (laptopsEquivalent >= 2) {
                     // 0.6+ tons: Laptops (2x → 16.7x at 5)
-                    co2Metaphor = `<br><span style="font-size: 0.65em; font-weight: 700; color: #FF5722;">${laptopsEquivalent.toFixed(0)} ${_t('laptopsProductionEmission')}</span>`;
+                    co2Metaphor = `<span style="display:block; font-size: 0.65em; font-weight: 700; color: #FF5722; line-height: 1; margin-top: 0;">${laptopsEquivalent.toFixed(0)} ${_t('laptopsProductionEmission')}</span>`;
                 }
                 
                 this.animateNumber(co2EmissionEl, co2Kg, 750, (val) => {
@@ -4963,14 +4943,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Center the page horizontally when the window is narrower than the content
-    function centerScroll() {
-        if (window.innerWidth < document.body.scrollWidth) {
-            window.scrollTo((document.body.scrollWidth - window.innerWidth) / 2, 0);
-        }
-    }
-    centerScroll();
-    window.addEventListener('resize', centerScroll);
+    // Anchor the horizontal lane to its left edge on initial paint.
+    // Disable the browser's scroll restoration so a refresh always
+    // lands at (0,0), then force the scroll position twice (now and
+    // after window 'load') to beat any layout that grows after the
+    // first paint.
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    function anchorScrollLeft() { window.scrollTo(0, 0); }
+    anchorScrollLeft();
+    window.addEventListener('load', anchorScrollLeft);
+    // Re-anchor a few frames after load to cover delayed layout shifts
+    setTimeout(anchorScrollLeft, 50);
+    setTimeout(anchorScrollLeft, 400);
+    setTimeout(anchorScrollLeft, 1200);
 });
 
 // Expose methods for external use

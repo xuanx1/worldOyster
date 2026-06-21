@@ -51,14 +51,16 @@
         }));
     }
 
-    function render() {
-        const container = document.getElementById('durationTrend');
+    function renderInto(container) {
         if (!container) return;
-
         const data = collectYearlyDuration();
         if (!data.length) { container.innerHTML = `<div style="color:#666;font-size:12px;">${window.i18n ? window.i18n.t('noDurationData') : 'No duration data'}</div>`; return; }
 
-        const W = 300, H = 220, PAD_L = 29, PAD_R = 10, PAD_T = 0, PAD_B = 20;
+        // Wide-banner aspect that matches a year heatmap cell
+        // (~786 × 126). Line/area path stretch horizontally to fill
+        // the wider drawing area, but the viewBox stays correct so
+        // text and axes are NOT distorted.
+        const W = 786, H = 126, PAD_L = 34, PAD_R = 10, PAD_T = 8, PAD_B = 20;
         const chartW = W - PAD_L - PAD_R;
         const chartH = H - PAD_T - PAD_B;
 
@@ -98,22 +100,36 @@
         svg += `<path d="${linePath}" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linejoin="round"/>`;
 
         // Dots + year labels (invisible hover targets)
+        // Hit-strip extends from the bottom up to the top so any
+        // hover within a year's vertical band activates the tooltip
+        // — important because the SVG renders very small inside the
+        // spending-heatmap year slot (a tiny dot hit-area would be
+        // effectively unhoverable at that scale).
+        const stripW = chartW / Math.max(data.length, 1);
         data.forEach((d, i) => {
             const x = xPos(i), y = yPos(d.avg);
-            svg += `<circle cx="${x}" cy="${y}" r="3.5" fill="#4CAF50" stroke="#1a1a1a" stroke-width="1.5" class="duration-dot" data-idx="${i}"/>`;
-            // Larger invisible hit area
-            svg += `<circle cx="${x}" cy="${y}" r="12" fill="transparent" class="duration-dot-hit" data-idx="${i}" style="cursor:pointer"/>`;
-            if (i % 2 === 0 || data.length <= 5) svg += `<text x="${x}" y="${H - 6}" fill="#8b949e" font-size="11" text-anchor="middle" font-family="inherit">${d.year}</text>`;
+            svg += `<circle cx="${x}" cy="${y}" r="3.5" fill="#4CAF50" stroke="#1a1a1a" stroke-width="1.5" class="duration-dot" data-idx="${i}" pointer-events="none"/>`;
+            // Larger invisible hit strip — full vertical band per data point
+            svg += `<rect x="${x - stripW/2}" y="0" width="${stripW}" height="${H}" fill="transparent" class="duration-dot-hit" data-idx="${i}" style="cursor:pointer; pointer-events: all;"/>`;
+            if (i % 2 === 0 || data.length <= 5) svg += `<text x="${x}" y="${H - 6}" fill="#8b949e" font-size="11" text-anchor="middle" font-family="inherit" pointer-events="none">${d.year}</text>`;
         });
 
         svg += `</svg>`;
-
-        // Tooltip element
-        svg += `<div class="duration-tooltip" style="display:none;"></div>`;
         container.innerHTML = svg;
 
-        // Tooltip logic
-        const tooltip = container.querySelector('.duration-tooltip');
+        // Tooltip is appended to <body> so it escapes any
+        // overflow:hidden / transform / backdrop-filter ancestor
+        // (parallax + widget-card containers would otherwise clip it).
+        // One shared tooltip element per container, reused across renders.
+        let tooltip = container._durationTooltip;
+        if (!tooltip || !tooltip.isConnected) {
+            tooltip = document.createElement('div');
+            tooltip.className = 'duration-tooltip';
+            tooltip.style.display = 'none';
+            document.body.appendChild(tooltip);
+            container._durationTooltip = tooltip;
+        }
+
         const svgEl = container.querySelector('svg');
         const dots = container.querySelectorAll('.duration-dot');
 
@@ -126,16 +142,15 @@
                 tooltip.innerHTML = `<div class="duration-tip-year">${d.year}</div><div class="duration-tip-avg">${d.avg.toFixed(1)}h ${_t('avg')}</div><div class="duration-tip-detail">${d.count} ${_t('legs')} · ${d.total.toFixed(0)}h ${_t('total')}</div>`;
                 tooltip.style.display = 'block';
 
-                // Position relative to SVG
                 const svgRect = svgEl.getBoundingClientRect();
                 const cx = parseFloat(dot.getAttribute('cx'));
                 const cy = parseFloat(dot.getAttribute('cy'));
                 const scaleX = svgRect.width / W;
                 const scaleY = svgRect.height / H;
-                const left = cx * scaleX;
-                const top = cy * scaleY;
-                tooltip.style.left = left + 'px';
-                tooltip.style.top = (top - 8) + 'px';
+                tooltip.style.position = 'fixed';
+                tooltip.style.left = (svgRect.left + cx * scaleX) + 'px';
+                tooltip.style.top = (svgRect.top + cy * scaleY - 8) + 'px';
+                tooltip.style.zIndex = '999999';
 
                 dot.setAttribute('r', '5');
                 dot.style.filter = 'drop-shadow(0 0 6px rgba(76,175,80,0.6))';
@@ -148,6 +163,17 @@
             });
         });
     }
+
+    function render() {
+        renderInto(document.getElementById('durationTrend'));
+        document.querySelectorAll('.atc-duration-host').forEach(function (h) {
+            renderInto(h);
+        });
+    }
+
+    // Expose for atc-skin.js so it can force a render after creating
+    // a new .atc-duration-host inside the spending heatmap.
+    window.renderDurationTrend = render;
 
     waitForData(render);
     window.addEventListener('langchange', function() { render(); });

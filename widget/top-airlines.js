@@ -54,7 +54,7 @@
             return;
         }
 
-        const limit = window._taLimit || 5;
+        const limit = window._taLimit || 18;
         const max = _data[0].count;
         let html = '<div class="top-airlines-list">';
 
@@ -62,8 +62,9 @@
             const pct = (a.count / max) * 100;
             const _t = window.i18n ? window.i18n.t : function(k){return k;};
             html += `<div class="ta-row" data-tip-label="${a.airline}" data-tip-val="x${a.count} ${_t('flights')}">
+                <span class="ta-rank">${i + 1}</span>
                 <div class="ta-info">
-                    <div class="ta-name"><span class="ta-rank">${i + 1}</span>${a.airline}</div>
+                    <div class="ta-name">${a.airline}</div>
                 </div>
                 <div class="ta-bar-bg"><div class="ta-bar-fill" style="width:${pct}%"></div></div>
                 <span class="ta-count">x${a.count}</span>

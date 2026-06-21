@@ -91,7 +91,7 @@
             return;
         }
 
-        const limit = window._lsLimit || 5;
+        const limit = window._lsLimit || 18;
         const maxDays = _data[0].days;
         let html = '<div class="longest-stays-list">';
 
@@ -99,8 +99,9 @@
             const pct = (s.days / maxDays) * 100;
             const _cn = window.translateCountry ? window.translateCountry(s.country) : s.country;
             html += `<div class="ls-row" data-tip-label="${_cn}" data-tip-val="${fmtDays(s.days)}">
+                <span class="ls-rank">${i + 1}</span>
                 <div class="ls-info">
-                    <div class="ls-name"><span class="ls-rank">${i + 1}</span>${_cn}</div>
+                    <div class="ls-name">${_cn}</div>
                 </div>
                 <div class="ls-bar-bg"><div class="ls-bar-fill" style="width:${pct}%"></div></div>
                 <span class="ls-days">${fmtDays(s.days)}</span>

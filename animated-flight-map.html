@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Is the World Your Oyster? 🦪</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%25' y='54%25' font-size='86' text-anchor='middle' dominant-baseline='central'>%F0%9F%A6%AA</text></svg>" />
     <link rel="stylesheet" href="asset/vendor/leaflet.css" />
+    <!-- PDF report deps — local copies under asset/vendor/ so the app
+         works fully offline (no CDN round-trip on export click). -->
+    <script src="asset/vendor/jspdf.umd.min.js" defer></script>
+    <script src="asset/vendor/html2canvas.min.js" defer></script>
+    <link rel="stylesheet" href="atc-skin.css?v=140" />
     <style>
     /* Local Segoe UI (TTF files supplied in /asset/font/SegoeUI/) */
     @font-face {
@@ -454,7 +460,7 @@
 
         .city-list-container {
             flex: 0 0 auto;
-            background: rgba(40, 40, 40, 0.4);
+            background: #070b10;
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
             padding: 4px 7px;
@@ -831,9 +837,10 @@
 
 
 
-        /* Custom scrollbar — page level */
+        /* Custom scrollbar — page level (matches city-list scrollbar) */
         body::-webkit-scrollbar {
             width: 6px;
+            height: 6px;
         }
 
         body::-webkit-scrollbar-track {
@@ -1211,7 +1218,7 @@
             margin-top: 40px;
             width: 360px;
             flex: 1 1 0;
-            background: rgba(40, 40, 40, 0.4);
+            background: #070b10;
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -1230,7 +1237,7 @@
             margin-top: 40px;
             width: 360px;
             flex: 1 1 0;
-            background: rgba(40, 40, 40, 0.4);
+            background: #070b10;
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -1416,7 +1423,7 @@
             max-width: 1248px;
             z-index: 100;
             border-radius: 16px 16px 0 0;
-            background: rgba(40, 40, 40, 0.4);
+            background: #070b10;
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
             max-height: 0;
@@ -1608,7 +1615,7 @@
         }
 
         .widget-card {
-            background: rgba(255, 255, 255, 0.05);
+            background: #070b10;
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
@@ -2017,6 +2024,22 @@
     </style>
 </head>
 <body>
+    <!-- Tablet-portrait rotate-device overlay. Hidden everywhere
+         except @media (min-width: 481px) and (max-width: 1024px)
+         and (orientation: portrait) — see atc-skin.css. -->
+    <div class="atc-rotate-prompt" aria-hidden="true">
+        <svg class="atc-rotate-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="14" y="6" width="36" height="52" rx="5"/>
+            <line x1="14" y1="14" x2="50" y2="14"/>
+            <line x1="14" y1="50" x2="50" y2="50"/>
+            <circle cx="32" cy="54" r="1.6" fill="currentColor"/>
+            <path d="M52 26 a16 16 0 1 1 -16 -16" stroke-width="2"/>
+            <polyline points="50 10 52 26 36 24"/>
+        </svg>
+        <div class="atc-rotate-title">Rotate Your Tablet</div>
+        <div class="atc-rotate-body">This dashboard is built for landscape on tablet-size screens. Turn your device sideways to continue.</div>
+    </div>
+
     <div class="title-section">
         <h1 class="main-title">
             IS THE WORLD<br>YOUR🦪?
@@ -2121,7 +2144,7 @@
             <div class="stat-value" id="totalFlights">-</div>
         </div>
         <div class="stat-item">
-            <div class="stat-label" data-i18n="citiesVisited">Cities Visited</div>
+            <div class="stat-label" data-i18n="citiesVisited">Places Visited</div>
             <div class="stat-value" id="citiesVisited">-</div>
         </div>
         <div class="stat-item has-metaphor">
@@ -2251,16 +2274,19 @@
     <script src="widget/country-trophy.js?v=6"></script>
     <script src="animated-flight-map.js"></script>
     <script src="widget/danmaku.js"></script>
-    <script src="widget/spending-heatmap.js"></script>
-    <script src="widget/cost-choropleth.js"></script>
-    <script src="widget/duration-trend.js"></script>
+    <script src="widget/spending-heatmap.js?v=140"></script>
+    <script src="widget/cost-choropleth.js?v=140"></script>
+    <script src="widget/duration-trend.js?v=140"></script>
     <script src="widget/records-cards.js"></script>
     <script src="data/visa-sg.js"></script>
-    <script src="widget/unvisited-neighbors.js"></script>
+    <script src="widget/unvisited-neighbors.js?v=140"></script>
     <script src="widget/return-visits.js"></script>
-    <script src="widget/longest-stays.js"></script>
-    <script src="widget/top-airlines.js"></script>
-    <script src="widget/journey-timeline.js"></script>
+    <script src="widget/longest-stays.js?v=140"></script>
+    <script src="widget/top-airlines.js?v=140"></script>
+    <script src="widget/journey-timeline.js?v=140"></script>
+    <script src="atc-scope.js?v=27"></script>
+    <script src="atc-skin.js?v=140"></script>
+    <script src="report.js?v=140"></script>
     <script>
     // Toggle widget dashboard
     function toggleWidgets() {
@@ -2309,9 +2335,9 @@
         if (!heatmapCard || !stack) return;
 
         const wCfg = [
-            { id: 'returnVisits',  rowSel: '.rv-row', getData: () => window._rvData, render: n => window._rvRender && window._rvRender(n) },
-            { id: 'longestStays',  rowSel: '.ls-row', getData: () => window._lsData, render: n => window._lsRender && window._lsRender(n) },
-            { id: 'topAirlines',   rowSel: '.ta-row', getData: () => window._taData, render: n => window._taRender && window._taRender(n) },
+            { id: 'returnVisits',  rowSel: '.rv-row', getData: () => window._rvData, render: n => window._rvRender && window._rvRender(n), minN: 12 },
+            { id: 'longestStays',  rowSel: '.ls-row', getData: () => window._lsData, render: n => window._lsRender && window._lsRender(n), minN: 18 },
+            { id: 'topAirlines',   rowSel: '.ta-row', getData: () => window._taData, render: n => window._taRender && window._taRender(n), minN: 18 },
         ];
 
         function measureRowHeight(cfg) {
@@ -2346,7 +2372,16 @@
                 if (!rowH) return;
                 const overhead = cardOverhead(card);
                 const available = perCardH - overhead;
-                const n = Math.max(1, Math.min(Math.floor(available / rowH), (w.getData() || []).length));
+                // 2× because the ranking lists render as a 2-column
+                // grid. Enforce the widget's own minimum (w.minN) so
+                // ranks the user expects to see (e.g. 17-18 for
+                // longest-stays / top-airlines, 11-12 for return-
+                // visits) ALWAYS get rendered — even if the
+                // measurement comes in low.
+                const rowsPerCol = Math.ceil(available / rowH);
+                const dataLen = (w.getData() || []).length;
+                const wanted  = Math.max(w.minN || 10, rowsPerCol * 2);
+                const n = Math.max(1, Math.min(wanted, dataLen));
                 w.render(n);
                 // Fill any remaining pixel gap
                 const deficit = perCardH - card.offsetHeight;

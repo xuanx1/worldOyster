@@ -312,25 +312,9 @@
                     });
                 });
 
-                // Fit to visited countries
-                if (entries.length) {
-                    const bounds = [];
-                    geo.features.forEach(f => {
-                        const name = NAME_MAP[f.properties.NAME] || f.properties.NAME;
-                        if (spend[name] && f.bbox) {
-                            bounds.push([f.bbox[1], f.bbox[0]]);
-                            bounds.push([f.bbox[3], f.bbox[2]]);
-                        }
-                    });
-                    if (bounds.length) {
-                        map.fitBounds(bounds, { padding: [20, 20], maxZoom: 4 });
-                        // Capture initial view after fitBounds settles
-                        setTimeout(() => {
-                            initialCenter = map.getCenter();
-                            initialZoom = map.getZoom();
-                        }, 300);
-                    }
-                }
+                // Capture the post-init view for hover-reset to bounce back to
+                initialCenter = map.getCenter();
+                initialZoom = map.getZoom();
             });
 
         // Highlight / unhighlight helpers for ranking hover zoom
@@ -414,6 +398,142 @@
             rankList.addEventListener('mouseleave', function () {
                 unhighlightCountry();
             });
+        }
+
+        // Auto-cycle. Generation token so a stale cycle from a prior
+        // render (language change) becomes inert the moment a new
+        // one starts.
+        const _myGen = (window.__atcCostCycleGen = (window.__atcCostCycleGen || 0) + 1);
+        // Auto-cycle: while not hovering, pick a random country
+        // every 3-4s. Highlights the country on the map AND the
+        // matching row in the ranking list AND shows the row tooltip.
+        // Pauses on user hover; resumes 5-7s after cursor leaves.
+        // countryLayers is populated asynchronously by the geojson
+        // fetch above, so the cycle has to wait for it.
+        const waitForLayers = setInterval(() => {
+            if (Object.keys(countryLayers).length === 0) return;
+            clearInterval(waitForLayers);
+            startAutoCycle();
+        }, 300);
+        setTimeout(() => clearInterval(waitForLayers), 15000);
+        function startAutoCycle() {
+            const rankList = wrapper.querySelector('.choropleth-ranking');
+            // Only cycle countries that have BOTH a map layer AND a
+            // matching ranking row — otherwise the tooltip would
+            // randomly skip when the pick has no row to read from.
+            const cycleCountries = Object.keys(countryLayers).filter(c =>
+                rankList && rankList.querySelector('[data-country="' + CSS.escape(c) + '"]')
+            );
+            if (!cycleCountries.length) return;
+            // Cycle tooltip uses Leaflet's own L.tooltip so it's
+            // anchored to a lat/lng (moves with the map) and leaflet
+            // handles overflow / clipping correctly.
+            let cycleTooltipLayer = null;
+            let pauseUntil = Date.now() + 2500;
+            let userHovering = false;
+            let timer = null;
+            let currentRow = null;
+            function pushPause() {
+                pauseUntil = Date.now() + 5000 + Math.random() * 2000;
+            }
+            function showFor(country) {
+                let rowData = null;
+                if (rankList) {
+                    const row = rankList.querySelector('[data-country="' + CSS.escape(country) + '"]');
+                    if (row) {
+                        row.classList.add('atc-cycling');
+                        currentRow = row;
+                        rowData = {
+                            tipLabel: row.dataset.tipLabel,
+                            tipVal:   row.dataset.tipVal
+                        };
+                        // Scroll the ranking list (NOT the page) so
+                        // the cycled rank is visible in the list.
+                        const rowRect = row.getBoundingClientRect();
+                        const listRect = rankList.getBoundingClientRect();
+                        if (rowRect.top < listRect.top) {
+                            rankList.scrollTop -= (listRect.top - rowRect.top) + 4;
+                        } else if (rowRect.bottom > listRect.bottom) {
+                            rankList.scrollTop += (rowRect.bottom - listRect.bottom) + 4;
+                        }
+                    }
+                }
+                highlightCountry(country);
+                if (rowData) {
+                    const layers = countryLayers[country];
+                    let centerLatLng = null;
+                    if (layers && layers.length) {
+                        for (let i = 0; i < layers.length; i++) {
+                            const entry = layers[i];
+                            if (entry.type === 'dot' && entry.layer && entry.layer.getLatLng) {
+                                const ll = entry.layer.getLatLng();
+                                if (Math.abs(ll.lng) <= 180) { centerLatLng = ll; break; }
+                            } else if (entry.layer && entry.layer.getBounds) {
+                                const b = entry.layer.getBounds();
+                                if (b && Math.abs(b.getCenter().lng) <= 180) {
+                                    centerLatLng = b.getCenter();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (centerLatLng) {
+                        const html =
+                            '<div class="tip-label">' + rowData.tipLabel + '</div>' +
+                            '<div class="tip-val">' + rowData.tipVal + '</div>';
+                        if (cycleTooltipLayer) {
+                            cycleTooltipLayer.setContent(html).setLatLng(centerLatLng);
+                        } else {
+                            cycleTooltipLayer = L.tooltip({
+                                permanent: true,
+                                direction: 'top',
+                                offset: [0, -8],
+                                className: 'atc-cycle-tip atc-cost-cycle-tip'
+                            }).setLatLng(centerLatLng).setContent(html).addTo(map);
+                        }
+                    }
+                }
+            }
+            function clearCycle() {
+                unhighlightCountry();
+                if (currentRow) { currentRow.classList.remove('atc-cycling'); currentRow = null; }
+                if (cycleTooltipLayer) {
+                    map.removeLayer(cycleTooltipLayer);
+                    cycleTooltipLayer = null;
+                }
+            }
+            function tick() {
+                if (_myGen !== window.__atcCostCycleGen) return; // superseded
+                if (userHovering || Date.now() < pauseUntil) {
+                    timer = setTimeout(tick, 400);
+                    return;
+                }
+                const pick = cycleCountries[Math.floor(Math.random() * cycleCountries.length)];
+                showFor(pick);
+                const hold = 2500 + Math.random() * 1500;
+                timer = setTimeout(() => {
+                    if (_myGen !== window.__atcCostCycleGen) return;
+                    if (!userHovering) clearCycle();
+                    tick();
+                }, hold);
+            }
+            wrapper.addEventListener('mousemove', () => {
+                if (_myGen !== window.__atcCostCycleGen) return;
+                if (!userHovering) {
+                    userHovering = true;
+                    if (timer) { clearTimeout(timer); timer = null; }
+                    clearCycle();
+                }
+                pushPause();
+            });
+            wrapper.addEventListener('mouseleave', () => {
+                if (_myGen !== window.__atcCostCycleGen) return;
+                userHovering = false;
+                pushPause();
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(tick, Math.max(50, pauseUntil - Date.now()));
+            });
+            timer = setTimeout(tick, 2500);
         }
 
         setTimeout(() => map.invalidateSize(), 600);

@@ -17,7 +17,7 @@
             // Stats
             travelStatistics: 'Travel Statistics',
             totalJourneys: 'Total Journeys',
-            citiesVisited: 'Cities Visited',
+            citiesVisited: 'Places Visited',
             totalDistance: 'Total Distance',
             totalTime: 'Total Time',
             co2Emission: 'CO₂ Emission',
@@ -311,7 +311,7 @@
 
             travelStatistics: 'إحصاءات السفر',
             totalJourneys: 'إجمالي الرحلات',
-            citiesVisited: 'المدن المُزارة',
+            citiesVisited: 'الأماكن المُزارة',
             totalDistance: 'المسافة الإجمالية',
             totalTime: 'الوقت الإجمالي',
             co2Emission: 'انبعاثات CO₂',
@@ -574,7 +574,7 @@
 
             travelStatistics: '旅行统计',
             totalJourneys: '总行程数',
-            citiesVisited: '到访城市',
+            citiesVisited: '到访地点',
             totalDistance: '总距离',
             totalTime: '总时间',
             co2Emission: 'CO₂ 排放',
@@ -837,7 +837,7 @@
 
             travelStatistics: 'Statistiques de voyage',
             totalJourneys: 'Total des voyages',
-            citiesVisited: 'Villes visitées',
+            citiesVisited: 'Lieux visités',
             totalDistance: 'Distance totale',
             totalTime: 'Temps total',
             co2Emission: 'Émissions CO₂',
@@ -1100,7 +1100,7 @@
 
             travelStatistics: 'Статистика путешествий',
             totalJourneys: 'Всего поездок',
-            citiesVisited: 'Посещено городов',
+            citiesVisited: 'Посещено мест',
             totalDistance: 'Общее расстояние',
             totalTime: 'Общее время',
             co2Emission: 'Выбросы CO₂',
@@ -1363,7 +1363,7 @@
 
             travelStatistics: 'Estadísticas de viaje',
             totalJourneys: 'Total de viajes',
-            citiesVisited: 'Ciudades visitadas',
+            citiesVisited: 'Lugares visitados',
             totalDistance: 'Distancia total',
             totalTime: 'Tiempo total',
             co2Emission: 'Emisiones CO₂',

@@ -265,7 +265,7 @@ window.CITY_TO_COUNTRY = {
     'Dandong': 'PR China',
     'Beijing': 'PR China', 'Peking': 'PR China', 'Tianjin': 'PR China', 'Shanghai': 'PR China', 'Chengdu': 'PR China', 'Chongqing': 'PR China', 'Wuhan': 'PR China',
     'Nanyang': 'PR China', 'Xian': 'PR China', "Xi'an": 'PR China', 'Lanzhou': 'PR China', 'Haikou': 'PR China',
-    'Guangzhou': 'PR China', 'Shenzhen': 'PR China', 'Foshan': 'PR China', 'Nanning': 'PR China',
+    'Guangzhou': 'PR China', 'Shenzhen': 'PR China', 'Foshan': 'PR China', 'Nanning': 'PR China', 'Kunming': 'PR China', 'Hekou': 'PR China',
     'Hong Kong': 'PR China', 'Macau': 'PR China', 'Zhuhai': 'PR China',
     'Taipei': 'ROC Taiwan', 'Taichung': 'ROC Taiwan', 'Kaohsiung': 'ROC Taiwan',
     'Kuala Lumpur': 'Malaysia',
@@ -273,7 +273,7 @@ window.CITY_TO_COUNTRY = {
     'Penang': 'Malaysia', 'Pengerang': 'Malaysia', 'Kota Kinabalu': 'Malaysia', 'Kuching': 'Malaysia',
     'Moscow': 'Russia', 'St. Petersburg': 'Russia', 'Volgograd': 'Russia', 'Kaliningrad': 'Russia',
     'Tallinn': 'Estonia', 'Riga': 'Latvia', 'Vilnius': 'Lithuania', 'Vilnus': 'Lithuania', 'Minsk': 'Belarus',
-    'Da Nang': 'Vietnam', 'Danang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh City (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam', 'Hue': 'Vietnam', 'Hanoi': 'Vietnam',
+    'Da Nang': 'Vietnam', 'Danang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh City (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam', 'Hue': 'Vietnam', 'Hanoi': 'Vietnam', 'Lao Cai': 'Vietnam', 'Sapa': 'Vietnam',
     'Vientiane': 'Laos', 'Luang Prabang': 'Laos',
     'Phnom Penh': 'Cambodia', 'Siem Reap': 'Cambodia',
     // Myanmar

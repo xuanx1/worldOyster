@@ -350,7 +350,7 @@
     };
 
     // Ordered list of regions for display
-    const REGION_ORDER = ['africa', 'americas', 'asia', 'europe', 'oceania', 'disputed'];
+    const REGION_ORDER = ['africa', 'asia', 'europe','americas', 'oceania', 'disputed'];
 
     function getVisitedCountries() {
         const data = (window.flightMap && window.flightMap.flightData) || [];
@@ -833,7 +833,6 @@
             const countries = regionGroups[region];
             if (!countries || !countries.length) return;
             if (region === 'disputed') {
-                // Render full-width with horizontal flow in 2 rows
                 legend += `<div class="neighbors-region region-full">`;
                 legend += `<div class="neighbors-region-label">${_t(REGION_I18N[region])} <span class="neighbors-region-count">(${countries.length})</span></div>`;
                 legend += `<div class="neighbors-region-list disputed-grid">`;
@@ -1257,7 +1256,10 @@
                 return;
             }
             // Tooltip - position to right of cursor
-            tip.innerHTML = `<div class="tip-label">${row.dataset.tipLabel}</div><div class="tip-val" style="color:${row.dataset.visaColor || '#888'}">${row.dataset.tipVal}</div>`;
+            const _visa = row.dataset.visa || '';
+            const _flowClass = (_visa === 'free' || _visa === 'arrival') ? ' atc-visa-flow' : '';
+            const _valStyle = _flowClass ? '' : `style="color:${row.dataset.visaColor || '#888'}"`;
+            tip.innerHTML = `<div class="tip-label">${row.dataset.tipLabel}</div><div class="tip-val${_flowClass}" ${_valStyle}>${row.dataset.tipVal}</div>`;
             tip.style.display = 'block';
             tip.style.left = (e.clientX + 16) + 'px';
             tip.style.top = (e.clientY - 12) + 'px';
@@ -1267,29 +1269,27 @@
             // Main map highlight (always zoom when visible)
             highlightCountry(country);
 
-            // PIP: show when main map not visible, position to the left of cursor
-            if (!mainMapVisible) {
-                var pipW = 420, pipH = 280;
-                var pipLeft = e.clientX - pipW - 16;
-                var pipTop = e.clientY - pipH / 2;
-                if (pipLeft < 8) pipLeft = 8;
-                if (pipTop < 8) pipTop = 8;
-                if (pipTop + pipH > window.innerHeight - 8) pipTop = window.innerHeight - pipH - 8;
-                pip.style.left = pipLeft + 'px';
-                pip.style.top = pipTop + 'px';
+            // PIP mini-map: always show on hover, positioned to the
+            // left of cursor. (Previously gated on !mainMapVisible
+            // which never fired now that the strip sits side-by-side
+            // with the main map.)
+            var pipW = 420, pipH = 280;
+            var pipLeft = e.clientX - pipW - 16;
+            var pipTop = e.clientY - pipH / 2;
+            if (pipLeft < 8) pipLeft = 8;
+            if (pipTop < 8) pipTop = 8;
+            if (pipTop + pipH > window.innerHeight - 8) pipTop = window.innerHeight - pipH - 8;
+            pip.style.left = pipLeft + 'px';
+            pip.style.top = pipTop + 'px';
 
-                if (country !== pipCountry) {
-                    if (pipCountry) pipUnhighlight(pipCountry);
-                    pipCountry = country;
-                    pip.style.display = 'block';
-                    pipMap.invalidateSize();
-                    pipHighlight(country);
-                } else {
-                    pip.style.display = 'block';
-                }
+            if (country !== pipCountry) {
+                if (pipCountry) pipUnhighlight(pipCountry);
+                pipCountry = country;
+                pip.style.display = 'block';
+                pipMap.invalidateSize();
+                pipHighlight(country);
             } else {
-                if (pipCountry) { pipUnhighlight(pipCountry); pipCountry = null; }
-                pip.style.display = 'none';
+                pip.style.display = 'block';
             }
         });
         tagList.addEventListener('mouseleave', function () {
@@ -1298,6 +1298,133 @@
             if (pipCountry) { pipUnhighlight(pipCountry); pipCountry = null; }
             pip.style.display = 'none';
         });
+
+        // Auto-cycle: while not hovering, pick a random unvisited
+        // country every few seconds. Highlights the country on the
+        // map AND the matching row in the country region strip AND
+        // shows the row tooltip. Pauses on hover, resumes 5-7s after
+        // the cursor leaves.
+        // Use a generation token so a prior cycle (e.g. from a
+        // previous render triggered by language change) becomes a
+        // no-op the moment a new one starts — old setTimeout chains
+        // with stale map/tip refs can no longer fire showFor.
+        const _myGen = (window.__atcUnvCycleGen = (window.__atcUnvCycleGen || 0) + 1);
+        (function startAutoCycle() {
+            const pool = allKnownCountries.filter(c =>
+                !visited.has(c) && (COUNTRY_REGION[c] !== 'disputed')
+            );
+            if (!pool.length) return;
+            const regionsStrip = container.querySelector('.neighbors-regions');
+            // Cycle tooltip uses Leaflet's own L.tooltip so it's
+            // anchored to a lat/lng (moves with the map on pan/scroll)
+            // and leaflet handles overflow / clipping correctly.
+            let cycleTooltipLayer = null;
+            let pauseUntil = Date.now() + 2500;
+            let userHovering = false;
+            let timer = null;
+            let currentRow = null;
+            function pushPause() {
+                pauseUntil = Date.now() + 5000 + Math.random() * 2000;
+            }
+            function showFor(country) {
+                let rowData = null;
+                if (regionsStrip) {
+                    const row = regionsStrip.querySelector('[data-country="' + CSS.escape(country) + '"]');
+                    if (row) {
+                        row.classList.add('atc-cycling');
+                        currentRow = row;
+                        rowData = {
+                            tipLabel: row.dataset.tipLabel,
+                            tipVal:   row.dataset.tipVal,
+                            visaColor: row.dataset.visaColor || '#888'
+                        };
+                    }
+                }
+                highlightCountry(country);
+                // Tooltip pinned inside the map container at the
+                // country's centroid (position: absolute). The
+                // tooltip stays anchored to the map as the page
+                // side-scrolls.
+                if (rowData) {
+                    const layers = countryLayers[country];
+                    let centerLatLng = null;
+                    if (layers && layers.length) {
+                        for (let i = 0; i < layers.length; i++) {
+                            const entry = layers[i];
+                            if (entry.type === 'geo') {
+                                const b = entry.layer.getBounds();
+                                if (b && Math.abs(b.getCenter().lng) <= 180) {
+                                    centerLatLng = b.getCenter();
+                                    break;
+                                }
+                            } else if (entry.layer && entry.layer.getLatLng) {
+                                const ll = entry.layer.getLatLng();
+                                if (Math.abs(ll.lng) <= 180) {
+                                    centerLatLng = ll;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (centerLatLng) {
+                        const html =
+                            '<div class="tip-label">' + rowData.tipLabel + '</div>' +
+                            '<div class="tip-val" style="color:' + rowData.visaColor + '">' +
+                            rowData.tipVal + '</div>';
+                        if (cycleTooltipLayer) {
+                            cycleTooltipLayer.setContent(html).setLatLng(centerLatLng);
+                        } else {
+                            cycleTooltipLayer = L.tooltip({
+                                permanent: true,
+                                direction: 'top',
+                                offset: [0, -8],
+                                className: 'atc-cycle-tip atc-unv-cycle-tip'
+                            }).setLatLng(centerLatLng).setContent(html).addTo(map);
+                        }
+                    }
+                }
+            }
+            function clearCycle() {
+                unhighlightCountry();
+                if (currentRow) { currentRow.classList.remove('atc-cycling'); currentRow = null; }
+                if (cycleTooltipLayer) {
+                    map.removeLayer(cycleTooltipLayer);
+                    cycleTooltipLayer = null;
+                }
+            }
+            function tick() {
+                if (_myGen !== window.__atcUnvCycleGen) return; // superseded
+                if (userHovering || Date.now() < pauseUntil) {
+                    timer = setTimeout(tick, 400);
+                    return;
+                }
+                const pick = pool[Math.floor(Math.random() * pool.length)];
+                showFor(pick);
+                const hold = 2500 + Math.random() * 1500;
+                timer = setTimeout(() => {
+                    if (_myGen !== window.__atcUnvCycleGen) return;
+                    if (!userHovering) clearCycle();
+                    tick();
+                }, hold);
+            }
+            container.addEventListener('mousemove', () => {
+                if (_myGen !== window.__atcUnvCycleGen) return;
+                if (!userHovering) {
+                    userHovering = true;
+                    if (timer) { clearTimeout(timer); timer = null; }
+                    clearCycle();
+                }
+                pushPause();
+            });
+            container.addEventListener('mouseleave', () => {
+                if (_myGen !== window.__atcUnvCycleGen) return;
+                userHovering = false;
+                pushPause();
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(tick, Math.max(50, pauseUntil - Date.now()));
+            });
+            timer = setTimeout(tick, 2500);
+        })();
 
         setTimeout(() => map.invalidateSize(), 600);
     }

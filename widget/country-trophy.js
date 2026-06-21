@@ -398,7 +398,7 @@
         }
 
         .achievements-panel {
-            background: rgba(40, 40, 40, 0.4);
+            background: #070b10;
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
             border-radius: 10px;
@@ -677,7 +677,7 @@
             ${iconHtml}
             <div class="trophy-body">
                 <div class="trophy-tier" style="color:${tier.color}">${tierLabel} ${_t('trophy')}</div>
-                <div class="trophy-title" style="color:${tier.color}">${window.translateCountry ? window.translateCountry(trophy.title) : trophy.title}</div>
+                <div class="trophy-title atc-tier-flow" style="--flow-color:${tier.color}">${window.translateCountry ? window.translateCountry(trophy.title) : trophy.title}</div>
                 <div class="trophy-subtitle">${trophy.subtitle}</div>
             </div>
         `;

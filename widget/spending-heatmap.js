@@ -66,7 +66,8 @@
         }
 
         let html = '';
-        for (let year = maxY; year >= minY; year--) {
+        // Chronological order: earliest year at the top, latest at the bottom
+        for (let year = minY; year <= maxY; year++) {
             html += renderYear(year, daily, color, maxSpend);
         }
         container.innerHTML = html;
@@ -116,12 +117,34 @@
                 const y = PAD + d * (CELL + GAP);
                 const _locale = window.i18n && window.i18n.getLocale ? window.i18n.getLocale() : 'en-GB';
                 const dateStr = dt.toLocaleDateString(_locale, { day: 'numeric', month: 'short', year: 'numeric' });
-                svg += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" rx="2" fill="${colorFn(val)}" class="hm-cell" data-date="${dateStr}" data-val="${val.toFixed(0)}" style="outline:1px solid rgba(255,255,255,0.04);cursor:default"></rect>`;
+                svg += `<rect x="${x}" y="${y}" width="${CELL}" height="${CELL}" rx="2" fill="${colorFn(val)}" class="hm-cell" data-date="${dateStr}" data-iso="${key}" data-val="${val.toFixed(0)}" style="outline:1px solid rgba(255,255,255,0.04);cursor:default"></rect>`;
             }
         }
 
         svg += `</svg></div>`;
         return svg;
+    }
+
+    // Index journeys by date so the tooltip can list trip details.
+    function buildJourneyIndex() {
+        const idx = {};
+        const data = (window.flightMap && window.flightMap.flightData) || [];
+        data.forEach(j => {
+            if (!j.date) return;
+            const d = new Date(j.date);
+            if (isNaN(d)) return;
+            const key = d.toISOString().slice(0, 10);
+            if (!idx[key]) idx[key] = [];
+            idx[key].push(j);
+        });
+        return idx;
+    }
+
+    function shortPlace(s) {
+        if (!s) return '';
+        // "City / Airport name (CODE/ICAO)" → just the city, or the
+        // bit before the first slash.
+        return String(s).split(' (')[0].split(' / ')[0].trim();
     }
 
     function attachTooltips(container) {
@@ -130,12 +153,44 @@
         tooltip.style.display = 'none';
         document.body.appendChild(tooltip);
 
+        const journeysByDate = buildJourneyIndex();
+
         container.addEventListener('mousemove', function (e) {
             const cell = e.target.closest('.hm-cell');
             if (!cell) { tooltip.style.display = 'none'; return; }
-            const date = cell.dataset.date;
+            const date = cell.dataset.date;       // localised, for display
+            const iso = cell.dataset.iso;         // YYYY-MM-DD, for lookup
             const val = cell.dataset.val;
-            tooltip.innerHTML = `<div class="hm-tip-date">${date}</div><div class="hm-tip-val">S$${parseInt(val).toLocaleString()}</div>`;
+            const trips = journeysByDate[iso] || [];
+
+            let html = `<div class="hm-tip-date">${date}</div>`;
+            html += `<div class="hm-tip-val">S$${parseInt(val).toLocaleString()}</div>`;
+            if (trips.length) {
+                html += `<div class="hm-tip-trips">`;
+                trips.forEach(j => {
+                    const from = shortPlace(j.from || j.origin);
+                    const to = shortPlace(j.to || j.destination);
+                    const mode = j.type === 'land'
+                        ? (j.mode || 'surface').toUpperCase()
+                        : (j.flightNumber || '').toString().toUpperCase();
+                    const dist = j.distance ? `${Math.round(j.distance).toLocaleString()} km` : '';
+                    const dur = j.duration || '';
+                    const cost = j.costSGD || j.actualCostSGD;
+                    const arrow = j.type === 'land' ? '⇢' : '→';
+                    html += `<div class="hm-tip-trip">`;
+                    if (mode) html += `<span class="hm-tip-mode">${mode}</span> `;
+                    html += `<span class="hm-tip-route">${from} ${arrow} ${to}</span>`;
+                    const meta = [];
+                    if (dist) meta.push(dist);
+                    if (dur) meta.push(String(dur));
+                    if (cost) meta.push(`S$${parseInt(cost).toLocaleString()}`);
+                    if (meta.length) html += `<div class="hm-tip-meta">${meta.join(' · ')}</div>`;
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+
+            tooltip.innerHTML = html;
             tooltip.style.display = 'block';
             tooltip.style.left = e.clientX + 'px';
             tooltip.style.top = (e.clientY - 12) + 'px';

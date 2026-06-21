@@ -1,0 +1,2259 @@
+/* ============================================================
+   ATC SKIN — strictly map-area only
+   This file no longer restyles oyster's UI (header, stats,
+   widgets, charts, city list, etc.) — those keep their
+   original oyster look. We only:
+     1. Hide leaflet's visual panes (the orthographic scope
+        canvas replaces the leaflet visuals inside #map).
+     2. Style the scope canvas and its in-map chrome
+        (sweep, scanlines, vignette, scope tag, mode readout,
+        leader-line tag, side controls, hover tip, boot splash).
+   ============================================================ */
+@import url("asset/font/google-fonts.css");
+
+:root {
+  --atc-bg:        #070b10;
+  --atc-panel:     #0c131b;
+  --atc-panel-2:   #0a0f16;
+  --atc-line:      #1b2a38;
+  --atc-text:      #c4d4df;
+  --atc-dim:       #607583;
+  --atc-faint:     #36495a;
+  --atc-accent:    #4CAF50;          /* oyster brand green */
+  --atc-accent2:   #f4a13c;          /* amber kept for surface-leg contrast */
+  --atc-blip:      #FFD700;          /* gold plane symbol — matches oyster's current-city colour */
+  --atc-glow:      rgba(76,175,80,0.38);
+  --atc-glow-amb:  rgba(244,161,60,0.45);
+  --atc-route-past:   #2d6a32;
+  --atc-route-active: #4CAF50;
+  --atc-mono:      'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+  --atc-cond:      'Barlow Semi Condensed', var(--atc-mono);
+}
+
+/* ---- Hide leaflet's visual layers. Leaflet still runs underneath
+        so all of oyster's animation / hover / chart-highlight code
+        stays functional — only the visuals are replaced. ---- */
+#map { background: var(--atc-bg) !important; }
+.leaflet-container {
+  background: var(--atc-bg) !important;
+  font-family: var(--atc-mono);
+}
+/* Hide the MAIN map's leaflet drawing panes only — leaflet's
+   own controls and widget mini-maps (cost-choropleth,
+   unvisited-neighbors) must keep their tiles visible. JS moves
+   the main map's control container above the scope canvas. */
+#map .leaflet-tile-pane,
+#map .leaflet-overlay-pane,
+#map .leaflet-marker-pane,
+#map .leaflet-shadow-pane,
+#map .leaflet-tooltip-pane,
+#map .leaflet-popup-pane { visibility: hidden !important; }
+#map .leaflet-control-attribution { display: none !important; }
+/* Once moved out of #map, the control container needs explicit
+   stacking above the scope canvas (z-index 600). */
+.map-container > .leaflet-control-container { z-index: 900; position: absolute; inset: 0; pointer-events: none; }
+.map-container > .leaflet-control-container > * { pointer-events: auto; }
+/* Keep oyster's leaflet buttons at their original compact size, regardless of any
+   leaflet-bar default that might inflate them. */
+.map-container .leaflet-control-custom {
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  font-size: 14px !important;
+  padding: 0 !important;
+}
+
+/* ---- Scope canvas (the orthographic globe) ---- */
+.atc-scope-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: auto;
+  z-index: 600;
+  cursor: grab;
+  background: var(--atc-bg);
+  display: block;
+}
+.atc-scope-canvas:active { cursor: grabbing; }
+
+/* Rotating radar sweep (positioned by JS to match scope radius) */
+/* Playing bar — top-of-scope HUD with playback controls and leg/year
+   readout. Mirrors the ATC playbar styling: sharp corners, monospace,
+   subtle green/grey palette so it reads as part of the radar UI. */
+.atc-playbar {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 605;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(7, 11, 16, 0.82);
+  border: 1px solid rgba(76, 175, 80, 0.32);
+  border-radius: 0;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.18),
+              0 6px 18px rgba(0, 0, 0, 0.5);
+  font-family: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+  pointer-events: auto;
+}
+.atc-playbar .atc-pb-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 1px solid rgba(76, 175, 80, 0.20);
+  border-radius: 0;
+  color: #4CAF50;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  text-shadow: 0 0 6px rgba(76, 175, 80, 0.45);
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.atc-playbar .atc-pb-btn:hover {
+  background: rgba(76, 175, 80, 0.12);
+  color: #b5f5b5;
+  border-color: rgba(127, 224, 145, 0.7);
+}
+.atc-playbar .atc-pb-btn.atc-pb-on {
+  background: rgba(76, 175, 80, 0.20);
+  color: #d8ffd8;
+  border-color: rgba(127, 224, 145, 0.7);
+  box-shadow: inset 0 0 8px rgba(127, 224, 145, 0.40);
+}
+.atc-playbar .atc-pb-speed {
+  min-width: 38px;
+  justify-content: center;
+}
+.atc-playbar .atc-pb-status {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: #8b949e;
+  padding: 0 6px;
+  border-left: 1px solid rgba(76, 175, 80, 0.20);
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.atc-sweep {
+  position: absolute;
+  pointer-events: none;
+  z-index: 603;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  background: conic-gradient(from 0deg, var(--atc-accent) 0deg, transparent 38deg, transparent 360deg);
+  -webkit-mask: radial-gradient(closest-side, transparent 0%, transparent 8%, #000 60%, transparent 100%);
+          mask: radial-gradient(closest-side, transparent 0%, transparent 8%, #000 60%, transparent 100%);
+  opacity: 0.22;
+  /* rotation driven by JS each frame (atc-skin.js startRenderLoop)
+     so the canvas can sync city-glow timing to the visible beam */
+  transform: rotate(0deg);
+}
+
+.atc-vignette {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 604;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.65) 100%);
+}
+.atc-scanlines {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 605;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0,
+    rgba(0,0,0,0) 2px,
+    rgba(0,0,0,0.18) 3px,
+    rgba(0,0,0,0) 4px
+  );
+}
+
+/* Scope corner labels (top-left tag, top-right mode) */
+.atc-scope-tag,
+.atc-scope-mode {
+  position: absolute;
+  z-index: 700;
+  font-family: var(--atc-mono);
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  color: var(--atc-dim);
+  text-transform: uppercase;
+  text-shadow: 0 0 4px rgba(0,0,0,0.85);
+  pointer-events: none;
+  line-height: 1.4;
+}
+.atc-scope-tag  { top: 10px; left: 14px; }
+.atc-scope-mode { top: 10px; right: 14px; text-align: right; }
+.atc-scope-tag b, .atc-scope-mode b { color: var(--atc-accent); font-weight: 600; }
+
+/* Hover tip on canvas — used both for city pins and route arcs */
+.atc-scope-tip {
+  position: absolute;
+  z-index: 760;
+  transform: translate(14px, -50%);
+  background: rgba(7,11,16,0.94);
+  border: 1px solid var(--atc-accent);
+  padding: 7px 11px;
+  font-family: var(--atc-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--atc-text);
+  pointer-events: none;
+  white-space: nowrap;
+  display: none;
+  box-shadow: 0 0 0 1px rgba(67,212,230,0.18), 0 8px 24px rgba(0,0,0,0.6);
+  min-width: 120px;
+  line-height: 1.25;
+}
+.atc-scope-tip.route { transform: translate(14px, 8px); }
+.atc-scope-tip .cn {
+  font-family: var(--atc-cond);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--atc-accent);
+  text-shadow: 0 0 6px var(--atc-glow);
+}
+.atc-scope-tip .nv {
+  font-family: 'Noto Sans Sundanese', 'Noto Sans', system-ui, var(--atc-mono);
+  font-size: 11px;
+  color: var(--atc-text);
+  margin-top: 2px;
+}
+.atc-scope-tip .ct {
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  color: var(--atc-dim);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.atc-scope-tip .cd {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--atc-faint);
+  margin-top: 4px;
+  border-top: 1px solid var(--atc-line);
+  padding-top: 4px;
+}
+.atc-scope-tip .rh {
+  font-family: var(--atc-cond);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--atc-accent);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.atc-scope-tip.route { border-color: var(--atc-accent2); box-shadow: 0 0 0 1px rgba(244,161,60,0.18), 0 8px 24px rgba(0,0,0,0.6); }
+.atc-scope-tip.route .rh { color: var(--atc-accent2); }
+.atc-scope-tip .rt-line { font-size: 11px; color: var(--atc-text); letter-spacing: 0.06em; }
+.atc-scope-tip .rt-end { font-weight: 600; }
+.atc-scope-tip .rt-arr { font-style: normal; color: var(--atc-dim); padding: 0 4px; }
+.atc-scope-tip .rt-dim { font-size: 9.5px; color: var(--atc-dim); letter-spacing: 0.18em; margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+/* Boot splash inside the map */
+.atc-scope-boot {
+  position: absolute; inset: 0;
+  z-index: 800;
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px;
+  font-family: var(--atc-mono);
+  font-size: 11px; letter-spacing: 0.3em;
+  color: var(--atc-accent); text-transform: uppercase;
+  background: var(--atc-bg);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.5s 0.2s;
+}
+.atc-scope-boot.hidden { opacity: 0; }
+.atc-scope-boot .dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--atc-accent);
+  box-shadow: 0 0 12px var(--atc-glow);
+  animation: atc-boot-blink 1s infinite;
+}
+@keyframes atc-boot-blink { 0%, 92%, 100% { opacity: 1; } 96% { opacity: 0.35; } }
+
+/* Mobile: keep the canvas as the map; drop the auxiliary chrome */
+@media (max-width: 768px) {
+  .atc-scope-tag, .atc-scope-mode,
+  .atc-scope-boot, .atc-scope-tip {
+    display: none !important;
+  }
+  .atc-scanlines, .atc-vignette { opacity: 0.7; }
+}
+
+/* ============================================================
+   Right column: city list and travel stats SIDE BY SIDE,
+   both spanning the full 740 px height of the scope card.
+   City list on the left, travel stats on the right.
+   JS lifts .city-list-container out of the scope card so the
+   `body > .city-list-container` selectors apply.
+   ============================================================ */
+@media (min-width: 769px) {
+  body > .city-list-container {
+    position: absolute;
+    left: calc(50% + 390px);
+    top: calc(50% - 370px);
+    width: 200px;
+    height: 740px;
+    z-index: 1;
+    background: var(--atc-bg);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 14px 12px;
+    box-sizing: border-box;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  body > .city-list-container .city-list-title {
+    font-size: 1em;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #4CAF50;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  body > .city-list-container .city-list-wrapper {
+    flex: 1;
+    max-height: none;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%);
+  }
+  body > .city-list-container .city-list {
+    grid-template-columns: 1fr;     /* single column */
+    gap: 4px;
+    max-height: none;
+    height: 100%;
+    overflow-y: auto;
+    padding: 2px 4px;
+    scrollbar-width: none;
+  }
+  body > .city-list-container .city-list::-webkit-scrollbar { display: none; }
+  body > .city-list-container .city-item {
+    padding: 6px 6px;
+    min-height: 36px;
+    gap: 6px;
+    align-items: center;
+  }
+  body > .city-list-container .city-item .city-name { font-size: 0.85em; line-height: 1.25; }
+  body > .city-list-container .city-item .city-country { font-size: 0.7em; }
+  body > .city-list-container .city-item .city-native { font-size: 0.65em; line-height: 1.3; }
+  body > .city-list-container .city-item .city-status {
+    width: 18px; height: 18px; min-width: 18px;
+    font-size: 0.55em;
+  }
+  /* Stats sits to the RIGHT of the city list, same height */
+  body > .stats-section {
+    left: calc(50% + 602px) !important;   /* 390 + 200 city-list + 12 gap */
+    top: calc(50% - 370px) !important;
+    width: 200px !important;
+    height: 740px !important;
+    background: var(--atc-bg);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 14px 12px;
+    box-sizing: border-box;
+  }
+  body > .stats-section .stats-title { text-align: center; }
+  body > .stats-section .stat-label { font-size: 0.72em; }
+  body > .stats-section .stat-value { font-size: 1.1em; }
+}
+
+/* ============================================================
+   Desktop: convert the whole page into a horizontal scroll lane.
+   - Title / scope / city-list / stats / widget cards all sit in
+     a single flex row, anchored top-left.
+   - Body scrolls horizontally to reveal everything.
+   - Insights overlay becomes inline widget cards on the same row.
+   ============================================================ */
+/* ============================================================
+   Leaflet map controls (zoom +/-, reset view, etc.) restyled to
+   match the ATC aesthetic: translucent dark panel, brand-green
+   accents, IBM Plex Mono lettering, soft glow.
+   ============================================================ */
+.leaflet-control-zoom,
+.leaflet-bar {
+  background: rgba(7, 11, 16, 0.78) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(76, 175, 80, 0.32) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.18),
+              0 6px 18px rgba(0, 0, 0, 0.6) !important;
+  overflow: hidden !important;
+}
+.leaflet-control-zoom a,
+.leaflet-bar a,
+.leaflet-control-custom {
+  background: transparent !important;
+  color: #4CAF50 !important;
+  border-bottom: 1px solid rgba(76, 175, 80, 0.20) !important;
+  border-radius: 0 !important;
+  font-family: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  text-shadow: 0 0 6px rgba(76, 175, 80, 0.45) !important;
+  transition: background 160ms ease, color 160ms ease !important;
+}
+/* ATC-style map buttons: icon + uppercase text label on the right.
+   Sharp corners, monospace, fixed 96px width so the column reads
+   like a tidy stack of radio-call boxes. */
+.leaflet-control-custom.atc-mb {
+  display: flex;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 6px !important;
+  width: 96px !important;
+  min-width: 96px !important;
+  height: 28px !important;
+  padding: 0 8px !important;
+  margin-top: 0 !important;
+  cursor: pointer !important;
+  font-size: 10px !important;
+}
+.leaflet-control-custom.atc-mb .atc-lb {
+  font-size: 10px;
+  letter-spacing: 0.10em;
+  flex: 1 1 auto;
+  text-align: left;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.leaflet-control-custom.atc-mb .atc-lb-speed {
+  text-align: right;
+  letter-spacing: 0.04em;
+}
+.leaflet-control-custom.atc-mb svg {
+  flex: 0 0 auto;
+  width: 14px !important;
+  height: 14px !important;
+}
+.leaflet-control-custom.atc-mb.atc-off {
+  opacity: 0.5;
+}
+.leaflet-control-custom.atc-mb.atc-speed-active {
+  color: #ffce4d !important;
+  text-shadow: 0 0 8px rgba(255, 206, 77, 0.55) !important;
+}
+.leaflet-control-custom.atc-mb.atc-pending {
+  opacity: 0.7;
+}
+.leaflet-control-zoom a:hover,
+.leaflet-bar a:hover,
+.leaflet-control-custom:hover {
+  background: rgba(76, 175, 80, 0.15) !important;
+  color: #b5f5b5 !important;
+  text-shadow: 0 0 10px rgba(127, 224, 145, 0.85) !important;
+}
+.leaflet-control-zoom a:last-child,
+.leaflet-bar a:last-child {
+  border-bottom: none !important;
+}
+.leaflet-control-custom svg {
+  display: block !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin: auto !important;
+  filter: drop-shadow(0 0 4px rgba(76, 175, 80, 0.6));
+}
+.leaflet-control-custom.atc-active {
+  background: rgba(76, 175, 80, 0.28) !important;
+  color: #d8ffd8 !important;
+  text-shadow: 0 0 12px rgba(127, 224, 145, 0.95) !important;
+  box-shadow: inset 0 0 10px rgba(127, 224, 145, 0.45) !important;
+}
+.leaflet-control-custom.atc-active svg {
+  filter: drop-shadow(0 0 6px rgba(127, 224, 145, 0.9));
+}
+/* Hover/focus outline on the leaflet controls glows green */
+.leaflet-control-zoom:focus-within,
+.leaflet-bar:focus-within {
+  border-color: rgba(127, 224, 145, 0.8) !important;
+  box-shadow: 0 0 14px rgba(76, 175, 80, 0.55),
+              0 6px 18px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Export button — lifted out of the centred .bottom-bar and
+   placed as the very last item in the horizontal scroll lane,
+   AFTER the unvisited widget. JS moves the element into <body>
+   so it flows as a sibling of .widgets-section. */
+@media (min-width: 769px) {
+  body > #exportButton {
+    position: relative !important;
+    align-self: center !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    transform: none !important;
+    z-index: 5 !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    top: auto !important;
+  }
+}
+
+/* Main-map progress bar — flowing-green colour flow on the fill
+   (replaces the static green linear-gradient from the inline CSS). */
+.progress-bar > .progress-fill {
+  background-image: linear-gradient(
+    90deg,
+    #1b4d21 0%, #2d6a32 12.5%, #4CAF50 25%, #7fe091 37.5%, #b5f5b5 50%,
+    #7fe091 62.5%, #4CAF50 75%, #2d6a32 87.5%, #1b4d21 100%
+  ) !important;
+  background-size: 30vw 100% !important;
+  background-repeat: repeat-x !important;
+  background-color: transparent !important;
+  animation: atcMeterFlow 5s linear infinite !important;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.55),
+              0 0 3px rgba(127, 224, 145, 0.8) !important;
+}
+
+@media (min-width: 769px) {
+  body {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    /* Match left/right breathing room to the top/bottom space
+       created by centering the 740px-tall content lane. */
+    /* Left padding only — the right gutter is rendered by body::after
+       below. Chromium drops padding-right at the far end of a
+       horizontally-scrolled flex container, so we replicate it with
+       a real flex spacer instead and zero out padding-right here
+       to avoid doubling. */
+    padding: 0 0 0 max(28px, calc((100vh - 740px) / 2)) !important;
+    gap: 40px !important;
+    min-width: 0 !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+  /* Existing absolute panels become inline flex items */
+  body > .title-section,
+  body > .stats-section,
+  body > .city-list-container,
+  body > .widgets-section {
+    position: relative !important;
+    left: auto !important; right: auto !important;
+    top: auto !important; bottom: auto !important;
+    flex-shrink: 0 !important;
+  }
+  body > .title-section {
+    height: 740px !important;
+    text-align: left !important;
+    align-items: flex-start !important;
+  }
+  body > .card-column { flex-shrink: 0 !important; }
+  body > .card-spacer { display: none !important; }
+
+  /* Widgets-section: fixed 740px tall. overflow: visible on
+     BOTH axes so parallax-translated widgets float freely
+     without being clipped at the section's edges. */
+  body > .widgets-section {
+    position: relative !important;
+    transform: none !important;
+    height: 740px !important;
+    max-height: 740px !important;
+    overflow: visible !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    -webkit-mask-image: none !important;
+            mask-image: none !important;
+    display: block !important;
+  }
+  /* Grid: a thin timeline strip across the top + a row of 5
+     thematic columns below. Each column groups related widgets so
+     none of them is stranded alone in dead space.
+        ┌──────────────────────────────────────────────────┐
+        │ JOURNEY TIMELINE (spans full width)              │
+        ├────────┬─────────┬─────┬──────────┬──────────────┤
+        │Records │ Spending│Stack│  Cost by │  Unvisited   │
+        │+Dur/Yr │ Heatmap │ x3  │  Country │  Countries   │
+        └────────┴─────────┴─────┴──────────┴──────────────┘
+  */
+  .widgets-inner {
+    display: grid !important;
+    /* Timeline spans only the left two dashboard columns so it
+       stops BEFORE the spending heatmap. Heatmap is its own
+       column to the LEFT of Cost by Country, and choro + unvis
+       span the full height (all 3 rows) — no more vertical
+       shrinkage on those widgets. */
+    /* Cost by Country and Unvisited maps are both pinned to the
+       SAME 787px width below, so their dimensions match exactly.
+       Unvisited's column is wider than Cost-by-Country's because
+       its country region lists need real horizontal space to
+       show all entries without truncation. */
+    /* heatmap column widened so that the 2-cols × 5-years grid
+       has enough room per year for the calendar cells to actually
+       be readable (each year ≈ 480px wide instead of 180px). */
+    /* stack column widened to 800px so the 3 stack widgets
+       (Return Visits / Longest Stays / Most Flown Airlines) fit
+       side-by-side in one row at ~260px each. */
+    /* Stack/timeline column narrowed by 30% then 20% more
+       (1620 → 1134 → 907). Choro/Unvis maps already at 787 px. */
+    grid-template-columns: 907px 1000px 1100px 2310px !important;
+    /* Timeline row 125 → 135 px (+10 px so legend fits). */
+    grid-template-rows: 135px 1fr 1fr !important;
+    grid-template-areas:
+      "timeline heatmap  choro   unvis"
+      "stack    heatmap  choro   unvis"
+      "stack    heatmap  choro   unvis" !important;
+    gap: 40px !important;
+    padding: 0 !important;
+    max-width: none !important;
+    height: 100% !important;
+    align-items: stretch !important;
+  }
+  /* Right gutter — Chromium drops padding-right at the far end of
+     a horizontally-scrolled flex container, so we hang an empty
+     flex spacer at the end. margin-left: -40px cancels the body's
+     40px gap before the spacer, so the visible right gutter is
+     exactly the same width as the left padding. */
+  body::after {
+    content: '';
+    display: block;
+    flex: 0 0 max(28px, calc((100vh - 740px) / 2));
+    align-self: stretch;
+    margin-left: -40px;
+    pointer-events: none;
+  }
+  .widget-card {
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+  .widget-card.wide { grid-column: auto !important; }
+  .widget-card.full { grid-column: auto !important; }
+  .widget-card > *:not(.widget-title) { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+
+  .widget-card:has(#journeyTimeline)    { grid-area: timeline !important; padding: 10px 14px !important; }
+  /* Records cards are JS-moved into .widget-stack; the wrapping
+     widget-card gets .atc-moved and is hidden via this rule. */
+  .widgets-inner > .widget-card.atc-moved { display: none !important; }
+  /* Original duration widget stays in DOM (so duration-trend.js
+     keeps rendering into it on language change), but is hidden —
+     we clone its rendered SVG into the spending heatmap instead. */
+  .widgets-inner > .widget-card:has(#durationTrend) {
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+  }
+  .widget-card:has(#spendingHeatmap)    { grid-area: heatmap  !important; }
+  .widget-card:has(#costChoropleth)     { grid-area: choro    !important; }
+  .widget-card:has(#unvisitedNeighbors) { grid-area: unvis    !important; }
+  /* Two-column quadrant layout:
+       ┌──────────────────┬──────────────────┐
+       │  Return Visits   │  Longest Stays   │
+       ├──────────────────┼──────────────────┤
+       │  Records (2×3)   │  Most Flown      │
+       │                  │  Airlines        │
+       └──────────────────┴──────────────────┘
+     Records are wrapped in .atc-records-area (created by
+     atc-skin.js) so they occupy a single grid cell and lay out
+     internally as a 2-row × 3-col grid. */
+  .widget-stack {
+    grid-area: stack !important;
+    /* Display: grid for the TOP four widgets, but the quote is
+       lifted OUT of the grid (position:absolute below) so the
+       grid only has to hold the 2×2 stack. Top widgets are
+       always equal-share 1fr of the widget-stack height — they
+       never reshape based on quote content. */
+    display: grid !important;
+    position: relative !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: 1fr 1fr !important;
+    grid-template-areas:
+      "rv      ls"
+      "records mfa" !important;
+    gap: 40px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    align-content: stretch !important;
+    overflow: visible !important;
+  }
+  /* Quote widget (above city-list) — fits the fixed 110px header
+     row. width pinned to its 360px grid cell so the column
+     can't be widened by a long unbreakable run of text. */
+  .stats-citylist-row > .atc-quote-widget {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    height: 110px !important;
+    max-height: 110px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+  }
+  .stats-citylist-row > .atc-quote-widget .atc-quote-text,
+  .stats-citylist-row > .atc-quote-widget .atc-quote-translation {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+  }
+  .stats-citylist-row > .atc-quote-widget .atc-quote-text > span {
+    display: inline !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    max-width: 100% !important;
+  }
+  .atc-quote-widget .atc-quote-text,
+  .atc-quote-widget .atc-quote-translation {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    white-space: pre-wrap !important;
+  }
+  /* Travel quotes widget — fills the remaining vertical space
+     below records + MFA. Spans both columns. */
+  .atc-quote-widget {
+    grid-area: quotes !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 14px 18px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    /* type from the TOP — first line stays at the top of the
+       widget, subsequent lines stack below in natural order. */
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+  .atc-quote-widget .atc-quote-text {
+    font-family: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace;
+    font-style: italic;
+    font-size: 0.9em;
+    color: #c4d4df;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .atc-quote-widget .atc-quote-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 0.9em;
+    background: #4CAF50;
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: atcQuoteBlink 0.75s step-end infinite;
+  }
+  .atc-quote-widget .atc-quote-translation {
+    margin-top: 6px !important;
+    font-style: italic !important;
+    font-size: 0.78em !important;
+    color: #4CAF50 !important;
+    line-height: 1.4 !important;
+    min-height: 0;
+  }
+  .atc-quote-widget .atc-quote-translation:empty {
+    margin-top: 0;
+    display: none;
+  }
+  .atc-quote-widget .atc-quote-author {
+    margin-top: 6px;
+    font-size: 0.7em;
+    color: #6b7d88;
+    font-style: normal;
+    letter-spacing: 0.04em;
+  }
+  .atc-quote-widget .atc-quote-author-en {
+    color: #4CAF50 !important;
+    font-style: italic !important;
+    margin-left: 4px !important;
+  }
+  @keyframes atcQuoteBlink {
+    0%, 50%   { opacity: 1; }
+    50.01%, 100% { opacity: 0; }
+  }
+  .widget-stack .widget-card:has(#returnVisits) { grid-area: rv  !important; }
+  .widget-stack .widget-card:has(#longestStays) { grid-area: ls  !important; }
+  .widget-stack .widget-card:has(#topAirlines)  { grid-area: mfa !important; }
+  .widget-stack .widget-card {
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  /* Records area: sits under Return Visits, holds 6 cards in
+     a 2-row × 3-col grid. */
+  .widget-stack .atc-records-area {
+    grid-area: records !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-rows: 1fr 1fr !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    position: relative !important;
+    background: transparent !important;
+  }
+  .widget-stack .atc-records-area .record-card {
+    min-width: 0 !important;
+    /* Per-card outline gradient. The card's --atc-rec-base-x is set
+       by atc-skin.js based on its offsetLeft so adjacent cards show
+       contiguous slices of one virtual gradient. The shared shift
+       (--atc-rec-shift) is animated globally via the @keyframes —
+       all cards advance in lockstep, giving a single continuous
+       flow ON THE BORDER ONLY (gap between cards stays empty). */
+    --atc-rec-base-x: 0px;
+    background-color: transparent !important;
+    background-image:
+      linear-gradient(#282828, #282828),
+      linear-gradient(
+        90deg,
+        #1b4d21 0%, #2d6a32 12.5%, #4CAF50 25%, #7fe091 37.5%, #b5f5b5 50%,
+        #7fe091 62.5%, #4CAF50 75%, #2d6a32 87.5%, #1b4d21 100%
+      ) !important;
+    background-size: 100% 100%, 400px 100% !important;
+    background-repeat: no-repeat, repeat-x !important;
+    background-origin: padding-box, border-box !important;
+    background-clip:   padding-box, border-box !important;
+    background-position-x: 0px, calc(var(--atc-rec-base-x) + var(--atc-rec-shift, 0px)) !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+    padding: 10px 12px !important;
+    animation: atcRecCardShift 5s linear infinite !important;
+  }
+  @keyframes atcRecCardShift {
+    from { --atc-rec-shift:    0px; }
+    to   { --atc-rec-shift: -400px; }
+  }
+  /* Records cards — drop the icon column, keep just the text. */
+  .widget-stack .atc-records-area .record-card .record-icon { display: none !important; }
+  .widget-stack .atc-records-area .record-card .record-body { padding-left: 0 !important; }
+
+  /* Duration trend chart moved into the bottom of the spending
+     heatmap. Spans BOTH heatmap columns (grid-column: 1/-1) and
+     gets explicit dimensions so the SVG renders. The widget's
+     inline SVG style is `width:100%; height:auto` which, at a
+     1000px-wide heatmap column, produces a ~700px-tall chart —
+     we override that so the SVG fits BY HEIGHT instead, centred
+     horizontally. */
+  /* Single grid cell — appears at the end of the heatmap year
+     grid (= the empty 2028 slot), one cell wide, NOT spanning. */
+  #spendingHeatmap .atc-duration-slot {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    order: 999 !important;          /* place AFTER all the year cells */
+    width: 100% !important;
+    min-width: 0 !important;
+    display: block !important;
+    min-height: 0 !important;
+  }
+  /* Match a year heatmap cell's size — auto height driven by
+     content. */
+  #spendingHeatmap .atc-duration-slot > .widget-card {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    visibility: visible !important;
+    position: static !important;
+    overflow: visible !important;
+    pointer-events: auto !important;
+  }
+  #spendingHeatmap .atc-duration-slot .widget-title {
+    /* match .heatmap-year-label */
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #8b949e !important;
+    margin-bottom: 4px !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+  }
+  /* atc-duration-host: cloned SVG container */
+  #spendingHeatmap .atc-duration-slot .atc-duration-host {
+    width: 100% !important;
+    flex: 0 0 auto !important;
+    min-height: 0 !important;
+    position: relative !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+  /* SVG fills the host (atc-skin.js sets preserveAspectRatio=none
+     after clone so it stretches without letterboxing). */
+  #spendingHeatmap .atc-duration-slot .atc-duration-host > svg {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+  }
+
+  /* --- Per-widget content fixes for the new tile sizes --- */
+  /* Timeline widget: widget-card padding preserved. SVG sized
+     to the padded content width (no extension), at its natural
+     aspect — does NOT scale up when the row gets taller. The
+     extra row height just becomes breathing room. */
+  .widget-card:has(#journeyTimeline) #journeyTimeline {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 4px !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+  .widget-card:has(#journeyTimeline) #journeyTimeline > svg {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    flex: 0 0 auto !important;
+    transform: none;
+  }
+  .widget-card:has(#journeyTimeline) #journeyTimeline svg {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    min-height: 0 !important;
+  }
+  .timeline-legend {
+    flex: 0 0 auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 4px 10px !important;
+    max-width: 100% !important;
+    font-size: 0.7em !important;
+    line-height: 1.1 !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    /* Stronger selector + transform shift, since the inline
+       `.timeline-legend { margin-top: 6px }` was tight against
+       the parent's overflow:hidden clip. */
+    margin-top: 0 !important;
+    transform: translateY(-5px) !important;
+  }
+  /* Allow the shifted legend to render even if it nudges past
+     the journey-timeline container's bottom edge. */
+  .widget-card:has(#journeyTimeline) #journeyTimeline {
+    overflow: visible !important;
+  }
+  .widget-card:has(#journeyTimeline) {
+    overflow: visible !important;
+  }
+
+  /* Spending Heatmap: 2 columns × 5 rows so the 10 years of
+     calendar grids read in a tight block instead of a single
+     scrolling column. */
+  .widget-card:has(#spendingHeatmap) #spendingHeatmap {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-auto-rows: auto !important;
+    column-gap: 10px !important;
+    row-gap: 6px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+  .widget-card:has(#spendingHeatmap) .heatmap-year {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .widget-card:has(#spendingHeatmap) .heatmap-year svg {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Rank numbering — make .rv-rank / .ls-rank / .ta-rank match
+     so the city/country/airline names align consistently across
+     Return Visits, Longest Stays and Most Flown Airlines. */
+  .widget-stack .rv-rank,
+  .widget-stack .ls-rank,
+  .widget-stack .ta-rank {
+    font-size: 10px !important;
+    color: #555 !important;
+    min-width: 14px !important;
+    text-align: left !important;
+    flex-shrink: 0 !important;
+    margin-right: 6px !important;
+  }
+
+  /* Drop the progress bars and reflow the ranking lists into a
+     two-column grid — denser, more entries visible per widget. */
+  .widget-stack .rv-bar-bg,
+  .widget-stack .ls-bar-bg,
+  .widget-stack .ta-bar-bg { display: none !important; }
+  .widget-stack .return-visits-list,
+  .widget-stack .longest-stays-list,
+  .widget-stack .top-airlines-list {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-auto-flow: row !important;
+    column-gap: 54px !important;   /* 18 → 36 → 54 (×1.5 again) */
+    row-gap: 0 !important;
+  }
+  /* Compact row sizing so 12 / 18 ranks fit inside the widget
+     tile without triggering overflow-scroll. Padding/border
+     reduced; font shrunk minimally so the values still read. */
+  .widget-stack .rv-row,
+  .widget-stack .ls-row,
+  .widget-stack .ta-row {
+    min-width: 0 !important;
+    padding: 1px 6px !important;
+    gap: 5px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+    border-radius: 4px !important;
+    cursor: default !important;
+    position: relative !important;
+  }
+  .widget-stack .rv-rank,
+  .widget-stack .ls-rank,
+  .widget-stack .ta-rank,
+  .widget-stack .rv-city,
+  .widget-stack .rv-country,
+  .widget-stack .ls-name,
+  .widget-stack .ta-name,
+  .widget-stack .rv-count,
+  .widget-stack .ls-days,
+  .widget-stack .ta-count { font-size: 10px !important; line-height: 1.2 !important; }
+  /* No scrollbar — anything that still overflows just clips. */
+  .widget-stack .return-visits-list,
+  .widget-stack .longest-stays-list,
+  .widget-stack .top-airlines-list {
+    overflow: hidden !important;
+  }
+  /* Hover feedback — light grey filled box. The row's own 6px
+     horizontal padding gives breathing room on each side of the
+     rank number / green value. */
+  .widget-stack .rv-row:hover,
+  .widget-stack .ls-row:hover,
+  .widget-stack .ta-row:hover {
+    background-color: rgba(255, 255, 255, 0.10) !important;
+  }
+  /* Lists fill the available widget tile height + scroll only if
+     content still exceeds it (failsafe so ranks beyond what fits
+     are always reachable). */
+  .widget-stack .return-visits-list,
+  .widget-stack .longest-stays-list,
+  .widget-stack .top-airlines-list {
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    scrollbar-width: none !important;
+  }
+  .widget-stack .return-visits-list::-webkit-scrollbar,
+  .widget-stack .longest-stays-list::-webkit-scrollbar,
+  .widget-stack .top-airlines-list::-webkit-scrollbar { display: none !important; }
+
+  /* Records widget — drop the outer card chrome so the individual
+     .record-card tiles read as flat top-level mini-widgets rather
+     than "widgets inside a widget". The grid inside flows
+     vertically inside its dashboard column. */
+  .widget-card:has(#recordsCards) {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .widget-card:has(#recordsCards) > .widget-title { display: none !important; }
+  .widget-card:has(#recordsCards) #recordsCards {
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+  .widget-card:has(#recordsCards) .records-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+  /* Layout-only rule — visual styling (bg / border / clip) lives in
+     the shared-gradient rule at .widget-stack .atc-records-area
+     .record-card; nothing here should set background-color or it
+     will override the flow. */
+  .widget-card:has(#recordsCards) .record-card {
+    border-radius: 10px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+    padding: 10px 12px !important;
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+  }
+
+  /* Cost by Country: map on the LEFT (~78% of widget), ranking
+     list on the RIGHT (~22%). The inline CSS pins ranking to
+     width:280px and wrapper to height:320px — both are blown
+     open here so the map actually fills the widget.  */
+  /* Force the cost-by-country widget to fully fill its grid cell.
+     `flex: 1 1 0` (basis 0) makes children grow into available
+     space without being pinned to their content height — that's
+     what the inline `height: 320px` on .choropleth-wrapper was
+     doing before. */
+  .widget-card:has(#costChoropleth) {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+  .widget-card:has(#costChoropleth) > #costChoropleth {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  .widget-card:has(#costChoropleth) .choropleth-wrapper {
+    display: flex !important;
+    flex-direction: row !important;
+    flex: 1 1 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+  .widget-card:has(#costChoropleth) .choropleth-map {
+    flex: 0 0 787px !important;
+    width: 787px !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+  .widget-card:has(#costChoropleth) .choropleth-map .leaflet-container,
+  .widget-card:has(#costChoropleth) .choropleth-map > div {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  .widget-card:has(#costChoropleth) .choropleth-ranking {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow-y: auto !important;
+    /* Top + bottom fade mask, matching the city-list fade */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%) !important;
+            mask-image: linear-gradient(to bottom, transparent 0%, black 6%, black 94%, transparent 100%) !important;
+    scrollbar-width: none !important;
+  }
+  .widget-card:has(#costChoropleth) .choropleth-ranking::-webkit-scrollbar { display: none !important; }
+
+  /* Unvisited Neighbours layout:
+       ┌───────────────┬─────────────┐
+       │  leaflet map  │             │
+       ├───────────────┤  country    │
+       │ legend syms   │  region     │
+       │ (visited /    │  lists      │
+       │  visa types)  │             │
+       └───────────────┴─────────────┘
+     Map + legend-symbols stack on the LEFT. The country region
+     lists (.neighbors-regions) live INSIDE .neighbors-legend in
+     the original markup, so we lift them out with position:
+     absolute and pin them to the RIGHT half of the widget. */
+  /* Unvisited layout:
+       ┌──────────────────────────┬────────────┐
+       │  leaflet map (~78%)      │  country   │
+       │                          │  region    │
+       ├──────────────────────────┤  lists     │
+       │  legend symbols below    │  (22%)     │
+       └──────────────────────────┴────────────┘
+     Legend symbols ALWAYS below the map (left column). Country
+     region lists pinned to the right 22% strip with their own
+     scroll — never hidden, never overlapping. The map width
+     ends up 78% of the widget content, matching Cost-by-Country
+     exactly because both columns are now 1300px. */
+  .widget-card:has(#unvisitedNeighbors) {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+  /* Single-row grid: LEFT = map (full height), RIGHT = country
+     region strip. Legend overlays the top of the map as an absolute
+     bar so the map can extend the full widget height. */
+  .widget-card:has(#unvisitedNeighbors) > #unvisitedNeighbors {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: 787px 1fr !important;
+    grid-template-rows: 1fr !important;
+    column-gap: 14px !important;
+    flex: 1 1 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .widget-card:has(#unvisitedNeighbors) #unvisitedNeighbors > .leaflet-container,
+  .widget-card:has(#unvisitedNeighbors) #unvisitedNeighbors > div:first-child {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 787px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+  /* Legend bar — absolute strip overlaying the BOTTOM of the map in
+     a single row (no wrap). Translucent so the map shows behind.
+     z-index 1100 sits above every leaflet pane (the highest is
+     ~700, tooltip ~800) — anything lower disappears under tiles. */
+  .widget-card:has(#unvisitedNeighbors) #unvisitedNeighbors > .neighbors-legend {
+    position: absolute !important;
+    bottom: 8px !important;
+    left: 8px !important;
+    width: 771px !important;
+    z-index: 1100 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 4px 8px !important;
+    overflow: visible !important;
+    padding: 6px 10px !important;
+    background: rgba(7, 11, 16, 0.78) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(76, 175, 80, 0.28) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+    pointer-events: auto !important;
+  }
+  .widget-card:has(#unvisitedNeighbors) #unvisitedNeighbors > .neighbors-legend .neighbors-legend-item {
+    font-size: 9px !important;
+    white-space: nowrap !important;
+  }
+  /* Country region lists. Right strip = 1200px. The atc-skin.js
+     splits the region cards into TWO side-by-side columns:
+       LEFT  = white-border boxes (normal continent regions +
+               disputed territories)
+       RIGHT = pink-border boxes (special territories — identified
+               by their inline border-color rgba(183,110,121,…)) */
+  /* Right column = country region strip. As a real grid cell its
+     top edge is exactly at the map's top edge — no absolute-positioning
+     drift. Strip spans both rows so it reaches from map-top down to
+     legend-bottom. */
+  .widget-card:has(#unvisitedNeighbors) .neighbors-regions {
+    position: relative !important;
+    grid-column: 2 !important;
+    grid-row: 1 / span 2 !important;
+    width: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 12px !important;
+    overflow: visible !important;
+    padding: 0 4px 0 8px !important;
+    box-sizing: border-box !important;
+    align-items: stretch !important;
+    align-self: stretch !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+  }
+  /* White (normal) column → TWO independent vertical sub-columns
+     side-by-side. atc-skin.js wraps the region cards into
+     .atc-sub-col-a (Africa/Asia/Europe) and .atc-sub-col-b
+     (Americas/Oceania/Disputed). Each sub-col uses
+     justify-content: space-between so the FIRST card anchors to the
+     top, the LAST anchors to the bottom, and middle cards float
+     freely — middle positions are NOT shared between sub-cols. */
+  .widget-card:has(#unvisitedNeighbors) .neighbors-col-normal {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+  /* White col = 2 sub-cols, pink col = 1 sub-col. Width split is
+     2 : 1 so EACH sub-col (white or pink) ends up the same width.
+     No empty placeholder dead space. */
+  .widget-card:has(#unvisitedNeighbors) .neighbors-col-normal {
+    flex: 2 1 0 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+  .widget-card:has(#unvisitedNeighbors) .neighbors-col-special {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 10px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
+  .widget-card:has(#unvisitedNeighbors) .neighbors-col-normal .atc-sub-col,
+  .widget-card:has(#unvisitedNeighbors) .neighbors-col-special .atc-sub-col {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    gap: 8px !important;
+  }
+  /* Section divider — sits inside white sub-B between the last
+     "Unvisited Countries" card and the first "Unvisited Places"
+     card. Two labels with arrows + a thin horizontal rule. */
+  .widget-card:has(#unvisitedNeighbors) .atc-region-divider {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin: 4px 0 !important;
+    font-family: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace !important;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.18em !important;
+    text-transform: uppercase !important;
+    flex: 0 0 auto !important;
+  }
+  .widget-card:has(#unvisitedNeighbors) .atc-rdiv-line {
+    flex: 1 1 auto !important;
+    height: 1px !important;
+    background: linear-gradient(to right,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0.20),
+      rgba(183, 110, 121, 0.40)
+    ) !important;
+  }
+  .widget-card:has(#unvisitedNeighbors) .atc-rdiv-up {
+    color: #cfcfcf !important;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.15);
+    white-space: nowrap !important;
+  }
+  .widget-card:has(#unvisitedNeighbors) .atc-rdiv-down {
+    color: #B76E79 !important;
+    text-shadow: 0 0 6px rgba(183, 110, 121, 0.45);
+    white-space: nowrap !important;
+  }
+  .widget-card:has(#unvisitedNeighbors) .neighbors-col-normal .neighbors-region,
+  .widget-card:has(#unvisitedNeighbors) .neighbors-col-special .neighbors-region {
+    margin: 0 !important;
+    align-self: start !important;
+    overflow: visible !important;
+  }
+  /* Each region card occupies exactly ONE grid cell — defeat the
+     base HTML's .region-wide (span 2) / .region-full (1/-1) so the
+     row-major layout works as intended (Africa, Americas, Asia,
+     Oceania, Europe, Disputed each in their own cell). */
+  .widget-card:has(#unvisitedNeighbors) .neighbors-region,
+  .widget-card:has(#unvisitedNeighbors) .neighbors-region.region-wide,
+  .widget-card:has(#unvisitedNeighbors) .neighbors-region.region-full {
+    grid-column: auto / span 1 !important;
+    width: 100% !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  /* Country list inside .region-wide and .region-full was using CSS
+     multi-columns (columns: 2 / 5) which makes the card much wider
+     than its grid cell. Force back to single-column rendering — the
+     existing .neighbors-region-list grid rule below handles
+     in-card columns. */
+  .widget-card:has(#unvisitedNeighbors) .neighbors-region.region-wide .neighbors-region-list,
+  .widget-card:has(#unvisitedNeighbors) .neighbors-region.region-full .neighbors-region-list {
+    columns: unset !important;
+    column-gap: 0 !important;
+  }
+  /* Country list inside each region card → 3-column grid so
+     every name has its own row and never collides with the next
+     region's text. */
+  .widget-card:has(#unvisitedNeighbors) .neighbors-region-list {
+    columns: unset !important;
+    column-gap: 0 !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 2px 10px !important;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    flex: 0 0 auto !important;
+  }
+  /* Disputed / special-territories sub-grids: same 3-column grid. */
+  .widget-card:has(#unvisitedNeighbors) .special-territories-grid,
+  .widget-card:has(#unvisitedNeighbors) .disputed-grid {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  /* Tighten row spacing so the lists don't look spread out. */
+  .widget-card:has(#unvisitedNeighbors) .un-row {
+    padding: 3px 0 !important;
+  }
+
+  /* Spending-heatmap tooltip — trip details (mode/route/dist/cost) */
+  .heatmap-tooltip { text-align: left !important; white-space: nowrap !important; max-width: 320px !important; }
+  .heatmap-tooltip .hm-tip-trips {
+    margin-top: 6px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 5px;
+  }
+  .heatmap-tooltip .hm-tip-trip + .hm-tip-trip {
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px dashed rgba(255,255,255,0.06);
+  }
+  .heatmap-tooltip .hm-tip-mode {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #4CAF50;
+    background: rgba(76,175,80,0.12);
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-right: 4px;
+    text-transform: uppercase;
+  }
+  .heatmap-tooltip .hm-tip-route {
+    font-size: 11px;
+    color: #e8e8e8;
+    font-weight: 500;
+  }
+  .heatmap-tooltip .hm-tip-meta {
+    font-size: 9.5px;
+    color: #999;
+    margin-top: 2px;
+    letter-spacing: 0.03em;
+  }
+  /* Strip is now wide enough that every country name fits on
+     ONE line. Restore nowrap so the names render tidily. */
+  .widget-card:has(#unvisitedNeighbors) .un-name {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: clip !important;
+    flex-shrink: 1 !important;
+    min-width: 0 !important;
+  }
+
+  /* Hide the INSIGHTS toggle (widgets always visible now). Keep Export. */
+  .widgets-toggle#widgetsToggle { display: none !important; }
+  .widgets-backdrop { display: none !important; }
+  /* Mobile-only or empty containers shouldn't take horizontal space */
+  body > .card-spacer,
+  body > .city-stats-section,
+  body > .mobile-city-list-container,
+  body > .mobile-lang-bar { display: none !important; }
+
+  /* ---------------------------------------------------------------
+     Grouped Travel Stats + City List (created by atc-skin.js).
+     Title bar sits on top, spanning the width of both panels.
+     Below it stats-section + city-list-container sit side-by-side.
+     --------------------------------------------------------------- */
+  body > .stats-citylist-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 18px !important;
+    height: 740px !important;
+    flex-shrink: 0 !important;
+  }
+  .stats-citylist-title {
+    font-size: 1.2em !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    text-align: left !important;
+    /* Seamless-tile gradient — same recipe as the scroll meter and
+       the main title (linear gradient with matching endpoints,
+       repeat-x, fixed vw tile size, shift one tile per cycle). */
+    background-image: linear-gradient(
+      90deg,
+      #1b4d21 0%, #2d6a32 12.5%, #4CAF50 25%, #7fe091 37.5%, #b5f5b5 50%,
+      #7fe091 62.5%, #4CAF50 75%, #2d6a32 87.5%, #1b4d21 100%
+    ) !important;
+    background-size: 40vw 100% !important;
+    background-repeat: repeat-x !important;
+    -webkit-background-clip: text !important;
+            background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+    text-shadow: none !important;
+    animation: atcMeterFlow 6s linear infinite;
+  }
+  .stats-citylist-row {
+    /* Two columns, two rows: header (quote | title) above, then
+       the box row (city-list | stats). Columns are pinned to
+       the same fixed 360px as the stats-section / city-list, so
+       the title cell width === the stats box width — title can't
+       overrun. */
+    display: grid !important;
+    grid-template-columns: minmax(0, 360px) minmax(0, 360px) !important;
+    grid-template-rows: 110px 1fr !important;
+    grid-template-areas:
+      "quote  title"
+      "city   stats" !important;
+    column-gap: 40px !important;
+    row-gap: 12px !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    align-items: stretch !important;
+    overflow: visible !important;
+  }
+  .stats-citylist-row > .atc-quote-widget { grid-area: quote !important; }
+  .stats-citylist-row > .city-list-container { grid-area: city !important; }
+  .stats-citylist-row > .stats-section { grid-area: stats !important; }
+  /* Title spans the full WIDTH of the stats column. Shifted up
+     20px so the stats box can extend upward into the freed
+     space (see margin-top:-20px on .stats-section below). */
+  .stats-citylist-row > .stats-citylist-title {
+    grid-area: title !important;
+    align-self: start !important;
+    width: 100% !important;
+    text-align: justify !important;
+    text-justify: inter-character !important;
+    -ms-text-justify: distribute-all-lines !important;
+    text-align-last: justify !important;
+    line-height: 1 !important;
+    letter-spacing: normal !important;
+    transform: translateY(0) !important;
+  }
+  .stats-citylist-row > .stats-citylist-title::after {
+    content: '';
+    display: inline-block;
+    width: 100%;
+    height: 0;
+  }
+  /* City list comes FIRST, stats panel SECOND. Both keep their
+     original card-style box (translucent dark background, blur,
+     border, rounded corners). position:relative resets the inline
+     position:absolute on .stats-section. */
+  /* Hide cities that haven't been reached yet — they appear in
+     the list only when the animation tags them .visited or
+     .current. */
+  body > .stats-citylist-group .city-list .city-item:not(.visited):not(.current) {
+    display: none !important;
+  }
+  /* Fade-out mask on the city list so the top and bottom rows
+     soft-disappear into the column as you scroll. */
+  body > .stats-citylist-group .city-list-wrapper {
+    overflow: hidden !important;
+    max-height: none !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    -webkit-mask-image: linear-gradient(to bottom,
+      transparent 0%, black 8%, black 92%, transparent 100%) !important;
+            mask-image: linear-gradient(to bottom,
+      transparent 0%, black 8%, black 92%, transparent 100%) !important;
+  }
+  body > .stats-citylist-group .city-list {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    /* Hide the native scrollbar — replaced by a flowing progress
+       meter (injected by atc-skin.js). */
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  body > .stats-citylist-group .city-list::-webkit-scrollbar { display: none !important; }
+
+  /* City-list progress meter — same look as the page-bottom
+     scroll meter. Thin bar at the BOTTOM of the city-list
+     column showing scroll progress with a flowing-green
+     gradient. */
+  /* VERTICAL progress meter — replaces the right-edge scrollbar
+     of the city list. Track runs top → bottom, fill grows
+     downward, labels stacked at the bottom showing "X%" and
+     "visited / total cities". */
+  .atc-citylist-meter {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 28px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 4px 0 6px !important;
+    pointer-events: none !important;
+    z-index: 50 !important;
+    box-sizing: border-box !important;
+  }
+  .atc-citylist-meter .track {
+    position: relative !important;
+    flex: 1 1 auto !important;
+    width: 3px !important;
+    background: rgba(76, 175, 80, 0.14) !important;
+    border-radius: 3px !important;
+    overflow: hidden !important;
+  }
+  .atc-citylist-meter .fill {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 0%;   /* JS sets with !important via setProperty */
+    background-image: linear-gradient(
+      180deg,
+      #1b4d21 0%, #2d6a32 12.5%, #4CAF50 25%, #7fe091 37.5%, #b5f5b5 50%,
+      #7fe091 62.5%, #4CAF50 75%, #2d6a32 87.5%, #1b4d21 100%
+    ) !important;
+    background-size: 100% 30vh !important;
+    background-repeat: repeat-y !important;
+    animation: atcMeterFlowV 5s linear infinite !important;
+    box-shadow: 0 0 6px rgba(76, 175, 80, 0.55),
+                0 0 2px rgba(127, 224, 145, 0.8) !important;
+    transition: height 180ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .atc-citylist-meter .label-pct {
+    margin-top: 6px !important;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+    color: #4CAF50 !important;
+    font-variant-numeric: tabular-nums !important;
+    white-space: nowrap !important;
+  }
+  .atc-citylist-meter .label-count {
+    margin-top: 2px !important;
+    font-size: 7.5px !important;
+    color: #889 !important;
+    letter-spacing: 0 !important;
+    font-variant-numeric: tabular-nums !important;
+    white-space: nowrap !important;
+  }
+  @keyframes atcMeterFlowV {
+    from { background-position-y: 0; }
+    to   { background-position-y: -30vh; }
+  }
+  /* Reserve room on the right of the city-list-wrapper for the
+     vertical meter column. */
+  body > .stats-citylist-group .city-list-wrapper {
+    padding-right: 32px !important;
+  }
+
+  .stats-citylist-row > .city-list-container {
+    /* No outline / box for the city list — flat-transparent.
+       Align items to the TOP of the column (justify-content:
+       flex-start) so cities populate from the top down instead
+       of being centred and shifting as more arrive. */
+    order: 1 !important;
+    position: relative !important;
+    left: auto !important; right: auto !important;
+    top: auto !important; bottom: auto !important;
+    width: auto !important;
+    flex: 0 0 auto !important;
+    height: 100% !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+  }
+  /* City list itself: top-aligned grid (auto-rows packed at top,
+     no extra rows added by alignment). */
+  body > .stats-citylist-group .city-list {
+    align-content: start !important;
+    justify-content: start !important;
+  }
+  .stats-citylist-row > .stats-section {
+    order: 2 !important;
+    position: relative !important;
+    left: auto !important; right: auto !important;
+    top: auto !important; bottom: auto !important;
+    width: 360px !important;
+    height: auto !important;
+    flex: 0 0 360px !important;
+    /* Dual-layer background: inner solid #070b10 painted to
+       padding-box; outer conic sweep painted to border-box. The
+       conic gradient rotates via the --atc-stats-sweep @property
+       so a green arc traces the box outline. */
+    background:
+      linear-gradient(var(--atc-bg), var(--atc-bg)) padding-box,
+      conic-gradient(
+        from var(--atc-stats-sweep, 0deg),
+        rgba(76, 175, 80, 0)   0deg,
+        rgba(76, 175, 80, 0)  60deg,
+        rgba(76, 175, 80, 0.35) 80deg,
+        #4CAF50  95deg,
+        #b5f5b5 100deg,
+        #4CAF50 105deg,
+        rgba(76, 175, 80, 0.35) 120deg,
+        rgba(76, 175, 80, 0) 140deg,
+        rgba(76, 175, 80, 0) 360deg
+      ) border-box !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+    padding: 18px 16px !important;
+    box-sizing: border-box !important;
+    margin-top: -65px !important;
+    animation: atcStatsBorderSweep 4.5s linear infinite !important;
+  }
+  @keyframes atcStatsBorderSweep {
+    from { --atc-stats-sweep:   0deg; }
+    to   { --atc-stats-sweep: 360deg; }
+  }
+  .stats-citylist-row > .city-list-container .city-list-wrapper {
+    max-height: none !important;
+    height: 100% !important;
+  }
+  .stats-citylist-row > .city-list-container .city-list {
+    max-height: none !important;
+    height: 100% !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  /* City list vertical gap — the original .city-list rule sets
+     `gap: 12px` (= row-gap 12px). Cumulative bumps:
+       12 → +40% (17) → +30% (22) → +30% more (29). */
+  body .stats-citylist-row .city-list,
+  body > .stats-citylist-group .city-list,
+  .stats-citylist-row .city-list {
+    row-gap: 29px !important;
+    grid-row-gap: 29px !important;
+  }
+
+  /* Header card chrome stripped (no background/blur/border).
+     Year + slogan are repositioned to the BOTTOM-RIGHT of the
+     map container — sits as a small label over the bottom-right
+     corner of the orthographic scope. */
+  .card-container > .header {
+    position: absolute !important;
+    right: 14px !important;
+    bottom: 14px !important;
+    top: auto !important;
+    left: auto !important;
+    z-index: 6 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    text-align: right !important;
+    pointer-events: none !important;
+  }
+  .card-container > .header .header-top {
+    justify-content: flex-end !important;
+  }
+
+  /* Year overlay — visually centred inside the VISIBLE map area.
+     .map-container fills the whole card-container (740px tall),
+     including the strip behind the .header at the top, so
+     `top:50%` of .map-container actually sits a bit above the
+     visible map midline. atc-skin.js measures the live header
+     and progress-bar heights and positions the overlay each
+     frame; the CSS just sets the look. */
+  .year-overlay {
+    display: block !important;
+    position: absolute !important;
+    z-index: 5 !important;
+    font-family: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace !important;
+    font-size: 2.6em !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    letter-spacing: 0.06em !important;
+    text-align: center !important;
+    color: rgba(76, 175, 80, 0.85) !important;
+    text-shadow: 0 0 12px rgba(76, 175, 80, 0.35) !important;
+    pointer-events: none !important;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Keep bottom bar near bottom but clear of the 4px scroll meter */
+  .bottom-bar { bottom: 14px !important; }
+
+  /* Hide every native scrollbar on the page — the inline
+     animated-flight-map.html rules (which load AFTER this file in
+     the cascade because they sit in <style>) are beaten via
+     !important and a higher-specificity selector. */
+  html, body { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  html body::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+    background: transparent !important;
+  }
+  html::-webkit-scrollbar-thumb,
+  body::-webkit-scrollbar-thumb,
+  html body::-webkit-scrollbar-thumb { background: transparent !important; }
+  html::-webkit-scrollbar-track,
+  body::-webkit-scrollbar-track,
+  html body::-webkit-scrollbar-track { background: transparent !important; }
+
+  #atcScrollMeter {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    height: 4px;
+    background: rgba(76, 175, 80, 0.08);
+    border-top: 1px solid rgba(76, 175, 80, 0.12);
+    z-index: 9999;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  #atcScrollMeter .fill {
+    height: 100%;
+    width: 0%;
+    background-image: linear-gradient(
+      90deg,
+      #1b4d21 0%, #2d6a32 12.5%, #4CAF50 25%, #7fe091 37.5%, #b5f5b5 50%,
+      #7fe091 62.5%, #4CAF50 75%, #2d6a32 87.5%, #1b4d21 100%
+    );
+    /* Seamless tile: gradient endpoints match, repeats, shift by
+       one full tile per keyframe cycle — no snap when looping. */
+    background-size: 40vw 100%;
+    background-repeat: repeat-x;
+    animation: atcMeterFlow 5s linear infinite;
+    box-shadow: 0 0 10px rgba(76,175,80,0.55), 0 0 3px rgba(127,224,145,0.8);
+    /* width tracks scrollLeft with no transition lag */
+    will-change: width;
+  }
+  @keyframes atcMeterFlow {
+    from { background-position-x: 0; }
+    to   { background-position-x: -40vw; }
+  }
+}
+
+@media (max-width: 768px) {
+  #atcScrollMeter { display: none !important; }
+}
+
+/* ============================================================
+   Header ticker — promoted to a full-viewport-width top bar.
+   Originally appended inside the small .header card; we lift it
+   visually to the very top of the page on desktop so it reads as
+   a separate component sitting above the horizontal lane.
+   ============================================================ */
+@media (min-width: 769px) {
+  /* Position/layout only — keep the original font-size, letter-spacing
+     and mask from the inline stylesheet. 10px breathing room above
+     the ticker so it doesn't sit flush with the window's top edge. */
+  .header-ticker {
+    position: fixed !important;
+    top: 10px !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    margin: 0 !important;
+    z-index: 9998 !important;
+  }
+}
+
+/* ============================================================
+   Main title "IS THE WORLD YOUR 🦪?".
+   The white text stays put. An absolutely-positioned overlay
+   `.title-flow-layer` paints the same glyphs in the meter's
+   flowing green gradient and slowly *infects* the white text via
+   a soft mask edge that sweeps left-to-right.
+   --reveal is animated via @property so the mask gradient stops
+   actually interpolate (without @property the mask would jump).
+   The gradient itself tiles seamlessly (background-repeat:repeat
+   + size fixed to the gradient's natural cycle length), so its
+   continuous flow never snaps when the keyframe loops.
+   The 🦪 emoji is wrapped in `.title-emoji` and excluded from the
+   gradient layer so it always renders as its native colour glyph.
+   ============================================================ */
+/* ============================================================
+   Main title — typewriter reveals white text, then the green
+   gradient sweeps in from the left and replaces the white. The
+   🦪 emoji is wrapped in <span class="title-emoji"> and stays as
+   its native colour glyph throughout — text-fill-color override
+   keeps the colour emoji rendering, and the gradient layer's
+   emoji slot is invisible (visibility:hidden) so only the white
+   layer's native emoji ever shows.
+   ============================================================ */
+/* Auto-cycle leaflet tooltip — overrides the default leaflet
+   tooltip skin so it matches the dashboard's row-tooltip style. */
+.leaflet-tooltip.atc-cycle-tip {
+  background: linear-gradient(180deg, rgba(44,44,44,0.98), rgba(32,32,32,0.98)) !important;
+  color: #ccc !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
+  white-space: nowrap !important;
+  font-size: 11px !important;
+  font-family: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace !important;
+  pointer-events: none !important;
+}
+.leaflet-tooltip.atc-cycle-tip .tip-label {
+  font-size: 10px; color: #999; letter-spacing: 0.10em; text-transform: uppercase;
+}
+.leaflet-tooltip.atc-cycle-tip .tip-val {
+  font-size: 13px; font-weight: 600; color: #4CAF50; margin-top: 2px;
+}
+.leaflet-tooltip.atc-cycle-tip::before {
+  border-top-color: rgba(32,32,32,0.98) !important;
+}
+
+/* Travel-Stats numbers — disable the per-update scale "heartbeat"
+   animation (.stat-value.updating { animation: numberPulse }). */
+.stat-value.updating {
+  animation: none !important;
+}
+
+/* Auto-cycle row highlight — applied via JS to the currently
+   cycled rank row in unvisited / cost-by-country widgets so it
+   matches the on-hover background. */
+.cr-row.atc-cycling,
+.un-row.atc-cycling {
+  background-color: rgba(255, 255, 255, 0.10) !important;
+  border-radius: 4px !important;
+}
+
+/* Trophy notification — country name runs a flowing gradient in
+   shades of the trophy's tier colour (bronze / silver / gold /
+   platinum / unrecognised). country-trophy.js sets `--flow-color`
+   inline on the element so the same CSS rule serves every tier. */
+.trophy-title.atc-tier-flow {
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--flow-color, #fff) 35%, #000) 0%,
+    var(--flow-color, #fff) 25%,
+    color-mix(in srgb, var(--flow-color, #fff) 65%, #fff) 50%,
+    var(--flow-color, #fff) 75%,
+    color-mix(in srgb, var(--flow-color, #fff) 35%, #000) 100%
+  ) !important;
+  background-size: 200% 100% !important;
+  background-repeat: repeat-x !important;
+  -webkit-background-clip: text !important;
+          background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  animation: atcTrophyTierFlow 3s linear infinite !important;
+}
+@keyframes atcTrophyTierFlow {
+  from { background-position-x:    0; }
+  to   { background-position-x: 200%; }
+}
+
+/* Tooltip value text with flowing-green gradient — used for
+   Visa Free and Visa on Arrival statuses. */
+.tip-val.atc-visa-flow {
+  background-image: linear-gradient(
+    90deg,
+    #1b4d21 0%, #2d6a32 12.5%, #4CAF50 25%, #7fe091 37.5%, #b5f5b5 50%,
+    #7fe091 62.5%, #4CAF50 75%, #2d6a32 87.5%, #1b4d21 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: repeat-x;
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-weight: 700;
+  animation: atcVisaFlow 3s linear infinite;
+}
+@keyframes atcVisaFlow {
+  from { background-position-x:    0; }
+  to   { background-position-x: 200%; }
+}
+
+@property --atc-rec-shift {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+@property --atc-stats-sweep {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@property --title-reveal {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: -22%;
+}
+.main-title { position: relative; text-shadow: none !important; }
+.main-title .title-text {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  /* As .flowing kicks in, the white letters fade to transparent so
+     they don't bleed through behind the green sweeping in. */
+  transition: -webkit-text-fill-color 4.5s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+}
+.main-title.flowing .title-text { -webkit-text-fill-color: transparent; }
+/* Emoji slot inside the WHITE layer always renders as the native
+   colour glyph — force a non-transparent text-fill-color so the
+   colour-bitmap glyph paints regardless of the parent's state. */
+.main-title .title-text .title-emoji {
+  -webkit-text-fill-color: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.main-title .title-flow-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  pointer-events: none;
+  /* Seamless symmetric green gradient — endpoints match (#1b4d21
+     at 0% and 100%), repeats horizontally, shifts one tile width
+     per cycle so the keyframe loops with no snap. */
+  background-image: linear-gradient(
+    90deg,
+    #1b4d21 0%, #2d6a32 12.5%, #4CAF50 25%, #7fe091 37.5%, #b5f5b5 50%,
+    #7fe091 62.5%, #4CAF50 75%, #2d6a32 87.5%, #1b4d21 100%
+  );
+  background-size: 50vw 100%;
+  background-repeat: repeat-x;
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: atcTitleFlow 9s linear infinite;
+  /* Mask: starts fully transparent (green hidden). As --title-reveal
+     animates 0% → 100%, the soft mask edge sweeps left → right,
+     gradually "infecting" the white with green. */
+  --title-reveal: -22%;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    black 0%,
+    black var(--title-reveal),
+    transparent calc(var(--title-reveal) + 22%)
+  );
+          mask-image: linear-gradient(
+    90deg,
+    black 0%,
+    black var(--title-reveal),
+    transparent calc(var(--title-reveal) + 22%)
+  );
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  transition: --title-reveal 4.5s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+}
+.main-title.flowing .title-flow-layer { --title-reveal: 100%; }
+/* Emoji slot inside the GREEN layer is invisible (keeps layout
+   space so the gradient text after the emoji aligns above the
+   white text's emoji). Only the white layer's native emoji shows. */
+.main-title .title-flow-layer .title-emoji { visibility: hidden; }
+@keyframes atcTitleFlow {
+  from { background-position-x: 0; }
+  to   { background-position-x: -50vw; }
+}
+
+/* ============================================================
+   Mobile: show the widget cards inline (stacked) instead of as a
+   modal overlay. The existing column flow already stacks
+   everything; we just defeat the modal max-height transition.
+   ============================================================ */
+/* ============================================================
+   PHONE PORTRAIT (≤480px): horizontal side-scrolling lane at
+   phone-friendly column widths. Same architecture as desktop,
+   just scaled down so a 360-414px phone reads tidily.
+   ============================================================ */
+@media (max-width: 480px) {
+  html, body {
+    overflow-y: hidden !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    min-width: 0 !important;
+  }
+  body {
+    overflow-x: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 0 0 0 14px !important;
+    gap: 16px !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  body::after {
+    content: '';
+    display: block;
+    flex: 0 0 14px;
+    align-self: stretch;
+    margin-left: -16px;
+    pointer-events: none;
+  }
+  body > .title-section,
+  body > .stats-section,
+  body > .city-list-container,
+  body > .stats-citylist-group,
+  body > .widgets-section,
+  body > .card-column {
+    position: relative !important;
+    left: auto !important; right: auto !important;
+    top: auto !important; bottom: auto !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+  }
+  body > .card-column { width: auto !important; }
+  .card-container {
+    width: 320px !important;
+    height: 480px !important;
+  }
+  body > .title-section {
+    height: 480px !important;
+    width: 220px !important;
+    text-align: left !important;
+    align-items: flex-start !important;
+  }
+  body > .stats-citylist-group {
+    height: 480px !important;
+    flex-direction: column !important;
+  }
+  .stats-citylist-row {
+    flex-direction: row !important;
+    gap: 10px !important;
+  }
+  .stats-citylist-row > .stats-section,
+  .stats-citylist-row > .city-list-container {
+    width: 180px !important;
+    height: auto !important;
+    flex: 0 0 180px !important;
+  }
+  body > .widgets-section {
+    height: 480px !important;
+    max-height: 480px !important;
+    width: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+  .widgets-inner {
+    display: grid !important;
+    grid-template-columns: 480px 420px 480px 880px !important;
+    grid-template-rows: 76px 1fr 1fr 1fr !important;
+    grid-template-areas:
+      "timeline timeline timeline timeline"
+      "stack    heatmap  choro   unvis"
+      "stack    heatmap  choro   unvis"
+      "stack    heatmap  choro   unvis" !important;
+    column-gap: 16px !important;
+    row-gap: 16px !important;
+    padding: 0 !important;
+    max-width: none !important;
+    height: 480px !important;
+  }
+  /* Scope/playbar/scrollmeter: scrollmeter hides on small screens */
+  #atcScrollMeter { display: none !important; }
+  .atc-playbar { padding: 4px 6px !important; gap: 4px !important; }
+  .atc-playbar .atc-pb-btn { padding: 3px 5px !important; font-size: 9px !important; }
+  .atc-playbar .atc-pb-status { font-size: 9px !important; }
+  .header-ticker {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    z-index: 9998 !important;
+  }
+  /* Hide the rotate-device prompt — phone portrait is supported */
+  .atc-rotate-prompt { display: none !important; }
+}
+
+/* ============================================================
+   TABLET PORTRAIT (481-1024px width, portrait orientation):
+   block the viz with a full-screen rotate-device overlay.
+   Tablet landscape (1024×768) is caught by the desktop
+   `@media (min-width: 769px)` block and renders normally.
+   ============================================================ */
+@media (min-width: 481px) and (max-width: 1024px) and (orientation: portrait) {
+  body > *:not(.atc-rotate-prompt) {
+    display: none !important;
+  }
+  html, body {
+    overflow: hidden !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: var(--atc-bg, #070b10) !important;
+  }
+  .atc-rotate-prompt {
+    position: fixed !important;
+    inset: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 22px !important;
+    background: var(--atc-bg, #070b10) !important;
+    color: #4CAF50 !important;
+    font-family: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace !important;
+    text-align: center !important;
+    padding: 24px !important;
+    z-index: 999999 !important;
+  }
+  .atc-rotate-prompt .atc-rotate-icon {
+    width: 88px;
+    height: 88px;
+    color: #4CAF50;
+    animation: atcRotateNudge 2.4s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px rgba(76, 175, 80, 0.55));
+  }
+  .atc-rotate-prompt .atc-rotate-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.30em;
+    color: #b5f5b5;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(127, 224, 145, 0.65);
+  }
+  .atc-rotate-prompt .atc-rotate-body {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    line-height: 1.6;
+    max-width: 360px;
+    color: #8b949e;
+  }
+}
+@keyframes atcRotateNudge {
+  0%, 100% { transform: rotate(-90deg); }
+  50%      { transform: rotate(0deg);   }
+}
+/* Hide the rotate prompt by default (only the tablet-portrait media
+   block above un-hides it). */
+.atc-rotate-prompt { display: none; }
