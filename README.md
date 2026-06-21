@@ -3,11 +3,7 @@ An animated journey map visualising my travel history and its environmental impa
 
 https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 
-<img width="1290" height="2796" alt="127 0 0 1_5500_animated-flight-map html(iPhone 14 Pro Max)" src="https://github.com/user-attachments/assets/c9d5f456-c813-4c4e-9d26-a936f76b22ec" />
-
-![Screenshot 2026-03-28 215025](https://github.com/user-attachments/assets/98246798-5803-4a36-8876-85bfd2dcb69c)
-
-![Screenshot 2026-03-28 214925](https://github.com/user-attachments/assets/1bc32aae-1e90-455b-8e72-449ad8723fe3)
+<img width="7780" height="919" alt="screencapture-xuanx1-github-io-worldOyster-animated-flight-map-html-2026-06-21-20_08_01" src="https://github.com/user-attachments/assets/859284cf-aeab-49e3-8dfe-0ce437472efe" />
 
 ---
 
