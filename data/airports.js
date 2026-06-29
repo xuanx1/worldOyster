@@ -157,6 +157,7 @@ window.AIRPORT_COORDINATES = {
     'CMB': [7.1803, 79.8842],    // Colombo / Bandaranaike
     'VTE': [17.9883, 102.5633], // Vientiane Wattay
     'YIA': [-7.9006, 110.0568], // Yogyakarta International
+    'DPS': [-8.7480, 115.1672], // Denpasar Bali Ngurah Rai
     'BKI': [5.9372, 116.0517],  // Kota Kinabalu
     'KCH': [1.4847, 110.3469],  // Kuching
     'TPE': [25.0777, 121.2320], // Taipei Taoyuan
@@ -313,6 +314,9 @@ window.AIRPORT_TO_CITY = {
 
     // Yogyakarta area airports -> Yogyakarta
     'YIA': 'Yogyakarta',
+
+    // Denpasar Bali area airports -> Denpasar
+    'DPS': 'Denpasar',
 
     // Kota Kinabalu area airports -> Kota Kinabalu
     'BKI': 'Kota Kinabalu',

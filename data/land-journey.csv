@@ -298,22 +298,23 @@ Singapore,Hatyai,bus,72,12/6/2026
 Hatyai,Songkhla,bus,1.57,13/6/2026
 Songkhla,Hatyai,bus,2,13/6/2026
 Hatyai,Singapore,bus,71,14/6/2026
-Taipei,Taichung,train,31,5/7/2026
-Taichung,Kaohsiung,train,35,5/7/2026
-Kaohsiung,Taipei,train,63.75,5/7/2026
+Taipei,Taichung,train,16.07,5/7/2026
+Taichung,Tainan,train,16.31,5/7/2026
+Taichung,Kaohsiung,train,20.82,5/7/2026
+Kaohsiung,Taipei,train,35.71,5/7/2026
 Hong Kong,Macau,bus,12,7/8/2026
 Macau,Zhuhai,walk,0,7/8/2026
 Zhuhai,Macau,walk,0,7/8/2026
 Macau,Hong Kong,bus,12,7/8/2026
 Hong Kong,Shenzhen,train,9,8/8/2026
-Shenzhen,Guangzhou,train,6.5,9/8/2026
-Guangzhou,Foshan,train,2,9/8/2026
-Foshan,Guangzhou,train,2,9/8/2026
+Shenzhen,Guangzhou,train,17.12,9/8/2026
+Guangzhou,Foshan,train,1.30,9/8/2026
+Foshan,Guangzhou,train,1.30,9/8/2026
 Hanoi,Nanning,train,54.09,5/9/2026
 Tashkent,Shymkent,bus,6.2,5/10/2026
 Shymkent,Tashkent,bus,7.4,5/10/2026
 Tashkent,Samarkand,train,26,6/10/2026
-Samarkand,Bukhara,train,12.26,7/10/2026
+Samarkand,Bukhara,train,20.00,7/10/2026
 Bukhara,Turkmenabat,car,6,8/10/2026
 Turkmenabat,Merv,car,7,8/10/2026
 Merv,Mary,car,2,9/10/2026
@@ -337,13 +338,13 @@ Tokyo,Chiba,train,3.5,6/1/2027
 Chiba,Kawasaki,train,7.5,6/1/2027
 Kawasaki,Yokohama,train,1.5,6/1/2027
 Yokohama,Tokyo,train,4,6/1/2027
-Tokyo,Otsuki,train,23.5,7/1/2027
-Otsuki,Fujiyoshida,train,8.5,7/1/2027
-Fujiyoshida,Otsuki,train,8.5,7/1/2027
-Otsuki,Tokyo,train,23.5,7/1/2027
-Tokyo,Nagoya,train,91.5,7/1/2027
-Nagoya,Osaka,train,54,8/1/2027
+Tokyo,Otsuki,train,21.81,7/1/2027
+Otsuki,Fujiyoshida,train,7.89,7/1/2027
+Fujiyoshida,Otsuki,train,7.89,7/1/2027
+Otsuki,Tokyo,train,21.81,7/1/2027
+Tokyo,Nagoya,train,92.00,7/1/2027
+Nagoya,Osaka,train,53.60,8/1/2027
 Osaka,Kyoto,train,4.5,9/1/2027
 Kyoto,Kobe,train,9,9/1/2027
 Kobe,Osaka,train,3.5,9/1/2027
-Osaka,Tokyo,train,119,10/1/2027
+Osaka,Tokyo,train,116.00,10/1/2027
