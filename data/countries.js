@@ -267,7 +267,7 @@ window.CITY_TO_COUNTRY = {
     'Nanyang': 'PR China', 'Xian': 'PR China', "Xi'an": 'PR China', 'Lanzhou': 'PR China', 'Haikou': 'PR China',
     'Guangzhou': 'PR China', 'Shenzhen': 'PR China', 'Foshan': 'PR China', 'Nanning': 'PR China', 'Kunming': 'PR China', 'Hekou': 'PR China',
     'Hong Kong': 'PR China', 'Macau': 'PR China', 'Zhuhai': 'PR China',
-    'Taipei': 'ROC Taiwan', 'Taichung': 'ROC Taiwan', 'Kaohsiung': 'ROC Taiwan',
+    'Taipei': 'ROC Taiwan', 'Taichung': 'ROC Taiwan', 'Tainan': 'ROC Taiwan', 'Kaohsiung': 'ROC Taiwan',
     'Kuala Lumpur': 'Malaysia',
     'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
     'Penang': 'Malaysia', 'Pengerang': 'Malaysia', 'Kota Kinabalu': 'Malaysia', 'Kuching': 'Malaysia',
@@ -291,7 +291,7 @@ window.CITY_TO_COUNTRY = {
     'Turkmenabat': 'Turkmenistan', 'Merv': 'Turkmenistan', 'Mary': 'Turkmenistan',
     'Ashgabat': 'Turkmenistan', 'Darvaza': 'Turkmenistan', 'Dashoguz': 'Turkmenistan',
     'Chiang Mai': 'Thailand','Bangkok': 'Thailand', 'Phuket': 'Thailand', 'Hatyai': 'Thailand', 'Songkhla': 'Thailand',
-    'Yogyakarta': 'Indonesia', 'Surakarta': 'Indonesia', 'Jakarta': 'Indonesia', 'Bandung': 'Indonesia',
+    'Yogyakarta': 'Indonesia', 'Surakarta': 'Indonesia', 'Jakarta': 'Indonesia', 'Bandung': 'Indonesia', 'Denpasar': 'Indonesia',
 
     // North America
     'New York': 'USA', 'Philadelphia': 'USA', 'Los Angeles': 'USA', 'Los Angles': 'USA',
