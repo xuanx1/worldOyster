@@ -93,6 +93,7 @@ window.AIRPORT_TO_COUNTRY = {
     // Asia - China
     'PVG': 'PR China', 'PEK': 'PR China', 'CAN': 'PR China', 'PKX': 'PR China', 'XIY': 'PR China',
     'WUH': 'PR China', 'CKG': 'PR China', 'TFU': 'PR China', 'HAK': 'PR China', 'LHW': 'PR China',
+    'HET': 'PR China',
 
     // Asia - North Korea
     'FNJ': 'DPR Korea',
@@ -110,7 +111,7 @@ window.AIRPORT_TO_COUNTRY = {
     'KUL': 'Malaysia', 'BKI': 'Malaysia', 'KCH': 'Malaysia',
 
     // Asia - Indonesia
-    'CGK': 'Indonesia', 'YIA': 'Indonesia',
+    'CGK': 'Indonesia', 'YIA': 'Indonesia', 'DPS': 'Indonesia',
 
     // Asia - Myanmar
     'RGN': 'Myanmar', 'MDL': 'Myanmar',
@@ -122,7 +123,7 @@ window.AIRPORT_TO_COUNTRY = {
     'BKK': 'Thailand', 'DMK': 'Thailand', 'CNX': 'Thailand',
 
     // Asia - Vietnam
-    'SGN': 'Vietnam', 'DAD': 'Vietnam',
+    'SGN': 'Vietnam', 'DAD': 'Vietnam', 'HAN': 'Vietnam',
 
     // Asia - Laos
     'VTE': 'Laos',
@@ -264,6 +265,7 @@ window.CITY_TO_COUNTRY = {
     'Pyongyang': 'DPR Korea', 'Kaesong': 'DPR Korea', 'Nampo': 'DPR Korea', 'Sariwon': 'DPR Korea',
     'Dandong': 'PR China',
     'Beijing': 'PR China', 'Peking': 'PR China', 'Tianjin': 'PR China', 'Shanghai': 'PR China', 'Chengdu': 'PR China', 'Chongqing': 'PR China', 'Wuhan': 'PR China',
+    'Hohhot': 'PR China', 'Ordos City': 'PR China', 'Baotou': 'PR China',
     'Nanyang': 'PR China', 'Xian': 'PR China', "Xi'an": 'PR China', 'Lanzhou': 'PR China', 'Haikou': 'PR China',
     'Guangzhou': 'PR China', 'Shenzhen': 'PR China', 'Foshan': 'PR China', 'Nanning': 'PR China', 'Kunming': 'PR China', 'Hekou': 'PR China',
     'Hong Kong': 'PR China', 'Macau': 'PR China', 'Zhuhai': 'PR China',

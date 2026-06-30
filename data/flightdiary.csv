@@ -230,6 +230,10 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2026-08-10,CZ8489,Guangzhou / Canton-Baiyun (CAN/ZGGG),Singapore / Changi (SIN/WSSS),22:40:00,02:50:00,04:10:00,China Southern Airlines (CZ/CSN),Airbus A321 (A321),,,0,0,0,,478,2672,207,28,209
 2026-08-22,TR438,Singapore / Changi (SIN/WSSS),Kuching / Kuching (KCH/WBGG),06:00:00,07:35:00,01:35:00,Scoot (TR/TGW),Airbus A320-200 (A320),,,0,0,0,,2672,1392,2695,2059,80.745
 2026-08-23,AK1771,Kuching / Kuching (KCH/WBGG),Singapore / Changi (SIN/WSSS),18:00:00,19:35:00,01:35:00,Air Asia (AK/AXM),Airbus A320-200 (A320),,,0,0,0,,1392,2672,103,2059,80.745
+2026-08-28,OQ2096,"Singapore / Changi (SIN/WSSS)","Chongqing / Chongqing (CKG/ZUCK)",14:35:00,19:35:00,05:00:00,"Aeronaves Queen (OQ/QNA)","Airbus A320neo (A20N)",,,0,0,0,,2672,566,632,2127,123.01
+2026-08-28,OQ2362,"Chongqing / Chongqing (CKG/ZUCK)","Hohhot / Baita (HET/ZBHH)",08:45:00,10:55:00,02:10:00,"Aeronaves Queen (OQ/QNA)"," ()",,,0,0,0,,566,3702,632,0,53.01
+2026-08-30,CZ3198,"Hohhot / Baita (HET/ZBHH)","Guangzhou / Canton-Baiyun (CAN/ZGGG)",11:45:00,15:05:00,03:20:00,"China Southern Airlines (CZ/CSN)","Boeing 737 MAX 8 (B38M)",,,0,0,0,,3702,478,207,2123,76.56
+2026-08-30,CZ8489,"Guangzhou / Canton-Baiyun (CAN/ZGGG)","Singapore / Changi (SIN/WSSS)",23:05:00,03:05:00,04:00:00,"China Southern Airlines (CZ/CSN)","Airbus A321LR (A21N)",,,0,0,0,,478,2672,207,2181,104.01
 2026-09-04,VN654,Singapore / Changi (SIN/WSSS),Hochiminh / Tan Son Nhat (SGN/VVTS),18:25:00,19:40:00,02:15:00,Vietnam Airlines (VN/HVN),Airbus A321 (A321),,,0,0,0,,2672,2650,366,28,89.76
 2026-09-04,VN224,Hochiminh / Tan Son Nhat (SGN/VVTS),Hanoi / Noibai (HAN/VVNB),22:00:00,00:10:00,02:10:00,Vietnam Airlines (VN/HVN),Airbus A321-200 (A321),,,0,0,0,,2650,1094,366,2076,95.30
 2026-09-07,TR115,Nanning / Wuxu (NNG/ZGNN),Singapore / Changi (SIN/WSSS),14:00:00,18:10:00,04:10:00,Scoot (TR/TGW),Airbus A321LR (A21N),,,0,0,0,,2080,2672,2695,2181,124.21

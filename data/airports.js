@@ -151,6 +151,7 @@ window.AIRPORT_COORDINATES = {
     'TFU': [30.5728, 104.0668], // Chengdu Tianfu
     'HAK': [19.9349, 110.4591], // Haikou Meilan
     'LHW': [36.5152, 103.6203], // Lanzhou Zhongchuan
+    'HET': [40.8514, 111.8244], // Hohhot Baita
     'SIN': [1.3644, 103.9915],  // Singapore
     'RGN': [16.9073, 96.1333],   // Yangon / Mingaladon
     'MDL': [21.7028, 95.9778],   // Mandalay / Mandalay Intl
@@ -295,6 +296,9 @@ window.AIRPORT_TO_CITY = {
 
     // Lanzhou area airports -> Lanzhou
     'LHW': 'Lanzhou',
+
+    // Hohhot area airports -> Hohhot
+    'HET': 'Hohhot',
 
     // Guangzhou area airports -> Guangzhou
     'CAN': 'Guangzhou',
