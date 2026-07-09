@@ -267,6 +267,7 @@ window.CITY_COORDINATES = {
     'Amman': [31.9454, 35.9284],
     'Petra': [30.3285, 35.4444],
     'Taba': [29.4881, 34.8997],
+    'Suez': [29.9737, 32.5498],
     'Cairo': [30.0444, 31.2357],
     'Alexandria': [31.2001, 29.9187],
     'Luxor': [25.6872, 32.6396],
@@ -353,6 +354,7 @@ window.CITY_COORDINATES = {
     'Denver': [39.7392, -104.9903],
     'Constantine': [36.3650, 6.6147],
     'Baku': [40.4093, 49.8671],
+    'Sumqayit': [40.5895, 49.6689],
     'Kuwait': [29.3759, 47.9774],         // accent-free alt for "Kuwait City"
 
     // ── Territory & small-country dot coordinates (shared with unvisited-neighbors widget) ──

@@ -80,6 +80,11 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - Achievement panel with earned/locked badges & progress
 - **Unrecognised territories**: Flags and data for Abkhazia, Artsakh, Somaliland, South Ossetia, Transnistria, TRNC
 
+### 🏁 Final Boss Level — *Journey to Live III*
+- **Coming next**: a single overland journey from **Singapore to Inverness** — no flights
+- **Trans-Siberian Railway** rendered from real OSM railway geometry (87,439 points, 9,275 km, Moscow-Yaroslavskaya → Vladivostok, sourced from the OSM "Rossiya" 002Э relation)
+- **17 station stops** with hover popups showing curated descriptions for each city (Moscow, Yaroslavl, Kirov, Perm, Yekaterinburg, Tyumen, Omsk, Novosibirsk, Krasnoyarsk, Angarsk, Irkutsk, Baikalsk, Ulan-Ude, Chita, Birobidzhan, Khabarovsk, Vladivostok)
+
 ### 🌿 Environmental Impact Tracking
 - **Mode-specific emission factors**:
   - ✈️ Flights: 0.25 kg CO₂/km

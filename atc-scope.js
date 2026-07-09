@@ -36,6 +36,10 @@
       this.targetLon = 100;
       this.targetLat = 20;
       this.coast = null;
+      // Country grouping — populated by loadCoast so _drawCoast can colour
+      // each country independently (used by FBL to black out non-visited).
+      this.countries = null;
+      this.visitedCountries = null;   // Set<string> of visited country names
       this.routes = [];
       this.airports = new Map();
       this.blip = null;
@@ -50,8 +54,109 @@
       this.zoom = 1;        // 1 = default radius; >1 zooms in
       this.minZoom = 0.6;
       this.maxZoom = 12;
+      // Final Boss Level — Trans-Siberian overlay
+      this.transSibLine = null;   // Array of [lat, lng] pairs
+      this.transSibStops = [];    // [{ lat, lng, name, description, _sx, _sy, _vis }]
+      this.divider = null;        // Array of segments (each = array of [lat, lng])
+      this.dividerNear = false;   // Set externally on canvas mousemove for hover
+      this.hoveredStopIdx = null; // Set externally on canvas mousemove
+      this.fblActive = false;     // Isolation mode — hide normal routes/airports/blip
+      // Great Wall of China
+      this.greatWallLines = null;   // Array of segments (each = array of [lat, lng])
+      this.greatWallPasses = [];    // [{ lat, lng, name, _sx, _sy, _vis }]
+      this.hoveredPassIdx = null;   // Great Wall pass under cursor
+      // Alternate trans-continental rail lines drawn as darker context in FBL.
+      this.otherTransLines = null;  // Array of { line: [[lat,lng]...], name }
       this._resize();
       window.addEventListener('resize', () => this._resize());
+    }
+
+    setTransSib(line, stops) {
+      this.transSibLine = Array.isArray(line) ? line : null;
+      this.transSibStops = Array.isArray(stops) ? stops.map(s => ({ ...s })) : [];
+    }
+    setDivider(coords) {
+      this.divider = Array.isArray(coords) ? coords : null;
+      this._buildContinentAnchors();
+    }
+
+    // Precompute EUROPE / ASIA label anchors at fixed arc-length intervals
+    // along the divider, in GEO space. This keeps each anchor pinned to a
+    // real point on the line so labels no longer snap in/out as the user
+    // zooms — they slide smoothly along the projection instead.
+    _buildContinentAnchors() {
+      this._continentAnchors = null;
+      const d = this.divider;
+      if (!d || !d.length) return;
+      const segments = (Array.isArray(d[0]) && typeof d[0][0] === 'number') ? [d] : d;
+
+      const ARC_INTERVAL_KM = 400; // km between label pairs along the line
+      const R_KM = 6371;
+      const hav = (a, b) => {
+        const p1 = a[0] * D2R, p2 = b[0] * D2R;
+        const dp = (b[0] - a[0]) * D2R, dl = (b[1] - a[1]) * D2R;
+        const x = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+        return 2 * R_KM * Math.asin(Math.sqrt(x));
+      };
+
+      const anchors = [];
+      for (const seg of segments) {
+        if (!seg || seg.length < 2) continue;
+        let acc = ARC_INTERVAL_KM * 0.5;
+        for (let i = 0; i < seg.length - 1; i++) {
+          const a = seg[i], b = seg[i + 1];
+          const segKm = hav(a, b);
+          if (segKm < 0.001) continue;
+          while (acc < segKm) {
+            const t = acc / segKm;
+            const lat = a[0] + (b[0] - a[0]) * t;
+            const lng = a[1] + (b[1] - a[1]) * t;
+            // Second point slightly forward along the same edge for the
+            // tangent — projected each frame so the angle is correct on
+            // the current sphere orientation.
+            const tt = Math.min(1, t + 0.02);
+            const tLat = a[0] + (b[0] - a[0]) * tt;
+            const tLng = a[1] + (b[1] - a[1]) * tt;
+            anchors.push({ lat, lng, tLat, tLng });
+            acc += ARC_INTERVAL_KM;
+          }
+          acc -= segKm;
+        }
+      }
+      this._continentAnchors = anchors;
+    }
+    setFblActive(v) { this.fblActive = !!v; }
+    setGreatWall(lines, passes) {
+      this.greatWallLines = Array.isArray(lines) ? lines : null;
+      this.greatWallPasses = Array.isArray(passes) ? passes.map(p => ({ ...p })) : [];
+      this._buildGreatWallAnchor();
+    }
+    setOtherTransLines(entries) {
+      this.otherTransLines = Array.isArray(entries) ? entries : null;
+    }
+
+    // Single "THE GREAT WALL OF CHINA" label — anchored to the midpoint of
+    // the longest chain. Tangent uses the chain's OVERALL start→end direction
+    // (not a local slice) so switchbacks don't flip the label perpendicular
+    // to the wall's real east-west run.
+    _buildGreatWallAnchor() {
+      this._greatWallAnchor = null;
+      const lines = this.greatWallLines;
+      if (!lines || !lines.length) return;
+      let longest = null, longestLen = 0;
+      for (const seg of lines) {
+        if (seg && seg.length > longestLen) { longest = seg; longestLen = seg.length; }
+      }
+      if (!longest || longest.length < 2) return;
+      const mid = longest[Math.floor(longest.length / 2)];
+      const start = longest[0];
+      const end   = longest[longest.length - 1];
+      this._greatWallAnchor = {
+        lat: mid[0], lng: mid[1],
+        // Tangent anchor: use the chain endpoints for a stable direction.
+        tLat: end[0], tLng: end[1],
+        sLat: start[0], sLng: start[1]
+      };
     }
 
     _readTheme() {
@@ -97,14 +202,42 @@
 
     async loadCoast(url) {
       const gj = await (await fetch(url)).json();
-      const polys = [];
+      const polys = [];        // flat list (back-compat with any code reading .coast)
+      const countries = [];    // grouped per country for FBL blackout
       for (const f of gj.features) {
         const g = f.geometry; if (!g) continue;
-        const push = coords => polys.push(coords);
-        if (g.type === 'Polygon') g.coordinates.forEach(push);
-        else if (g.type === 'MultiPolygon') g.coordinates.forEach(p => p.forEach(push));
+        const props = f.properties || {};
+        const name = props.SOVEREIGNT || props.ADMIN || props.NAME || '';
+        const rings = [];
+        if (g.type === 'Polygon') {
+          g.coordinates.forEach(r => { polys.push(r); rings.push(r); });
+        } else if (g.type === 'MultiPolygon') {
+          g.coordinates.forEach(p => p.forEach(r => { polys.push(r); rings.push(r); }));
+        }
+        if (rings.length) countries.push({ name, rings });
       }
       this.coast = polys;
+      this.countries = countries;
+    }
+
+    setVisitedCountries(setOrArray) {
+      const next = (!setOrArray) ? null
+        : (setOrArray instanceof Set) ? setOrArray : new Set(setOrArray);
+      // Record a fade-in timestamp for any newly-added country so the
+      // blackout can smoothly transition rather than snapping.
+      if (!this._visitedFadeStart) this._visitedFadeStart = new Map();
+      if (next) {
+        const now = performance.now();
+        next.forEach(name => {
+          if (!this._visitedFadeStart.has(name) &&
+              !(this.visitedCountries && this.visitedCountries.has(name))) {
+            this._visitedFadeStart.set(name, now);
+          }
+        });
+      } else {
+        this._visitedFadeStart.clear();
+      }
+      this.visitedCountries = next;
     }
 
     project(lat, lng) {
@@ -142,9 +275,27 @@
 
       if (this.showGraticule) this._drawGraticule();
       this._drawCoast();
-      if (this.showRoutes) this._drawRoutes();
+      if (this.divider) this._drawDivider();
+      if (this.fblActive && this.greatWallLines) this._drawGreatWall();
+      // In FBL the trans-continental polylines ARE the route — draw them
+      // (with bright completed portions overlaid) and skip normal GC arcs.
+      if (this.fblActive) {
+        if (this.otherTransLines) this._drawOtherTransLines();
+        if (this.transSibLine) this._drawTransSib();
+        this._drawFblProgress();
+      } else if (this.showRoutes) {
+        this._drawRoutes();
+      }
       this._drawAirports();
+      // Great Wall passes intentionally hidden (only lines are drawn).
+      // Trans-Sib station dots are NOT drawn in FBL — the normal airport
+      // pipeline (syncAirports → _drawAirports) shows a green pin only
+      // AFTER the arrow has reached each city. We still keep hit-testing
+      // support for hover tooltips via hitTestTransSibStop.
       this._drawBlip();
+      if (this.divider) this._drawContinentLabels();
+      // Great Wall label is rendered as a DOM overlay by final-boss.js so it
+      // can use the animated CSS gradient text-fill (see .fbl-gw-label).
       ctx.restore();
 
       if (this.showRings) this._drawRings();
@@ -179,10 +330,63 @@
     }
 
     _drawCoast() {
-      if (!this.coast) return;
       const ctx = this.ctx;
-      ctx.fillStyle = this.theme.land;
-      ctx.strokeStyle = this.theme.coast;
+      const T = this.theme;
+      const blackoutFill   = '#050505';
+      const blackoutStroke = '#0d0d0d';
+
+      // When we have per-country grouping (Natural Earth admin-0), draw
+      // each country individually so FBL can black out non-visited ones.
+      if (this.countries) {
+        ctx.lineWidth = 1;
+        ctx.lineJoin = 'round';
+        const FADE_MS = 1400;
+        const now = performance.now();
+        // Parse a hex color like "#13202b" to [r,g,b]; fallback to 0,0,0.
+        const hex2rgb = (hex) => {
+          const s = String(hex).replace('#', '').padEnd(6, '0');
+          return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)];
+        };
+        const [lr, lg, lb] = hex2rgb(T.land);
+        const [cr, cg, cb] = hex2rgb(T.coast);
+        const [br, bg, bb] = hex2rgb(blackoutFill);
+        const [sr, sg, sb] = hex2rgb(blackoutStroke);
+
+        for (const c of this.countries) {
+          let fillCss, strokeCss;
+          if (!this.fblActive || !this.visitedCountries) {
+            fillCss = T.land; strokeCss = T.coast;
+          } else if (!this.visitedCountries.has(c.name)) {
+            fillCss = blackoutFill; strokeCss = blackoutStroke;
+          } else {
+            const ts = this._visitedFadeStart && this._visitedFadeStart.get(c.name);
+            const t = ts ? Math.min(1, (now - ts) / FADE_MS) : 1;
+            if (t >= 1) { fillCss = T.land; strokeCss = T.coast; }
+            else {
+              const mix = (a, b) => Math.round(a + (b - a) * t);
+              fillCss   = `rgb(${mix(br, lr)},${mix(bg, lg)},${mix(bb, lb)})`;
+              strokeCss = `rgb(${mix(sr, cr)},${mix(sg, cg)},${mix(sb, cb)})`;
+            }
+          }
+          ctx.fillStyle = fillCss;
+          ctx.strokeStyle = strokeCss;
+          for (const ring of c.rings) {
+            ctx.beginPath(); let started = false, drew = false;
+            for (let i = 0; i < ring.length; i++) {
+              const p = this.project(ring[i][1], ring[i][0]);
+              if (!p.vis) { started = false; continue; }
+              if (!started) { ctx.moveTo(p.x, p.y); started = true; } else { ctx.lineTo(p.x, p.y); drew = true; }
+            }
+            if (drew) { ctx.fill(); ctx.stroke(); }
+          }
+        }
+        return;
+      }
+
+      // Fallback: flat coast list (pre-country loading)
+      if (!this.coast) return;
+      ctx.fillStyle = T.land;
+      ctx.strokeStyle = T.coast;
       ctx.lineWidth = 1;
       ctx.lineJoin = 'round';
       for (const ring of this.coast) {
@@ -338,7 +542,10 @@
           ctx.fill();
           ctx.shadowBlur = 0;
         } else {
-          if (g > 0.02) {
+          // Unvisited: in FBL mode draw as a plain dim dot (no radar glow)
+          // so cities-not-yet-reached don't flash green. In normal viz keep
+          // the sweep-triggered halo so the radar look still works there.
+          if (!this.fblActive && g > 0.02) {
             ctx.beginPath();
             ctx.arc(p.x, p.y, 1.4 + g * 6, 0, 7);
             ctx.fillStyle = T.accent;
@@ -348,7 +555,7 @@
           }
           ctx.beginPath(); ctx.arc(p.x, p.y, 1.4, 0, 7);
           ctx.fillStyle = T.faint || T.dim;
-          ctx.globalAlpha = 0.6 + g * 0.4;
+          ctx.globalAlpha = this.fblActive ? 0.6 : (0.6 + g * 0.4);
           ctx.fill();
           ctx.globalAlpha = 1;
         }
@@ -419,6 +626,370 @@
       ctx.beginPath(); ctx.arc(p.x, p.y, 6 + t * 16, 0, 7);
       ctx.strokeStyle = col; ctx.globalAlpha = (1 - t) * 0.6; ctx.lineWidth = 1.2; ctx.stroke();
       ctx.globalAlpha = 1;
+    }
+
+    // Trans-Manchurian / Trans-Mongolian — context routes drawn in FBL,
+    // darker than the Great Wall so the eye reads them as background.
+    _drawOtherTransLines() {
+      const ctx = this.ctx;
+      const entries = this.otherTransLines;
+      if (!entries || !entries.length) return;
+      ctx.save();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = '#5a636b';
+      ctx.globalAlpha = 0.55;
+      ctx.lineWidth = 0.9;
+      for (const entry of entries) {
+        const line = entry.line;
+        if (!line || line.length < 2) continue;
+        ctx.beginPath();
+        let started = false;
+        for (let i = 0; i < line.length; i++) {
+          const p = this.project(line[i][0], line[i][1]);
+          if (!p.vis) { started = false; continue; }
+          if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    // ─── Final Boss Level overlays ─────────────────────────────────
+    // Trans-Sib "base" dim amber line — the FULL expected rail geometry.
+    // Bright completed portions are overlaid separately by _drawFblProgress
+    // so a single mechanism can handle Trans-Sib + Trans-Mongolian +
+    // Trans-Manchurian legs uniformly.
+    _drawTransSib() {
+      const ctx = this.ctx, T = this.theme;
+      const line = this.transSibLine;
+      if (!line || line.length < 2) return;
+      ctx.save();
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i < line.length; i++) {
+        const p = this.project(line[i][0], line[i][1]);
+        if (!p.vis) { started = false; continue; }
+        if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y);
+      }
+      ctx.strokeStyle = T.accent2;
+      ctx.globalAlpha = 0.30;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Bright "already-traversed" amber overlaid on whichever polyline (Trans-
+    // Sib / Trans-Mongolian / Trans-Manchurian) each completed or in-progress
+    // leg used. Data comes from `this.fblProgress = { completed: [{polyIdx, iA, iB}], active: {polyIdx, iA, iB, arrow} }`.
+    _drawFblProgress() {
+      const p = this.fblProgress;
+      if (!p) return;
+      const ctx = this.ctx, T = this.theme;
+      const linesByIdx = i => {
+        if (i === 0) return this.transSibLine;
+        const others = this.otherTransLines || [];
+        return others[i - 1] && others[i - 1].line;
+      };
+
+      const stroke = (line, from, to) => {
+        if (!line || from == null || to == null) return;
+        const lo = Math.min(from, to), hi = Math.max(from, to);
+        ctx.beginPath();
+        let started = false;
+        for (let k = lo; k <= hi; k++) {
+          const pr = this.project(line[k][0], line[k][1]);
+          if (!pr.vis) { started = false; continue; }
+          if (!started) { ctx.moveTo(pr.x, pr.y); started = true; } else ctx.lineTo(pr.x, pr.y);
+        }
+        ctx.stroke();
+      };
+
+      ctx.save();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = T.accent2;
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 1.8;
+      ctx.shadowColor = T.accent2;
+      ctx.shadowBlur = 6;
+
+      (p.completed || []).forEach(seg => {
+        stroke(linesByIdx(seg.polyIdx), seg.iA, seg.iB);
+      });
+      if (p.active && p.active.arrow != null) {
+        stroke(linesByIdx(p.active.polyIdx), p.active.iA, p.active.arrow);
+      }
+
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+
+    _drawDivider() {
+      const ctx = this.ctx;
+      const d = this.divider;
+      if (!d || !d.length) return;
+      // Accept either a flat array of [lat, lng] pairs (single segment)
+      // or an array of segments (each segment being an array of [lat, lng]).
+      const segments = (Array.isArray(d[0]) && typeof d[0][0] === 'number')
+        ? [d]
+        : d;
+      ctx.save();
+      ctx.setLineDash([4, 6]);
+      ctx.strokeStyle = '#d0d8e0';
+      ctx.globalAlpha = 0.65;
+      ctx.lineWidth = 1;
+      for (let s = 0; s < segments.length; s++) {
+        const seg = segments[s];
+        if (!seg || seg.length < 2) continue;
+        ctx.beginPath();
+        let started = false;
+        for (let i = 0; i < seg.length; i++) {
+          const p = this.project(seg[i][0], seg[i][1]);
+          if (!p.vis) { started = false; continue; }
+          if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    // "EUROPE" / "ASIA" labels placed perpendicular to the divide at anchors
+    // pinned to fixed points along the line in geo space — so they slide
+    // smoothly with the projection instead of snapping in/out on zoom.
+    _drawContinentLabels() {
+      const anchors = this._continentAnchors;
+      if (!anchors || !anchors.length) return;
+      const ctx = this.ctx;
+
+      const OFFSET = 14;
+      ctx.save();
+      ctx.font = 'italic 700 7px "Space Grotesk", "DM Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round';
+
+      for (const a of anchors) {
+        const p  = this.project(a.lat,  a.lng);
+        if (!p.vis) continue;
+        const pt = this.project(a.tLat, a.tLng);
+        if (!pt.vis) continue;
+        const dx = pt.x - p.x, dy = pt.y - p.y;
+        const len = Math.hypot(dx, dy);
+        if (len < 0.5) continue;
+
+        let angle = Math.atan2(dy, dx);
+        if (angle > Math.PI / 2)  angle -= Math.PI;
+        if (angle < -Math.PI / 2) angle += Math.PI;
+
+        const pAx = -dy / len, pAy = dx / len;
+        const pBx =  dy / len, pBy = -dx / len;
+        const scoreA = -pAx - pAy;
+        const scoreB = -pBx - pBy;
+        const europe = scoreA > scoreB ? [pAx, pAy] : [pBx, pBy];
+        const asia   = scoreA > scoreB ? [pBx, pBy] : [pAx, pAy];
+
+        const eX = p.x + europe[0] * OFFSET;
+        const eY = p.y + europe[1] * OFFSET;
+        const aX = p.x + asia[0]   * OFFSET;
+        const aY = p.y + asia[1]   * OFFSET;
+
+        const drawLabel = (text, x, y) => {
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(angle);
+          ctx.strokeStyle = 'rgba(10, 20, 29, 0.9)';
+          ctx.lineWidth = 1.5;
+          ctx.strokeText(text, 0, 0);
+          ctx.fillStyle = this.theme.text || '#c4d4df';
+          ctx.globalAlpha = 0.9;
+          ctx.fillText(text, 0, 0);
+          ctx.globalAlpha = 1;
+          ctx.restore();
+        };
+        drawLabel('EUROPE', eX, eY);
+        drawLabel('ASIA',   aX, aY);
+      }
+      ctx.restore();
+    }
+
+    _drawGreatWall() {
+      const ctx = this.ctx;
+      const segments = this.greatWallLines;
+      if (!segments || !segments.length) return;
+      ctx.save();
+      ctx.setLineDash([]);
+      // Same muted style as the Asia-Europe divider so both read as
+      // conceptual overlays rather than travel routes.
+      ctx.strokeStyle = '#d0d8e0';
+      ctx.globalAlpha = 0.65;
+      ctx.lineWidth = 1;
+      for (let s = 0; s < segments.length; s++) {
+        const seg = segments[s];
+        if (!seg || seg.length < 2) continue;
+        ctx.beginPath();
+        let started = false;
+        for (let i = 0; i < seg.length; i++) {
+          const p = this.project(seg[i][0], seg[i][1]);
+          if (!p.vis) { started = false; continue; }
+          if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    // Single "THE GREAT WALL OF CHINA" caption at the longest chain's midpoint.
+    _drawGreatWallLabel() {
+      const a = this._greatWallAnchor;
+      if (!a) return;
+      const p  = this.project(a.lat,  a.lng);
+      if (!p.vis) return;
+      // Tangent from the chain's overall start → end direction (stable).
+      const ps = this.project(a.sLat, a.sLng);
+      const pe = this.project(a.tLat, a.tLng);
+      if (!ps.vis || !pe.vis) return;
+      const dx = pe.x - ps.x, dy = pe.y - ps.y;
+      const len = Math.hypot(dx, dy);
+      if (len < 0.5) return;
+
+      let angle = Math.atan2(dy, dx);
+      if (angle > Math.PI / 2)  angle -= Math.PI;
+      if (angle < -Math.PI / 2) angle += Math.PI;
+
+      // Perpendicular offset — label south of the (roughly E-W) wall
+      const nx = -dy / len, ny = dx / len;
+      const perp = (ny > 0) ? [nx, ny] : [-nx, -ny];
+      const OFFSET = 22;
+      const x = p.x + perp[0] * OFFSET;
+      const y = p.y + perp[1] * OFFSET;
+
+      const ctx = this.ctx;
+      ctx.save();
+      ctx.font = 'italic 700 14px "Space Grotesk", "DM Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round';
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+      ctx.strokeStyle = 'rgba(10, 20, 29, 0.9)';
+      ctx.lineWidth = 3;
+      ctx.strokeText('THE GREAT WALL OF CHINA', 0, 0);
+      ctx.fillStyle = this.theme.text || '#c4d4df';
+      ctx.globalAlpha = 0.9;
+      ctx.fillText('THE GREAT WALL OF CHINA', 0, 0);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    _drawGreatWallPasses() {
+      const ctx = this.ctx, T = this.theme;
+      const passes = this.greatWallPasses;
+      for (let i = 0; i < passes.length; i++) {
+        const s = passes[i];
+        const p = this.project(s.lat, s.lng);
+        s._sx = p.x; s._sy = p.y; s._vis = p.vis;
+        if (!p.vis) continue;
+        const hovered = (this.hoveredPassIdx === i);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, hovered ? 2.6 : 1.4, 0, 7);
+        ctx.fillStyle = T.accent;
+        ctx.shadowColor = T.accent;
+        ctx.shadowBlur = hovered ? 10 : 4;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    hitTestGreatWallPass(sx, sy) {
+      const passes = this.greatWallPasses;
+      if (!passes || !passes.length) return null;
+      let best = null, bestD2 = 8 * 8;
+      for (let i = 0; i < passes.length; i++) {
+        const s = passes[i];
+        if (!s._vis) continue;
+        const dx = s._sx - sx, dy = s._sy - sy;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < bestD2) { bestD2 = d2; best = i; }
+      }
+      return best;
+    }
+
+    // Returns true if screen point (sx, sy) is within `tol` pixels of any
+    // divider segment. Used for hover tooltip on the Asia-Europe line.
+    hitTestDivider(sx, sy, tol) {
+      const d = this.divider;
+      if (!d || !d.length) return false;
+      const segments = (Array.isArray(d[0]) && typeof d[0][0] === 'number') ? [d] : d;
+      const T = (tol != null ? tol : 6);
+      const T2 = T * T;
+      for (const seg of segments) {
+        if (!seg || seg.length < 2) continue;
+        let prev = null;
+        for (let i = 0; i < seg.length; i++) {
+          const p = this.project(seg[i][0], seg[i][1]);
+          if (!p.vis) { prev = null; continue; }
+          if (prev) {
+            // Distance from point (sx, sy) to segment (prev, p)
+            const ax = prev.x, ay = prev.y, bx = p.x, by = p.y;
+            const dx = bx - ax, dy = by - ay;
+            const len2 = dx * dx + dy * dy;
+            if (len2 > 0) {
+              let t = ((sx - ax) * dx + (sy - ay) * dy) / len2;
+              t = Math.max(0, Math.min(1, t));
+              const px = ax + dx * t, py = ay + dy * t;
+              const ex = sx - px, ey = sy - py;
+              if (ex * ex + ey * ey <= T2) return true;
+            }
+          }
+          prev = p;
+        }
+      }
+      return false;
+    }
+
+    // Trans-Sib station pins — match normal visited-airport styling (green accent).
+    _drawTransSibStops() {
+      const ctx = this.ctx, T = this.theme;
+      const stops = this.transSibStops;
+      for (let i = 0; i < stops.length; i++) {
+        const s = stops[i];
+        const p = this.project(s.lat, s.lng);
+        s._sx = p.x; s._sy = p.y; s._vis = p.vis;
+        if (!p.vis) continue;
+        const hovered = (this.hoveredStopIdx === i);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, hovered ? 3.6 : 2.6, 0, 7);
+        ctx.fillStyle = T.accent;
+        ctx.shadowColor = T.accent;
+        ctx.shadowBlur = hovered ? 14 : 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        if (hovered) {
+          ctx.fillStyle = T.text;
+          ctx.font = 'bold 10px "IBM Plex Mono", monospace';
+          ctx.fillText(s.name || '', p.x + 7, p.y - 5);
+        }
+      }
+    }
+
+    // Returns index of Trans-Sib stop under screen point (sx, sy), or null.
+    hitTestTransSibStop(sx, sy) {
+      const stops = this.transSibStops;
+      if (!stops || !stops.length) return null;
+      let best = null, bestD2 = 12 * 12; // 12 px radius
+      for (let i = 0; i < stops.length; i++) {
+        const s = stops[i];
+        if (!s._vis) continue;
+        const dx = s._sx - sx, dy = s._sy - sy;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < bestD2) { bestD2 = d2; best = i; }
+      }
+      return best;
     }
 
     _drawRings() {

@@ -254,7 +254,7 @@ window.CITY_TO_COUNTRY = {
     'Amman': 'Jordan', 'Petra': 'Jordan', 'Taba': 'Egypt',
 
     // Africa
-    'Cairo': 'Egypt', 'Alexandria': 'Egypt', 'Luxor': 'Egypt', 'New Cairo City': 'Egypt',
+    'Cairo': 'Egypt', 'Alexandria': 'Egypt', 'Luxor': 'Egypt', 'New Cairo City': 'Egypt', 'Suez': 'Egypt',
     'Casablanca': 'Morocco', 'Marrakech': 'Morocco', 'Chefchaoun': 'Morocco', 'Tangier': 'Morocco', 'Rabat': 'Morocco', 'Marrakesh': 'Morocco',
     'Tunis': 'Tunisia', 'Bizerte': 'Tunisia',
     'Algiers': 'Algeria', 'Oran': 'Algeria', 'Constantine': 'Algeria',
@@ -322,6 +322,7 @@ window.CITY_TO_COUNTRY = {
     'Seogwipo': 'ROK Korea',
     'Dhaka': 'Bangladesh',
     'Baku': 'Azerbaijan',
+    'Sumqayit': 'Azerbaijan',
 
     //Oceania
     'Sydney': 'Australia', 'Melbourne': 'Australia', 'Brisbane': 'Australia', 'Perth': 'Australia',

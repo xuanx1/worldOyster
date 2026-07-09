@@ -684,23 +684,29 @@
       if (lastChartHighlightIdx != null) return;
       const r = cv.getBoundingClientRect();
       const mx = e.clientX - r.left, my = e.clientY - r.top;
-      // closest city pin first
-      let bestCity = null, bcd = 14;
-      scope.airports.forEach(a => {
-        const p = scope.project(a.lat, a.lng);
-        if (!p.vis) return;
-        const d = Math.hypot(p.x - mx, p.y - my);
-        if (d < bcd) { bcd = d; bestCity = { a, p }; }
-      });
-      if (bestCity) {
-        if (scope.hoveredRouteIdx !== null) {
-          scope.hoveredRouteIdx = null;
-          lastHoverIdx = null;
+      // In FBL mode, final-boss.js owns city hover (its orange tooltip has
+      // per-station descriptions). Skip the default city hit-test so tips
+      // don't stack on top of each other. Route hover below still works.
+      if (!scope.fblActive) {
+        let bestCity = null, bcd = 14;
+        scope.airports.forEach(a => {
+          const p = scope.project(a.lat, a.lng);
+          if (!p.vis) return;
+          const d = Math.hypot(p.x - mx, p.y - my);
+          if (d < bcd) { bcd = d; bestCity = { a, p }; }
+        });
+        if (bestCity) {
+          if (scope.hoveredRouteIdx !== null) {
+            scope.hoveredRouteIdx = null;
+            lastHoverIdx = null;
+          }
+          scope.hoveredCityName = bestCity.a.city || null;
+          if (tip) showCityTip(tip, bestCity);
+          cv.style.cursor = 'pointer';
+          return;
         }
-        scope.hoveredCityName = bestCity.a.city || null;
-        if (tip) showCityTip(tip, bestCity);
-        cv.style.cursor = 'pointer';
-        return;
+      } else {
+        scope.hoveredCityName = null;
       }
       // otherwise nearest route arc
       const rt = pickRouteUnder(mx, my);
