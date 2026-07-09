@@ -152,6 +152,7 @@ window.AIRPORT_COORDINATES = {
     'HAK': [19.9349, 110.4591], // Haikou Meilan
     'LHW': [36.5152, 103.6203], // Lanzhou Zhongchuan
     'HET': [40.8514, 111.8244], // Hohhot Baita
+    'CSX': [28.1892, 113.2201], // Changsha Huanghua
     'SIN': [1.3644, 103.9915],  // Singapore
     'RGN': [16.9073, 96.1333],   // Yangon / Mingaladon
     'MDL': [21.7028, 95.9778],   // Mandalay / Mandalay Intl
@@ -299,6 +300,9 @@ window.AIRPORT_TO_CITY = {
 
     // Hohhot area airports -> Hohhot
     'HET': 'Hohhot',
+
+    // Changsha area airports -> Changsha
+    'CSX': 'Changsha',
 
     // Guangzhou area airports -> Guangzhou
     'CAN': 'Guangzhou',

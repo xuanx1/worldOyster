@@ -93,7 +93,7 @@ window.AIRPORT_TO_COUNTRY = {
     // Asia - China
     'PVG': 'PR China', 'PEK': 'PR China', 'CAN': 'PR China', 'PKX': 'PR China', 'XIY': 'PR China',
     'WUH': 'PR China', 'CKG': 'PR China', 'TFU': 'PR China', 'HAK': 'PR China', 'LHW': 'PR China',
-    'HET': 'PR China',
+    'HET': 'PR China', 'CSX': 'PR China',
 
     // Asia - North Korea
     'FNJ': 'DPR Korea',
@@ -249,7 +249,8 @@ window.CITY_TO_COUNTRY = {
 
     // Middle East
     'Beirut': 'Lebanon', 'Tripoli': 'Lebanon', 'Jerusalem': 'Israel', 'Tel Aviv': 'Israel', 'Eilat': 'Israel',
-    'Jericho': 'Palestine', 'Ramallah': 'Palestine', 'Bethlehem': 'Palestine',
+    'Haifa': 'Israel', "Be'er Sheva": 'Israel',
+    'Jericho': 'Palestine', 'Ramallah': 'Palestine', 'Bethlehem': 'Palestine', 'Hebron': 'Palestine',
     'Amman': 'Jordan', 'Petra': 'Jordan', 'Taba': 'Egypt',
 
     // Africa
@@ -264,7 +265,7 @@ window.CITY_TO_COUNTRY = {
     'Incheon': 'ROK Korea', 'Paju': 'ROK Korea', 'Panmunjom': 'ROK Korea',
     'Pyongyang': 'DPR Korea', 'Kaesong': 'DPR Korea', 'Nampo': 'DPR Korea', 'Sariwon': 'DPR Korea',
     'Dandong': 'PR China',
-    'Beijing': 'PR China', 'Peking': 'PR China', 'Tianjin': 'PR China', 'Shanghai': 'PR China', 'Chengdu': 'PR China', 'Chongqing': 'PR China', 'Wuhan': 'PR China',
+    'Beijing': 'PR China', 'Peking': 'PR China', 'Tianjin': 'PR China', 'Shanghai': 'PR China', 'Chengdu': 'PR China', 'Chongqing': 'PR China', 'Wuhan': 'PR China', 'Changsha': 'PR China',
     'Hohhot': 'PR China', 'Ordos City': 'PR China', 'Baotou': 'PR China',
     'Nanyang': 'PR China', 'Xian': 'PR China', "Xi'an": 'PR China', 'Lanzhou': 'PR China', 'Haikou': 'PR China',
     'Guangzhou': 'PR China', 'Shenzhen': 'PR China', 'Foshan': 'PR China', 'Nanning': 'PR China', 'Kunming': 'PR China', 'Hekou': 'PR China',

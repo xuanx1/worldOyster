@@ -49,7 +49,7 @@
       this.hoveredCityName = null;     // set externally on canvas/city-list hover
       this.zoom = 1;        // 1 = default radius; >1 zooms in
       this.minZoom = 0.6;
-      this.maxZoom = 4.5;
+      this.maxZoom = 12;
       this._resize();
       window.addEventListener('resize', () => this._resize());
     }
