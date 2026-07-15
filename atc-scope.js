@@ -67,6 +67,8 @@
       this.hoveredPassIdx = null;   // Great Wall pass under cursor
       // Alternate trans-continental rail lines drawn as darker context in FBL.
       this.otherTransLines = null;  // Array of { line: [[lat,lng]...], name }
+      // Natural Earth 1:10m global rail network — background layer in FBL.
+      this.neRailroads = null;      // Array of [[lat,lng]...] polylines
       this._resize();
       window.addEventListener('resize', () => this._resize());
     }
@@ -133,6 +135,12 @@
     }
     setOtherTransLines(entries) {
       this.otherTransLines = Array.isArray(entries) ? entries : null;
+    }
+    setNeRailroads(segments) {
+      this.neRailroads = Array.isArray(segments) ? segments : null;
+      // Invalidate any existing offscreen cache — new data means new geometry.
+      this._neRailCache = null;
+      this._neRailCacheKey = null;
     }
 
     // Single "THE GREAT WALL OF CHINA" label — anchored to the midpoint of
@@ -280,6 +288,7 @@
       // In FBL the trans-continental polylines ARE the route — draw them
       // (with bright completed portions overlaid) and skip normal GC arcs.
       if (this.fblActive) {
+        if (this.neRailroads) this._drawNeRailroads();
         if (this.otherTransLines) this._drawOtherTransLines();
         if (this.transSibLine) this._drawTransSib();
         this._drawFblProgress();
@@ -626,6 +635,74 @@
       ctx.beginPath(); ctx.arc(p.x, p.y, 6 + t * 16, 0, 7);
       ctx.strokeStyle = col; ctx.globalAlpha = (1 - t) * 0.6; ctx.lineWidth = 1.2; ctx.stroke();
       ctx.globalAlpha = 1;
+    }
+
+    // Natural Earth 1:10m railroads — global rail network drawn as a very
+    // muted background layer beneath the Trans-Sib / other named lines.
+    // Only invoked while FBL is active. Projects into an offscreen canvas
+    // and reuses the bitmap while the view is quiescent; the sphere lerps
+    // asymptotically toward the target so within ~1s of any pan/zoom the
+    // key stops changing and every subsequent frame is a single drawImage.
+    _drawNeRailroads() {
+      const segs = this.neRailroads;
+      if (!segs || !segs.length) return;
+      const ctx = this.ctx;
+
+      // Quantise view state to a coarse key so tiny asymptotic drift during
+      // easing doesn't invalidate the cache every frame. ~0.005° ≈ 550 m at
+      // the equator — below the width of one Canvas 2D pixel at FBL zooms.
+      const q = 0.005;
+      const keyLat = Math.round(this.lat0 / q);
+      const keyLon = Math.round(this.lon0 / q);
+      const keyZoom = Math.round(this.zoom * 1000);
+      const key = keyLat + ',' + keyLon + ',' + keyZoom + ',' + this.canvas.width + ',' + this.canvas.height;
+
+      if (!this._neRailCache || this._neRailCacheKey !== key) {
+        this._renderNeRailToCache();
+        this._neRailCacheKey = key;
+      }
+      if (this._neRailCache) {
+        // Draw the offscreen bitmap into the (already clipped-to-disc) main
+        // canvas. Because the offscreen is sized in device pixels we blit at
+        // the underlying pixel scale — bypassing the parent DPR transform.
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.drawImage(this._neRailCache, 0, 0);
+        ctx.restore();
+      }
+    }
+
+    // Rasterise the entire rail network into an offscreen canvas at the
+    // current projection. Called only when the view key changes.
+    _renderNeRailToCache() {
+      const segs = this.neRailroads;
+      if (!segs || !segs.length) { this._neRailCache = null; return; }
+      let off = this._neRailCache;
+      if (!off || off.width !== this.canvas.width || off.height !== this.canvas.height) {
+        off = document.createElement('canvas');
+        off.width = this.canvas.width;
+        off.height = this.canvas.height;
+        this._neRailCache = off;
+      }
+      const octx = off.getContext('2d');
+      octx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+      octx.clearRect(0, 0, this.w, this.h);
+      octx.setLineDash([]);
+      octx.strokeStyle = '#3a4652';
+      octx.globalAlpha = 0.35;
+      octx.lineWidth = 0.5;
+      octx.beginPath();
+      for (let s = 0; s < segs.length; s++) {
+        const line = segs[s];
+        if (!line || line.length < 2) continue;
+        let started = false;
+        for (let i = 0; i < line.length; i++) {
+          const p = this.project(line[i][0], line[i][1]);
+          if (!p.vis) { started = false; continue; }
+          if (!started) { octx.moveTo(p.x, p.y); started = true; } else octx.lineTo(p.x, p.y);
+        }
+      }
+      octx.stroke();
     }
 
     // Trans-Manchurian / Trans-Mongolian — context routes drawn in FBL,

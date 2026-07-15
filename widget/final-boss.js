@@ -441,6 +441,63 @@
     });
   }
 
+  // Radial-distance polyline simplifier — drops any vertex within `tolDeg`
+  // of the previously-kept point (in lat/lng squared-distance). First and
+  // last vertices are always kept so line endpoints stay stable.
+  function simplifyRadial(pts, tolDeg) {
+    if (!pts || pts.length < 3) return pts;
+    const tolSq = tolDeg * tolDeg;
+    const out = [pts[0]];
+    let prev = pts[0];
+    for (let i = 1; i < pts.length - 1; i++) {
+      const p = pts[i];
+      const dLat = p[0] - prev[0], dLng = p[1] - prev[1];
+      if (dLat * dLat + dLng * dLng >= tolSq) { out.push(p); prev = p; }
+    }
+    out.push(pts[pts.length - 1]);
+    return out;
+  }
+
+  // Natural Earth 1:10m global railroads. Large file (~39 MB, ~25k lines /
+  // 1.4M vertices), heavy for a per-frame projection pass — so at load we
+  // filter and simplify aggressively:
+  //   • continent ∈ {Europe, Asia}   — J2L III route is Eurasian; ~490k
+  //                                    verts of Americas/Africa/Oceania
+  //                                    would never be relevant
+  //   • scalerank ≤ 9                — drop rank 10 (most local spurs)
+  //   • radial-distance simplify at 0.05° (~5.5 km) — invisible at FBL zoom
+  // Net effect: ~1.4M → ~120k vertices, a ~12× reduction in projection
+  // work whenever the offscreen cache does have to rebuild.
+  const NE_RAIL_CONTINENTS = new Set(['Europe', 'Asia']);
+  const NE_RAIL_MAX_RANK = 9;
+  const NE_RAIL_SIMPLIFY_TOL = 0.05;
+
+  async function loadNeRailroads() {
+    const r = await fetch('data/ne_10m_railroads.geojson', { cache: 'force-cache' });
+    if (!r.ok) throw new Error('ne_10m_railroads fetch: ' + r.status);
+    const gj = await r.json();
+    const out = [];
+    let vertsIn = 0, vertsOut = 0;
+    const push = ls => {
+      const pts = ls.map(c => [c[1], c[0]]);
+      vertsIn += pts.length;
+      const s = simplifyRadial(pts, NE_RAIL_SIMPLIFY_TOL);
+      if (s.length >= 2) { out.push(s); vertsOut += s.length; }
+    };
+    for (const f of (gj.features || [])) {
+      const props = f && f.properties;
+      if (!props || !NE_RAIL_CONTINENTS.has(props.continent)) continue;
+      if (typeof props.scalerank === 'number' && props.scalerank > NE_RAIL_MAX_RANK) continue;
+      const g = f.geometry;
+      if (!g) continue;
+      if (g.type === 'LineString') push(g.coordinates);
+      else if (g.type === 'MultiLineString') for (const ls of g.coordinates) push(ls);
+    }
+    console.log('[final-boss] ne_10m_railroads filtered+simplified',
+      vertsIn, '→', vertsOut, 'vertices (' + Math.round(100 * vertsOut / vertsIn) + '% kept)');
+    return out;
+  }
+
   async function loadOtherTransLines() {
     const files = [
       { url: 'data/trans-manchurian.geojson', name: 'Trans-Manchurian' },
@@ -521,6 +578,25 @@
   function canonicalName(name) {
     const key = String(name || '').trim();
     return CITY_ALIASES[key] || key;
+  }
+
+  // CITY_TO_COUNTRY uses studio-preferred labels ("PR China", "UK",
+  // "ROC Taiwan", …) that other widgets rely on. The scope's country
+  // polygons come from Natural Earth via data/coastlines.geojson and use
+  // different names ("China", "United Kingdom", "Taiwan"). Translate here
+  // so the visited-countries set actually matches the polygon names —
+  // otherwise the arrow reaches Beijing / London and nothing lights up.
+  const COUNTRY_TO_COAST = {
+    'PR China':       'China',
+    'ROC Taiwan':     'Taiwan',
+    'UK':             'United Kingdom',
+    'USA':            'United States of America',
+    'ROK Korea':      'South Korea',
+    'DPR Korea':      'North Korea',
+    'Czech Republic': 'Czechia'
+  };
+  function coastCountry(name) {
+    return COUNTRY_TO_COAST[name] || name;
   }
 
   // Case-insensitive lookup against the global city-coord table so the CSV
@@ -621,7 +697,7 @@
     const cities = orderedNames.map((name, idx) => {
       const coords = coordsForName(name) || [0, 0];
       const legDate = idx === 0 ? csvRows[0].date : csvRows[idx - 1].date;
-      const country = (window.CITY_TO_COUNTRY && window.CITY_TO_COUNTRY[name]) || 'Russia';
+      const country = (window.CITY_TO_COUNTRY && window.CITY_TO_COUNTRY[name]) || '';
       if (!coords || coords[0] === 0) {
         console.warn('[final-boss] no coords for city', name, '— arrow will jump to (0,0)');
       }
@@ -927,7 +1003,7 @@
     try {
       const start = built.cities[0];
       const initial = new Set();
-      if (start && start.country) initial.add(start.country);
+      if (start && start.country) initial.add(coastCountry(start.country));
       STATE.scope.setVisitedCountries(initial);
     } catch (e) {}
     try { built.cities.forEach(c => fm.createCityMarker && fm.createCityMarker(c)); } catch (e) { console.warn('[final-boss] createCityMarker', e); }
@@ -984,8 +1060,13 @@
     STATE.savedCentre = { lat: scope.lat0, lng: scope.lon0 };
     STATE.savedZoom = scope.zoom;
     scope.setFblActive(true);
-    scope.setCenter(55, 82, false);
-    scope.setZoom(2.4);
+    // Frame the full Singapore → Inverness J2L III route: centre roughly on
+    // Central Asia (~Astana latitude) and pull the zoom out so both endpoints
+    // fit in view. Snap (not ease) — the ne_10m railroad offscreen cache is
+    // keyed on view state, and a 1-second ease would force ~60 rebuilds of
+    // the ~120k-vertex projection before settling.
+    scope.setCenter(38, 65, true);
+    scope.setZoom(1.9);
 
     const fm = window.flightMap;
     STATE.wasAnimating = false;
@@ -1021,7 +1102,9 @@
     const slogan = document.querySelector('.card-container .header .header-slogan');
     if (h) {
       STATE.savedHeaderText = h.textContent;
-      h.innerHTML = 'RUSSIA · <span class="fbl-day">DAY 1</span>';
+      // Placeholder header — the real country/day text is written by the tick
+      // loop as soon as the FBL city data has loaded (see updateYearOverlay).
+      h.innerHTML = '<span class="fbl-day">DAY 1</span>';
     }
     if (slogan) {
       STATE.savedSloganText = slogan.textContent;
@@ -1214,6 +1297,16 @@
 
     addButton();
     console.log('[final-boss] ready');
+
+    // Natural Earth 1:10m railroads — background world rail network shown
+    // beneath the named trans-continental lines while J2L III is active.
+    // Loaded asynchronously so init() completes without waiting on the
+    // ~39 MB file; the scope picks it up on the next frame.
+    loadNeRailroads().then(segs => {
+      STATE.neRailroads = segs;
+      STATE.scope.setNeRailroads(segs);
+      console.log('[final-boss] ne_10m_railroads loaded,', segs.length, 'polylines');
+    }).catch(e => console.warn('[final-boss] ne_10m_railroads load failed', e));
   }
 
   function setupGreatWallLabel(canvas) {
@@ -1279,7 +1372,7 @@
       const visited = new Set();
       for (let i = 0; i < Math.min(upto, fm.cities.length); i++) {
         const c = fm.cities[i];
-        if (c && c.country) visited.add(c.country);
+        if (c && c.country) visited.add(coastCountry(c.country));
       }
       // Only push to scope if the set has actually grown to avoid tearing renders.
       const cur = scope.visitedCountries;

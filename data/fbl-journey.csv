@@ -1,19 +1,65 @@
 origin,destination,mode,cost_sgd,date
-Vladivostok,Khabarovsk,train,38.00,15/1/2027
-Khabarovsk,Birobidzhan,train,8.75,15/1/2027
-Birobidzhan,Chita,train,95.00,16/1/2027
-Chita,Ulan Ude,train,27.50,16/1/2027
-Ulan Ude,Ulaanbaatar,train,40.00,17/1/2027
-Ulaanbaatar,Ulan Ude,train,40.00,17/1/2027
-Ulan Ude,Baikalsk,train,15.00,18/1/2027
-Baikalsk,Irkutsk,train,7.50,18/1/2027
-Irkutsk,Angarsk,train,2.25,19/1/2027
-Angarsk,Krasnoyarsk,train,49.50,19/1/2027
-Krasnoyarsk,Novosibirsk,train,39.00,20/1/2027
-Novosibirsk,Omsk,train,31.50,20/1/2027
-Omsk,Tyumen,train,31.00,21/1/2027
-Tyumen,Yekaterinburg,train,16.50,22/1/2027
-Yekaterinburg,Perm,train,18.00,23/1/2027
-Perm,Kirov,train,23.00,24/1/2027
-Kirov,Yaroslavl,train,35.00,26/1/2027
-Yaroslavl,Moscow,train,14.00,28/1/2027
+Singapore,Johor Bahru,train,0.82,15/1/2027
+Johor Bahru,Kuala Lumpur,train,13.17,16/1/2027
+Kuala Lumpur,Ipoh,train,7.88,17/1/2027
+Ipoh,Taiping,train,2.16,18/1/2027
+Taiping,Padang Besar,train,9.26,19/1/2027
+Padang Besar,Hat Yai,train,1.92,20/1/2027
+Hat Yai,Bangkok,train,33.76,21/1/2027
+Bangkok,Ayutthaya,train,3.00,22/1/2027
+Ayutthaya,Ho Chi Minh City,train,34.47,23/1/2027
+Ho Chi Minh City,Da Nang,train,27.27,24/1/2027
+Da Nang,Hanoi,train,27.27,25/1/2027
+Hanoi,Sanya,train,44.27,29/1/2027
+Sanya,Macau,train,54.70,30/1/2027
+Macau,Hong Kong,ferry,35.00,31/1/2027
+Hong Kong,Shenzhen,train,2.47,1/2/2027
+Shenzhen,Guangzhou,train,9.38,2/2/2027
+Guangzhou,Xiamen,train,46.20,3/2/2027
+Xiamen,Quanzhou,train,6.63,4/2/2027
+Quanzhou,Taipei,ferry,180.00,5/2/2027
+Taipei,Fuzhou,ferry,120.00,6/2/2027
+Fuzhou,Hangzhou,train,42.70,7/2/2027
+Hangzhou,Shanghai,train,14.84,8/2/2027
+Shanghai,Suzhou,train,7.63,9/2/2027
+Suzhou,Nanjing,train,17.03,10/2/2027
+Nanjing,Hefei,train,13.54,13/2/2027
+Hefei,Qingdao,train,49.91,14/2/2027
+Qingdao,Beijing,train,49.56,15/2/2027
+Beijing,Shenyang,train,56.45,16/2/2027
+Shenyang,Changchun,train,24.45,17/2/2027
+Changchun,Harbin,train,21.66,18/2/2027
+Harbin,Vladivostok,train,46.70,19/2/2027
+Vladivostok,Ulan Ude,train,169.25,21/2/2027
+Ulan Ude,Ulaanbaatar,train,40.00,22/2/2027
+Ulaanbaatar,Kharkhorin,train,9.48,23/2/2027
+Kharkhorin,Darkhan,train,10.27,24/2/2027
+Darkhan,Sukhbaatar,train,2.57,25/2/2027
+Sukhbaatar,Irkutsk,train,22.50,26/2/2027
+Irkutsk,Novosibirsk,train,90.75,27/2/2027
+Novosibirsk,Astana,train,26.29,28/2/2027
+Astana,Omsk,train,13.28,4/3/2027
+Omsk,Yekaterinburg,train,47.50,5/3/2027
+Yekaterinburg,Ufa,train,11.19,6/3/2027
+Ufa,Kazan,train,13.49,7/3/2027
+Kazan,Moscow,train,72.00,8/3/2027
+Moscow,St Petersburg,train,18.95,9/3/2027
+St Petersburg,Odesa,train,74.78,10/3/2027
+Odesa,Kyiv,train,22.07,12/3/2027
+Kyiv,Lviv,train,23.38,13/3/2027
+Lviv,Warsaw,train,23.75,14/3/2027
+Warsaw,Wroclaw,train,21.07,15/3/2027
+Wroclaw,Dresden,train,16.15,16/3/2027
+Dresden,Leipzig,train,7.02,17/3/2027
+Leipzig,Stuttgart,train,25.54,18/3/2027
+Stuttgart,Luxembourg,train,24.04,19/3/2027
+Luxembourg,Paris,train,28.69,20/3/2027
+Paris,London,train,51.53,21/3/2027
+London,Bath,train,23.29,22/3/2027
+Bath,Bristol,train,2.68,23/3/2027
+Bristol,Birmingham,train,18.64,24/3/2027
+Birmingham,Manchester,train,16.96,25/3/2027
+Manchester,Liverpool,train,7.54,26/3/2027
+Liverpool,Glasgow,train,42.73,27/3/2027
+Glasgow,Edinburgh,train,10.05,28/3/2027
+Edinburgh,Inverness,train,27.14,29/3/2027
