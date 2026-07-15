@@ -262,6 +262,11 @@
       }
       /* Hide radar sweep animation in FBL mode. */
       body.fbl-mode .atc-sweep { display: none !important; }
+      /* Hide the widgets panel and its toggle button in FBL / J2L III mode. */
+      body.fbl-mode .widgets-section,
+      body.fbl-mode .widgets-backdrop,
+      body.fbl-mode #widgetsToggle,
+      body.fbl-mode .widgets-toggle { display: none !important; }
       /* ROUTES toggle button hidden in FBL — the Trans-Sib polyline IS the
          route and shouldn't be toggle-able. Hidden via a data-attribute we
          set in enterFbl / exitFbl on the actual leaflet control div. */
@@ -334,11 +339,14 @@
     else if (variant === 'boss') el.classList.add('variant-boss');
     el.innerHTML = html;
     const pad = 14;
+    // Extra J2L III offset — nudge the city-hover tooltip down and to the
+    // right so it doesn't sit right under the cursor.
+    const offX = 13, offY = 70;
     el.style.left = '-9999px';
     el.style.top = '-9999px';
     el.classList.add('on');
     const w = el.offsetWidth, h = el.offsetHeight;
-    let x = clientX + pad, y = clientY + pad;
+    let x = clientX + pad + offX, y = clientY + pad + offY;
     if (x + w > window.innerWidth - 8) x = clientX - w - pad;
     if (y + h > window.innerHeight - 8) y = clientY - h - pad;
     el.style.left = (x + window.scrollX) + 'px';
@@ -566,16 +574,47 @@
     };
 
 
-    const flightData = csvRows.map(r => ({
-      from: canonicalName(r.origin), to: canonicalName(r.destination),
-      origin: canonicalName(r.origin), destination: canonicalName(r.destination),
-      fromCode: canonicalName(r.origin).replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || 'STA',
-      toCode:   canonicalName(r.destination).replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || 'STA',
-      mode: r.mode || 'train',
-      type: 'land',           // all FBL legs are surface journeys
-      date: parseDMY(r.date),
-      cost_sgd: parseFloat(r.cost_sgd) || 0
-    }));
+    const flightData = csvRows.map(r => {
+      const costSGD = parseFloat(r.cost_sgd) || 0;
+      const from = canonicalName(r.origin);
+      const to = canonicalName(r.destination);
+      const fromCoords = coordsForName(from);
+      const toCoords = coordsForName(to);
+      const distance = (fromCoords && toCoords) ? haversine(fromCoords, toCoords) : 0;
+      const mode = r.mode || 'train';
+      // Duration is derived by the shared route-aware calculator (Trans-Sib
+      // stops → 55 km/h, cross-border legs get border overhead, HSR-country
+      // corridors → HSR speed). Optional duration_hours column still wins
+      // when present, so future edge cases can override without code changes.
+      const csvDur = parseFloat(r.duration_hours);
+      const fdm = (window.flightMap && window.flightMap.coordinateManager)
+        || (typeof FlightDataManager === 'function' ? new FlightDataManager() : null);
+      const duration = Number.isFinite(csvDur) && csvDur > 0
+        ? csvDur
+        : (fdm && distance > 0
+            ? fdm.calculateLandTripDuration(distance, mode, { origin: from, destination: to })
+            : 0);
+      return {
+        from, to,
+        origin: from, destination: to,
+        fromCode: from.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || 'STA',
+        toCode:   to.replace(/[^A-Za-z]/g, '').slice(0, 3).toUpperCase() || 'STA',
+        mode,
+        type: 'land',           // all FBL legs are surface journeys
+        date: parseDMY(r.date),
+        // Keep both keys: cost_sgd for internal FBL callers, costSGD for the
+        // animation loop which reads camelCase and populates the charts.
+        cost_sgd: costSGD,
+        costSGD: costSGD,
+        actualCostSGD: costSGD,
+        // Distance & duration so Travel Stats / Leg Efficiency reflect real
+        // train timings instead of the 900 km/h flight-speed fallback.
+        distance,
+        originCoords: fromCoords || undefined,
+        destinationCoords: toCoords || undefined,
+        duration
+      };
+    });
 
     const orderedNames = [csvRows[0].origin, ...csvRows.map(r => r.destination)]
       .map(canonicalName);
@@ -870,7 +909,11 @@
     fm.flightData = built.flightData;
     fm.flightSequence = built.flightData.slice();
     fm.cityMarkers = [];
-    fm.currentCityIndex = 0;
+    // Resume from the previous FBL position if we've entered before; otherwise start at 0.
+    const savedFblIdx = (STATE.savedFbl && Number.isFinite(STATE.savedFbl.currentCityIndex))
+      ? Math.max(0, Math.min(STATE.savedFbl.currentCityIndex, built.cities.length))
+      : 0;
+    fm.currentCityIndex = savedFblIdx;
 
     // Pre-compute per-leg polyline paths so progress tracking is derived
     // from the animation state, not from createGreatCirclePath side-effects
@@ -888,15 +931,25 @@
       STATE.scope.setVisitedCountries(initial);
     } catch (e) {}
     try { built.cities.forEach(c => fm.createCityMarker && fm.createCityMarker(c)); } catch (e) { console.warn('[final-boss] createCityMarker', e); }
-    try { fm.positionDotAtCity && fm.positionDotAtCity(0); } catch (e) {}
+    try { fm.positionDotAtCity && fm.positionDotAtCity(Math.min(savedFblIdx, built.cities.length - 1)); } catch (e) {}
     try { fm.updateCityList && fm.updateCityList(); } catch (e) {}
+    // Zero out the running totals and both charts so Travel Stats / Leg
+    // Efficiency / Adjusted Cost start from the J2L III trip, not the
+    // oyster trip they were accumulating.
+    try { fm.recalculateStatistics && fm.recalculateStatistics(); } catch (e) {}
     try { fm.updateStatistics && fm.updateStatistics(); } catch (e) {}
     try { fm._createRouteInteractivity && fm._createRouteInteractivity(); } catch (e) {}
-    // Auto-play the FBL expedition — mirrors the normal viz which starts
-    // animating immediately on load.
+    // Restore whatever play/pause state the FBL animation was in the last
+    // time we exited (or auto-play on the very first entry).
+    const shouldPlay = STATE.savedFbl ? !!STATE.savedFbl.isAnimating : true;
     try {
       if (fm._animationGen != null) fm._animationGen++;
-      fm.startAnimation && fm.startAnimation();
+      if (shouldPlay) {
+        fm.startAnimation && fm.startAnimation();
+      } else {
+        fm.isAnimating = false;
+        fm.updatePlayPauseButton && fm.updatePlayPauseButton();
+      }
     } catch (e) { console.warn('[final-boss] startAnimation', e); }
   }
 
@@ -915,6 +968,9 @@
     try { fm.cities.forEach(c => fm.createCityMarker && fm.createCityMarker(c)); } catch (e) {}
     try { fm.positionDotAtCity && fm.positionDotAtCity(fm.currentCityIndex); } catch (e) {}
     try { fm.updateCityList && fm.updateCityList(); } catch (e) {}
+    // Rebuild totals and charts from the restored oyster trip data so we
+    // don't keep the FBL numbers we were showing.
+    try { fm.recalculateStatistics && fm.recalculateStatistics(); } catch (e) {}
     try { fm.updateStatistics && fm.updateStatistics(); } catch (e) {}
     try { fm._createRouteInteractivity && fm._createRouteInteractivity(); } catch (e) {}
     STATE.saved = null;
@@ -1014,6 +1070,13 @@
 
     const fm = window.flightMap;
     if (fm) {
+      // Capture FBL play state + position so re-entering resumes here instead
+      // of restarting at day 1.
+      STATE.savedFbl = {
+        currentCityIndex: fm.currentCityIndex,
+        isAnimating: !!fm.isAnimating
+      };
+      try { if (fm.isAnimating && typeof fm.pauseAnimation === 'function') fm.pauseAnimation(); } catch (e) {}
       restoreNormalData(fm);
       uninstallPolylineFollow(fm);
       uninstallOverlayOverride(fm);

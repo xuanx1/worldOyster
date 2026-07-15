@@ -1,19 +1,19 @@
 origin,destination,mode,cost_sgd,date
-Moscow,Yaroslavl,train,0,15/1/2027
-Yaroslavl,Kirov,train,0,15/1/2027
-Kirov,Perm,train,0,16/1/2027
-Perm,Yekaterinburg,train,0,16/1/2027
-Yekaterinburg,Tyumen,train,0,17/1/2027
-Tyumen,Omsk,train,0,17/1/2027
-Omsk,Novosibirsk,train,0,18/1/2027
-Novosibirsk,Krasnoyarsk,train,0,18/1/2027
-Krasnoyarsk,Angarsk,train,0,19/1/2027
-Angarsk,Irkutsk,train,0,19/1/2027
-Irkutsk,Baikalsk,train,0,20/1/2027
-Baikalsk,Ulan Ude,train,0,20/1/2027
-Ulan Ude, Ulaanbaatar,train,0,21/1/2027
-Ulaanbaatar, Ulan Ude,train,0,22/1/2027
-Ulan Ude,Chita,train,0,23/1/2027
-Chita,Birobidzhan,train,0,24/1/2027
-Birobidzhan,Khabarovsk,train,0,26/1/2027
-Khabarovsk,Vladivostok,train,0,28/1/2027
+Vladivostok,Khabarovsk,train,38.00,15/1/2027
+Khabarovsk,Birobidzhan,train,8.75,15/1/2027
+Birobidzhan,Chita,train,95.00,16/1/2027
+Chita,Ulan Ude,train,27.50,16/1/2027
+Ulan Ude,Ulaanbaatar,train,40.00,17/1/2027
+Ulaanbaatar,Ulan Ude,train,40.00,17/1/2027
+Ulan Ude,Baikalsk,train,15.00,18/1/2027
+Baikalsk,Irkutsk,train,7.50,18/1/2027
+Irkutsk,Angarsk,train,2.25,19/1/2027
+Angarsk,Krasnoyarsk,train,49.50,19/1/2027
+Krasnoyarsk,Novosibirsk,train,39.00,20/1/2027
+Novosibirsk,Omsk,train,31.50,20/1/2027
+Omsk,Tyumen,train,31.00,21/1/2027
+Tyumen,Yekaterinburg,train,16.50,22/1/2027
+Yekaterinburg,Perm,train,18.00,23/1/2027
+Perm,Kirov,train,23.00,24/1/2027
+Kirov,Yaroslavl,train,35.00,26/1/2027
+Yaroslavl,Moscow,train,14.00,28/1/2027

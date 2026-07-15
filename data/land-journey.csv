@@ -71,8 +71,7 @@ New York,"Washington, D.C.",bus,39,15/4/2022
 Tel Aviv,Jerusalem,train,11,19/4/2022
 Jerusalem,Eilat,bus,15,3/5/2022
 Eilat,Taba,bus,15,4/5/2022
-Taba,Suez,car,129.57,4/5/2022
-Suez,Cairo,car,70.43,4/5/2022
+Taba,Cairo,bus,200,4/5/2022
 Jerusalem,Tel Aviv,train,9.6,5/5/2022
 Tel Aviv,Be'er Sheva,train,11.3,5/5/2022
 Be'er Sheva,Tel Aviv,train,11.3,5/5/2022
@@ -188,8 +187,6 @@ Zurich,Milan,train,45,15/9/2023
 Milan,Novara,train,13,15/10/2023
 Novara,Milan,train,13,15/10/2023
 Milan,Rome,train,39.09,2/11/2023
-Baku,Sumqayit,train,0.48,3/11/2023
-Sumqayit,Baku,train,0.48,3/11/2023
 Tbilisi,Yerevan,train,54.57,5/11/2023
 Yerevan,Stepanakert,car,18,6/11/2023
 Stepanakert,Yerevan,car,12,6/11/2023

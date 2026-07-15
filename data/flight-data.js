@@ -329,9 +329,20 @@ class FlightDataManager {
                 processedJourney.distance = this.haversineDistance(originCoords, destinationCoords);
                 processedJourney.originCoords = originCoords;
                 processedJourney.destinationCoords = destinationCoords;
-                
-                // Calculate duration for land journey
-                processedJourney.duration = this.calculateLandTripDuration(processedJourney.distance, processedJourney.mode);
+
+                // Prefer the CSV's explicit duration_hours column so per-route
+                // reality (HSR vs. slow overnight vs. border crossings) survives
+                // — fall back to the mode-based estimate only if the cell is
+                // blank or non-numeric.
+                const rawDur = journey.duration_hours || journey['duration_hours'];
+                const csvDur = rawDur != null && rawDur !== '' ? parseFloat(rawDur) : NaN;
+                processedJourney.duration = Number.isFinite(csvDur) && csvDur > 0
+                    ? csvDur
+                    : this.calculateLandTripDuration(
+                        processedJourney.distance,
+                        processedJourney.mode,
+                        { origin: processedJourney.origin, destination: processedJourney.destination }
+                    );
                 processedJourney.durationFormatted = this.formatDuration(processedJourney.duration);
             }
 
@@ -377,69 +388,97 @@ class FlightDataManager {
     }
 
     /**
-     * Calculate duration of land trips based on distance and mode of transport
+     * Calculate duration of land trips based on distance, mode and route context.
+     * Route context (origin/destination country) selects a realistic speed tier
+     * instead of assuming every train runs at 100 km/h — HSR corridors get HSR
+     * speeds, sleeper/long-haul routes get their real crawl speed, and
+     * cross-border legs pay a border overhead.
+     *
      * @param {number} distance - Distance in kilometers
      * @param {string} mode - Mode of transport (train, bus, car, ferry, etc.)
+     * @param {Object} [ctx] - Optional { origin, destination } city names
      * @returns {number} Duration in hours
      */
-    calculateLandTripDuration(distance, mode = '') {
+    calculateLandTripDuration(distance, mode = '', ctx = null) {
         if (!distance || distance <= 0) {
             console.warn('Invalid distance provided for duration calculation');
             return 0;
         }
-        
-        const modeStr = mode.toLowerCase();
-        let averageSpeed; // km/h
-        let minimumDuration; // hours
-        
-        // Determine average speed and minimum duration based on mode of transport
-        if (modeStr.includes('train') || modeStr.includes('rail')) {
-            // For short distances (<50km), trains spend time at stations, boarding, etc.
-            if (distance < 50) {
-                averageSpeed = 60; // Slower average for short regional trains with stops
-                minimumDuration = 0.5; // At least 30 minutes (boarding, waiting, etc.)
+
+        const modeStr = (mode || '').toLowerCase();
+        const cityCountry = (name) => {
+            if (!name) return null;
+            const map = (typeof window !== 'undefined' && window.CITY_TO_COUNTRY) || null;
+            return map ? map[name] || null : null;
+        };
+        const originCountry = ctx && ctx.origin ? cityCountry(ctx.origin) : null;
+        const destCountry = ctx && ctx.destination ? cityCountry(ctx.destination) : null;
+        const sameCountry = originCountry && destCountry && originCountry === destCountry;
+
+        // Top-tier HSR networks — 300+ km/h book speeds, ~250 km/h effective
+        // with intermediate stops. Shinkansen, CRH/CR400, KTX, Taiwan HSR,
+        // TGV, AVE all sit here.
+        const HSR_FAST_COUNTRIES = new Set([
+            'Japan', 'PR China', 'ROC Taiwan', 'ROK Korea',
+            'France', 'Spain'
+        ]);
+        // Standard HSR — 200-250 km/h book, ~180 km/h effective (Frecciarossa,
+        // ICE, Eurostar, Railjet, Al Boraq, YHT, Whoosh, Afrosiyob).
+        const HSR_STD_COUNTRIES = new Set([
+            'Germany', 'Italy', 'UK', 'Belgium', 'Netherlands',
+            'Austria', 'Switzerland', 'Morocco', 'Turkey',
+            'Indonesia', 'Uzbekistan'
+        ]);
+        // Mid-speed rail (tilting/express, ~130-160 km/h effective).
+        const MID_RAIL_COUNTRIES = new Set([
+            'USA', 'Russia', 'Sweden', 'Denmark', 'Norway', 'Finland',
+            'Portugal', 'Poland', 'Czech Republic', 'Hungary', 'India'
+        ]);
+        // Long-haul overnight / mountain rail corridors that crawl by design.
+        const TRANS_SIB_STOPS = new Set([
+            'Moscow','Yaroslavl','Kirov','Perm','Yekaterinburg','Tyumen','Omsk',
+            'Novosibirsk','Krasnoyarsk','Angarsk','Irkutsk','Baikalsk','Ulan Ude',
+            'Chita','Birobidzhan','Khabarovsk','Vladivostok'
+        ]);
+        const isTransSib = ctx && TRANS_SIB_STOPS.has(ctx.origin) && TRANS_SIB_STOPS.has(ctx.destination);
+
+        let averageSpeed;
+        let minimumDuration;
+
+        if (modeStr.includes('metro') || modeStr.includes('subway')) {
+            averageSpeed = 30; minimumDuration = 0.1;
+        } else if (modeStr.includes('walk')) {
+            averageSpeed = 5; minimumDuration = 0.1;
+        } else if (modeStr.includes('train') || modeStr.includes('rail')) {
+            if (isTransSib) {
+                averageSpeed = 55; minimumDuration = 1;   // real Rossiya avg incl. stops
+            } else if (sameCountry && HSR_FAST_COUNTRIES.has(originCountry) && distance >= 100) {
+                averageSpeed = 250; minimumDuration = 0.5; // Shinkansen / CRH / TGV / AVE / KTX / Taiwan HSR
+            } else if (sameCountry && HSR_STD_COUNTRIES.has(originCountry) && distance >= 100) {
+                averageSpeed = 180; minimumDuration = 0.5; // Frecciarossa / ICE / Al Boraq / YHT / Whoosh
+            } else if (sameCountry && MID_RAIL_COUNTRIES.has(originCountry) && distance >= 150) {
+                averageSpeed = 130; minimumDuration = 0.75; // mid-speed express
+            } else if (distance < 50) {
+                averageSpeed = 60; minimumDuration = 0.5;
             } else if (distance < 200) {
-                averageSpeed = 80; // Medium speed for regional trains
-                minimumDuration = 0.75; // At least 45 minutes
+                averageSpeed = 80; minimumDuration = 0.75;
             } else {
-                averageSpeed = 100; // High-speed/intercity trains
-                minimumDuration = 1; // At least 1 hour
+                averageSpeed = 90; minimumDuration = 1;
             }
         } else if (modeStr.includes('bus')) {
-            // Buses are slower in cities and with traffic
-            if (distance < 50) {
-                averageSpeed = 40; // City/regional buses with stops and traffic
-                minimumDuration = 0.5; // At least 30 minutes
-            } else {
-                averageSpeed = 70; // Long-distance buses on highways
-                minimumDuration = 0.75; // At least 45 minutes
-            }
+            if (distance < 50) { averageSpeed = 40; minimumDuration = 0.5; }
+            else               { averageSpeed = 70; minimumDuration = 0.75; }
         } else if (modeStr.includes('car') || modeStr.includes('taxi')) {
-            // Cars vary greatly based on distance
-            if (distance < 50) {
-                averageSpeed = 50; // City driving with traffic
-                minimumDuration = 0.33; // At least 20 minutes
-            } else {
-                averageSpeed = 90; // Highway driving
-                minimumDuration = 0.5; // At least 30 minutes
-            }
+            if (distance < 50) { averageSpeed = 50; minimumDuration = 0.33; }
+            else               { averageSpeed = 90; minimumDuration = 0.5; }
         } else if (modeStr.includes('ferry') || modeStr.includes('boat')) {
-            // Ferries include boarding/departure time
-            averageSpeed = 40;
-            minimumDuration = 0.5; // At least 30 minutes (boarding, etc.)
+            averageSpeed = 40; minimumDuration = 0.5;
         } else {
-            // Default for unknown mode
-            averageSpeed = 60;
-            minimumDuration = 0.33; // At least 20 minutes
+            averageSpeed = 60; minimumDuration = 0.33;
         }
-        
-        // Calculate duration in hours
+
         let durationHours = distance / averageSpeed;
-        
-        // Apply minimum duration (accounts for boarding, waiting, city traffic, etc.)
         durationHours = Math.max(durationHours, minimumDuration);
-        
-        // Round to 2 decimal places
         return Math.round(durationHours * 100) / 100;
     }
 

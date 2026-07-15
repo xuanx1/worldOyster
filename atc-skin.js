@@ -191,6 +191,7 @@
   // Sample great-circle points for hover hit-testing.
   function pickRouteUnder(mx, my) {
     if (!scope || !scope.routes.length) return null;
+    if (!scope.showRoutes) return null;
     let best = null, bd = 18;             // 18px hit slop (generous)
     for (let i = 0; i < scope.routes.length; i++) {
       const rt = scope.routes[i];

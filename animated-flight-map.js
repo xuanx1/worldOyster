@@ -1387,6 +1387,13 @@ class AnimatedFlightMap {
             this.updateStatistics();
             this.currentCityIndex++;
 
+            // Journey complete — finish immediately so the button flips to REPLAY
+            // instead of lingering on PAUSE for the post-flight cool-down.
+            if (this.currentCityIndex >= this.cities.length) {
+                this.completeAnimation();
+                return;
+            }
+
             // Continue to next city after a brief pause (scaled by speed)
             setTimeout(() => {
                 // Stale chain check again (scrub could happen during the pause)
@@ -1785,13 +1792,10 @@ class AnimatedFlightMap {
             currentFlightElement.textContent = window.i18n ? window.i18n.t('journeyComplete') : 'Journey Complete!';
         }
         
-        // Auto-restart animation after a brief pause (loop the animation)
-        const gen = this._animationGen;
-        setTimeout(() => {
-            if (gen !== this._animationGen) return;
-            this.resetAnimationState();
-            this.startAnimation();
-        }, 2000); // 2 second pause before restarting
+        // Journey complete — stop and surface the REPLAY button for manual restart.
+        this.isAnimating = false;
+        this.showReplayButton();
+        this.updatePlayPauseButton();
     }
 
     restartAnimation() {
@@ -1895,15 +1899,17 @@ class AnimatedFlightMap {
         }
         this._pausedAnimateState = null;
 
-        // Only resume if we haven't completed the journey
+        // Only resume if we haven't completed the journey.
+        // If complete, do nothing — user must press REPLAY explicitly.
         if (this.currentCityIndex < this.cities.length) {
             this.isAnimating = true;
             this.updatePlayPauseButton();
             // Continue from current position
             this.animateToNextCity();
         } else {
-            // If journey is complete, restart from beginning
-            this.replayAnimation();
+            this.isAnimating = false;
+            this.showReplayButton();
+            this.updatePlayPauseButton();
         }
     }
 
@@ -4225,6 +4231,7 @@ class AnimatedFlightMap {
             this._setXWindowOpts();
         }
         this._updateYAxisBounds();
+        this._applyYBoundsToScales();
         if (this.legChart) this.legChart.update(); // animated line extension
         if (this.priceChart) this.priceChart.update();
         this._updateScrollbar();
@@ -4258,6 +4265,7 @@ class AnimatedFlightMap {
         this._chartDates = dates;
         this._chartTripNames = tripNames;
         this._updateYAxisBounds();
+        this._applyYBoundsToScales();
         this._applyXWindow();
         this._updateFilterButtons();
     }

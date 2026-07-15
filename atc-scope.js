@@ -656,12 +656,11 @@
     }
 
     // ─── Final Boss Level overlays ─────────────────────────────────
-    // Trans-Sib "base" dim amber line — the FULL expected rail geometry.
-    // Bright completed portions are overlaid separately by _drawFblProgress
-    // so a single mechanism can handle Trans-Sib + Trans-Mongolian +
-    // Trans-Manchurian legs uniformly.
+    // Trans-Sib base track — the FULL expected rail geometry, drawn in the
+    // same neutral grey used by other context rail lines so it doesn't
+    // pre-empt the amber "traversed" colour applied by _drawFblProgress.
     _drawTransSib() {
-      const ctx = this.ctx, T = this.theme;
+      const ctx = this.ctx;
       const line = this.transSibLine;
       if (!line || line.length < 2) return;
       ctx.save();
@@ -673,9 +672,9 @@
         if (!p.vis) { started = false; continue; }
         if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y);
       }
-      ctx.strokeStyle = T.accent2;
-      ctx.globalAlpha = 0.30;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#5a636b';
+      ctx.globalAlpha = 0.55;
+      ctx.lineWidth = 0.9;
       ctx.stroke();
       ctx.restore();
     }

@@ -14,14 +14,14 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - **Video-like scrubber**: Drag the glowing timeline head to jump to any point in the journey
 - **Play/Pause controls**: Start, stop, and resume animation with smooth transitions
 - **Speed selector**: Cycle through 1×, 10×, 20×, and 100× playback speeds
-- **Auto-loop**: Animation automatically restarts when reaching the end
+- **Manual replay**: When the journey completes, the REPLAY button surfaces — no forced auto-loop
 - **Progress bar**: Click anywhere on the bar to jump to that city
 
 ### 🌍 Dynamic Map Visualisation
 - **Animated dot**: A moving marker traces the route in real-time
 - **Continuous path lines**: Green gradient polylines draw the traveled route
 - **Seamless world wrap**: Pan continuously across the antimeridian without seams
-- **Flight route toggle**: Show/hide all route lines with a single button
+- **Flight route toggle**: Show/hide all route lines with a single button — route-hover popups also disable when routes are hidden
 - **Follow-dot toggle**: Camera can lock onto or release from the moving marker
 - **Interactive city markers**: Cities appear on arrival with hover tooltips
 - **Route hover popups**: Hover any route segment to see origin, destination, mode, cost, and duration
@@ -81,9 +81,14 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - **Unrecognised territories**: Flags and data for Abkhazia, Artsakh, Somaliland, South Ossetia, Transnistria, TRNC
 
 ### 🏁 Final Boss Level — *Journey to Live III*
-- **Coming next**: a single overland journey from **Singapore to Inverness** — no flights
-- **Trans-Siberian Railway** rendered from real OSM railway geometry (87,439 points, 9,275 km, Moscow-Yaroslavskaya → Vladivostok, sourced from the OSM "Rossiya" 002Э relation)
-- **17 station stops** with hover popups showing curated descriptions for each city (Moscow, Yaroslavl, Kirov, Perm, Yekaterinburg, Tyumen, Omsk, Novosibirsk, Krasnoyarsk, Angarsk, Irkutsk, Baikalsk, Ulan-Ude, Chita, Birobidzhan, Khabarovsk, Vladivostok)
+- **Toggleable mode**: J2L III button swaps the entire dataset for the Trans-Siberian expedition — cities, chart data, statistics all reflect the FBL trip
+- **State preservation**: Toggling between Oyster ↔ J2L III pauses the mode that's not showing and resumes it from the same position on re-entry
+- **Trans-Siberian Railway** rendered from real OSM railway geometry (Moscow-Yaroslavskaya → Vladivostok, sourced from the OSM "Rossiya" 002Э relation)
+- **Trans-Mongolian detour**: Route dips south through Ulaanbaatar before returning to the mainline
+- **Progressive route reveal**: Trans-Sib line stays in neutral grey ahead of the arrow and lights up amber only as the animation traverses it
+- **Widgets hidden**: The bottom widget panel is hidden in FBL mode to keep the screen focused on the expedition
+- **Live day counter**: Header replaces the year with `RUSSIA · DAY N/Total` and updates as the arrow reaches each city
+- **Custom hover tooltips** with curated descriptions for every station stop
 
 ### 🌿 Environmental Impact Tracking
 - **Mode-specific emission factors**:
@@ -98,6 +103,14 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
   - 🚶 Walking: 0.01 kg CO₂/km
   - 🚲 Cycling: 0.02 kg CO₂/km
 - **Real-time scrubbing**: Emissions recalculate instantly as you drag the timeline
+
+### ⏱️ Route-Aware Duration Estimation
+- No hardcoded "all trains run at 100 km/h" — the calculator picks a realistic speed from route context
+  - **Top-tier HSR** (Japan Shinkansen, PR China CRH/CR400, Taiwan HSR, ROK KTX, France TGV, Spain AVE): ~250 km/h effective
+  - **Standard HSR** (Frecciarossa, ICE, Al Boraq, YHT, Whoosh, Afrosiyob): ~180 km/h effective
+  - **Mid-speed express** (USA Acela, Russia Sapsan, Nordics X2000, Portugal Alfa Pendular, Poland Pendolino, India Vande Bharat): ~130 km/h
+  - **Trans-Siberian** stops auto-detected → 55 km/h (matches real Rossiya schedule)
+- Optional `duration_hours` CSV column overrides the estimate for edge cases
 
 ---
 
