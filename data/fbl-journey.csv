@@ -1,9 +1,11 @@
 origin,destination,mode,cost_sgd,date
 Singapore,Johor Bahru,train,0.82,15/1/2027
-Johor Bahru,Kuala Lumpur,train,13.17,16/1/2027
+Johor Bahru,Gemas,train,6.05,16/1/2027
+Gemas,Kuala Lumpur,train,7.75,16/1/2027
 Kuala Lumpur,Ipoh,train,7.88,17/1/2027
 Ipoh,Taiping,train,2.16,18/1/2027
-Taiping,Padang Besar,train,9.26,19/1/2027
+Taiping,Alor Setar,train,6.30,19/1/2027
+Alor Setar,Padang Besar,train,4.60,19/1/2027
 Padang Besar,Hat Yai,train,1.92,20/1/2027
 Hat Yai,Bangkok,train,33.76,21/1/2027
 Bangkok,Ayutthaya,train,3.00,22/1/2027
@@ -29,7 +31,9 @@ Qingdao,Beijing,train,49.56,15/2/2027
 Beijing,Shenyang,train,56.45,16/2/2027
 Shenyang,Changchun,train,24.45,17/2/2027
 Changchun,Harbin,train,21.66,18/2/2027
-Harbin,Vladivostok,train,46.70,19/2/2027
+Harbin,Suifenhe,train,10.50,19/2/2027
+Suifenhe,Grodekovo,bus,13.00,20/2/2027
+Grodekovo,Vladivostok,train,9.20,20/2/2027
 Vladivostok,Ulan Ude,train,169.25,21/2/2027
 Ulan Ude,Ulaanbaatar,train,40.00,22/2/2027
 Ulaanbaatar,Kharkhorin,train,9.48,23/2/2027
@@ -37,7 +41,8 @@ Kharkhorin,Darkhan,train,10.27,24/2/2027
 Darkhan,Sukhbaatar,train,2.57,25/2/2027
 Sukhbaatar,Irkutsk,train,22.50,26/2/2027
 Irkutsk,Novosibirsk,train,90.75,27/2/2027
-Novosibirsk,Astana,train,26.29,28/2/2027
+Novosibirsk,Omsk,train,21.50,28/2/2027
+Omsk,Astana,train,13.28,28/2/2027
 Astana,Omsk,train,13.28,4/3/2027
 Omsk,Yekaterinburg,train,47.50,5/3/2027
 Yekaterinburg,Ufa,train,11.19,6/3/2027

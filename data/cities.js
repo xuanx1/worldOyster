@@ -366,6 +366,8 @@ window.CITY_COORDINATES = {
     'Padang Besar': [6.6558, 100.3231],
     'Ipoh': [4.5975, 101.0901],
     'Taiping': [4.8525, 100.7404],
+    'Gemas': [2.5911, 102.6136],          // KTM West Coast/East Coast junction, JB→KL line
+    'Alor Setar': [6.1210, 100.3670],     // Kedah, on Butterworth→Padang Besar line
     'Sanya': [18.2528, 109.5119],
     'Xiamen': [24.4798, 118.0894],
     'Quanzhou': [24.8741, 118.6757],
@@ -376,6 +378,8 @@ window.CITY_COORDINATES = {
     'Shenyang': [41.8057, 123.4315],
     'Changchun': [43.8171, 125.3235],
     'Harbin': [45.8038, 126.5350],
+    'Suifenhe': [44.4074, 131.1490],      // China border station on Harbin→Vladivostok line
+    'Grodekovo': [44.4057, 131.3847],     // Russian border station (Pogranichny)
     'Vladivostok': [43.1198, 131.8869],
     'Ulan Ude': [51.8272, 107.6069],
     'Kharkhorin': [47.1974, 102.8228],

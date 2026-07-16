@@ -3,7 +3,7 @@
 // Adds the Trans-Siberian railway (red flow) and the Asia–Europe
 // continental divider (dashed) to the ATC scope canvas. Provides
 // canvas-based hover popups for the 17 station stops (descriptions
-// come from data/trans-siberian.geojson) and a "FINAL BOSS" map
+// come from data/rail/trans-siberian.geojson) and a "FINAL BOSS" map
 // control button that isolates the view to this trip alone.
 (function () {
   'use strict';
@@ -137,7 +137,7 @@
   }
 
   async function loadGeoJSON() {
-    const r = await fetch('data/trans-siberian.geojson', { cache: 'no-store' });
+    const r = await fetch('data/rail/trans-siberian.geojson', { cache: 'no-store' });
     if (!r.ok) throw new Error('fetch failed: ' + r.status);
     return await r.json();
   }
@@ -473,7 +473,7 @@
   const NE_RAIL_SIMPLIFY_TOL = 0.05;
 
   async function loadNeRailroads() {
-    const r = await fetch('data/ne_10m_railroads.geojson', { cache: 'force-cache' });
+    const r = await fetch('data/rail/ne_10m_railroads.geojson', { cache: 'force-cache' });
     if (!r.ok) throw new Error('ne_10m_railroads fetch: ' + r.status);
     const gj = await r.json();
     const out = [];
@@ -500,8 +500,16 @@
 
   async function loadOtherTransLines() {
     const files = [
-      { url: 'data/trans-manchurian.geojson', name: 'Trans-Manchurian' },
-      { url: 'data/trans-mongolian.geojson',  name: 'Trans-Mongolian'  }
+      { url: 'data/rail/trans-manchurian.geojson',   name: 'Trans-Manchurian' },
+      { url: 'data/rail/trans-mongolian.geojson',    name: 'Trans-Mongolian'  },
+      // Astana↔Omsk (via Petropavl & Kokshetau) and Harbin→Vladivostok
+      // (via Suifenhe/Grodekovo border) — real OSM rail geometry so those
+      // FBL legs snap to the actual line instead of a great-circle arc.
+      { url: 'data/rail/astana-omsk.geojson',        name: 'Astana–Omsk'      },
+      { url: 'data/rail/harbin-vladivostok.geojson', name: 'Harbin–Vladivostok'},
+      // Singapore→Hat Yai KTM West Coast Line (via Gemas & Alor Setar) — real
+      // OSM rail geometry; serves all the Malaya-corridor FBL legs at once.
+      { url: 'data/rail/singapore-hatyai.geojson',   name: 'KTM Singapore–Hat Yai'}
     ];
     const results = [];
     for (const f of files) {
