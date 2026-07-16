@@ -234,7 +234,7 @@ window.CITY_TO_COUNTRY = {
     'Warsaw': 'Poland', 'Krakow': 'Poland', 'Poznan': 'Poland',
     'Kyiv': 'Ukraine', 'Lviv': 'Ukraine',
     'Budapest': 'Hungary', 'Bucharest': 'Romania', 'Brașov': 'Romania', 'Brasov': 'Romania',
-    'Sofia': 'Bulgaria', 'Skopje': 'North Macedonia', 'Belgrade': 'Serbia', 'Novi Sad': 'Serbia',
+    'Sofia': 'Bulgaria', 'Skopje': 'North Macedonia', 'Pristina': 'Kosovo', 'Belgrade': 'Serbia', 'Novi Sad': 'Serbia',
     'Ljubljana': 'Slovenia', 'Zagreb': 'Croatia', 'Bratislava': 'Slovakia',
     'Sarajevo': 'Bosnia and Herzegovina', 'Mostar': 'Bosnia and Herzegovina', 'Visoko': 'Bosnia and Herzegovina',
     'Podgorica': 'Montenegro', 'Tirana': 'Albania', 'Iasi': 'Romania',

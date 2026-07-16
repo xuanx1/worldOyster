@@ -114,6 +114,8 @@ Verona,Bozen,train,30.45,10/11/2022
 Bozen,Verona,train,30.45,12/11/2022
 Verona,Milan,train,30.45,12/11/2022
 Sofia,Skopje,bus,41.85,20/11/2022
+Skopje,Pristina,bus,12,20/11/2022
+Pristina,Skopje,bus,12,20/11/2022
 Skopje,Belgrade,bus,43.17,20/11/2022
 Belgrade,Novi Sad,train,4.86,21/11/2022
 Novi Sad,Belgrade,train,4.86,21/11/2022

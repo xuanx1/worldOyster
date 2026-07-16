@@ -82,6 +82,7 @@
     "Brasov": "Brașov",
     "Sofia": "София",
     "Skopje": "Скопје",
+    "Pristina": "Prishtina",
     "Belgrade": "Београд",
     "Novi Sad": "Нови Сад",
     "Ljubljana": "Ljubljana",
