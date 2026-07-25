@@ -395,6 +395,7 @@
     "Suzhou": "苏州",
     "Hefei": "合肥",
     "Qingdao": "青岛",
+    "Jinan": "济南",
     "Shenyang": "沈阳",
     "Changchun": "长春",
     "Harbin": "哈尔滨",

@@ -317,6 +317,8 @@ Taipei,Taichung,train,16.07,5/7/2026
 Taichung,Tainan,train,16.31,5/7/2026
 Tainan,Kaohsiung,train,20.82,5/7/2026
 Kaohsiung,Taipei,train,35.71,5/7/2026
+Qingdao,Jinan,train,29.92,1/8/2026
+Jinan,Qingdao,train,29.16,1/8/2026
 Hong Kong,Macau,bus,12,7/8/2026
 Macau,Zhuhai,walk,0,7/8/2026
 Zhuhai,Macau,walk,0,7/8/2026
@@ -325,9 +327,9 @@ Hong Kong,Shenzhen,train,9,8/8/2026
 Shenzhen,Guangzhou,train,17.12,9/8/2026
 Guangzhou,Foshan,train,1.30,9/8/2026
 Foshan,Guangzhou,train,1.30,9/8/2026
-Hohhot,Ordos City,train,11.44,29/8/2026
-Ordos City,Baotou,train,6.21,29/8/2026
-Baotou,Hohhot,train,11.64,29/8/2026
+Hohhot,Ordos City,train,16.72,29/8/2026
+Ordos City,Baotou,taxi,22.62,29/8/2026
+Baotou,Hohhot,train,7.82,29/8/2026
 Hanoi,Nanning,train,54.09,5/9/2026
 Tashkent,Shymkent,bus,6.2,5/10/2026
 Shymkent,Tashkent,bus,7.4,5/10/2026

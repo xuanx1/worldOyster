@@ -229,7 +229,7 @@
   text-shadow: 0 0 6px var(--atc-glow);
 }
 .atc-scope-tip .nv {
-  font-family: 'Noto Sans Sundanese', 'Noto Sans', system-ui, var(--atc-mono);
+  font-family: 'Noto Sans Sundanese', 'Noto Sans Balinese', 'Noto Sans Javanese', 'Noto Sans', system-ui, var(--atc-mono);
   font-size: 11px;
   color: var(--atc-text);
   margin-top: 2px;

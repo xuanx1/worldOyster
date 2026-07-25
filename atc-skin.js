@@ -171,12 +171,18 @@
     const dateRaw = toCity.flightDate || (flight && flight.date);
     const date = dateRaw ? new Date(dateRaw).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : '';
     const isLand = rt.type === 'land';
+    const hasReturn = fmCities.some((c, i) =>
+      i < fmCities.length - 1 &&
+      c.name === toCity.name &&
+      fmCities[i + 1].name === fromCity.name
+    );
+    const arrow = hasReturn ? '⇌' : (isLand ? '⇢' : '→');
     tip.classList.add('route');
     tip.classList.remove('city');
     tip.innerHTML =
       `<div class="rh">${isLand ? 'SURFACE' : (fNo || 'FLIGHT')}${date ? ' · ' + date : ''}</div>` +
       `<div class="rt-line"><span class="rt-end">${escapeHtml(tCity(fromCity.name))}</span>` +
-        ` <em class="rt-arr">${isLand ? '⇢' : '→'}</em> ` +
+        ` <em class="rt-arr">${arrow}</em> ` +
         `<span class="rt-end">${escapeHtml(tCity(toCity.name))}</span></div>` +
       `<div class="rt-dim">${fmtInt(dist)} KM</div>`;
     tip.style.display = 'block';

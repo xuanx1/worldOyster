@@ -153,6 +153,7 @@ window.AIRPORT_COORDINATES = {
     'LHW': [36.5152, 103.6203], // Lanzhou Zhongchuan
     'HET': [40.8514, 111.8244], // Hohhot Baita
     'CSX': [28.1892, 113.2201], // Changsha Huanghua
+    'TAO': [36.2661, 120.3744], // Qingdao Liuting
     'SIN': [1.3644, 103.9915],  // Singapore
     'RGN': [16.9073, 96.1333],   // Yangon / Mingaladon
     'MDL': [21.7028, 95.9778],   // Mandalay / Mandalay Intl
@@ -224,6 +225,9 @@ window.AIRPORT_TO_CITY = {
     // Shanghai area airports -> Shanghai
     'PVG': 'Shanghai',
     'SHA': 'Shanghai',
+
+    // Qingdao
+    'TAO': 'Qingdao',
 
     // Istanbul area airports -> Istanbul
     'IST': 'Istanbul',

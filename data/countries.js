@@ -93,7 +93,7 @@ window.AIRPORT_TO_COUNTRY = {
     // Asia - China
     'PVG': 'PR China', 'PEK': 'PR China', 'CAN': 'PR China', 'PKX': 'PR China', 'XIY': 'PR China',
     'WUH': 'PR China', 'CKG': 'PR China', 'TFU': 'PR China', 'HAK': 'PR China', 'LHW': 'PR China',
-    'HET': 'PR China', 'CSX': 'PR China',
+    'HET': 'PR China', 'CSX': 'PR China', 'TAO': 'PR China',
 
     // Asia - North Korea
     'FNJ': 'DPR Korea',
@@ -343,6 +343,7 @@ window.CITY_TO_COUNTRY = {
     'Nanjing': 'PR China',
     'Hefei': 'PR China',
     'Qingdao': 'PR China',
+    'Jinan': 'PR China',
     'Shenyang': 'PR China',
     'Changchun': 'PR China',
     'Harbin': 'PR China',

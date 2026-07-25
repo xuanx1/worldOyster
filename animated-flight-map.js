@@ -412,6 +412,8 @@ class AnimatedFlightMap {
             maxZoom: 12,
             zoomControl: false,
             dragging: true,
+            touchZoom: true,
+            bounceAtZoomLimits: false,
             worldCopyJump: true,
             maxBounds: worldBounds,
             maxBoundsViscosity: 1.0 // Makes the bounds "sticky"
