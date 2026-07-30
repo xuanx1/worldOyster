@@ -331,6 +331,8 @@ Hohhot,Ordos City,train,16.72,29/8/2026
 Ordos City,Baotou,taxi,22.62,29/8/2026
 Baotou,Hohhot,train,7.82,29/8/2026
 Hanoi,Nanning,train,54.09,5/9/2026
+Chennai,Puducherry,train,13.5,19/9/2026
+Puducherry,Chennai,bus,6.2,19/9/2026
 Tashkent,Shymkent,bus,6.2,5/10/2026
 Shymkent,Tashkent,bus,7.4,5/10/2026
 Tashkent,Samarkand,train,26,6/10/2026

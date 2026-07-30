@@ -241,6 +241,8 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2026-09-04,VN654,Singapore / Changi (SIN/WSSS),Hochiminh / Tan Son Nhat (SGN/VVTS),18:25:00,19:40:00,02:15:00,Vietnam Airlines (VN/HVN),Airbus A321 (A321),,,0,0,0,,2672,2650,366,28,89.76
 2026-09-04,VN224,Hochiminh / Tan Son Nhat (SGN/VVTS),Hanoi / Noibai (HAN/VVNB),22:00:00,00:10:00,02:10:00,Vietnam Airlines (VN/HVN),Airbus A321-200 (A321),,,0,0,0,,2650,1094,366,2076,95.30
 2026-09-07,TR115,Nanning / Wuxu (NNG/ZGNN),Singapore / Changi (SIN/WSSS),14:00:00,18:10:00,04:10:00,Scoot (TR/TGW),Airbus A321LR (A21N),,,0,0,0,,2080,2672,2695,2181,124.21
+2026-09-18,TR778,"Singapore / Changi (SIN/WSSS)","Chennai / Chennai (MAA/VOMM)",21:20:00,22:50:00,04:30:00,"Scoot (TR/TGW)","Boeing 787-8 (B788)",,,0,0,0,,2672,1737,2695,2087,141.79
+2026-09-20,TR779,"Chennai / Chennai (MAA/VOMM)","Singapore / Changi (SIN/WSSS)",23:50:00,06:50:00,04:00:00,"Scoot (TR/TGW)","Boeing 787-8 (B788)",,,0,0,0,,1737,2672,2695,2087,141.79
 2026-10-01,AK 722,Singapore / Changi (SIN/WSSS),Kuala Lumpur / Kuala Lumpur International (KUL/WMKK),23:25:00,00:30:00,01:05:00,Air Asia (AK/AXM), (),,,0,0,0,,2672,1527,0,0,13.33
 2026-10-02,D7 122,Kuala Lumpur / Kuala Lumpur International (KUL/WMKK),Tashkent / Yuzhnyy (TAS/UTTT),13:20:00,17:50:00,07:30:00,AirAsia X, (),,,0,0,0,,1527,2857,0,0,240.89
 2026-10-12,D7 123,Tashkent / Yuzhnyy (TAS/UTTT),Kuala Lumpur / Kuala Lumpur International (KUL/WMKK),19:15:00,05:55:00,07:40:00,AirAsia X, (),,,0,0,0,,2857,1527,0,0,240.89

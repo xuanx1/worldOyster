@@ -283,7 +283,7 @@ window.CITY_TO_COUNTRY = {
     'Yangon': 'Myanmar', 'Mandalay': 'Myanmar', 'Bago': 'Myanmar',
     'Manila': 'Philippines', 'Cebu': 'Philippines',
     'New Delhi': 'India', 'Delhi': 'India', 'Agra': 'India', 'Jaipur': 'India', 'Amritsar': 'India',
-    'Mumbai': 'India', 'Kolkata': 'India', 'Calcutta': 'India', 'Chennai': 'India', 'Guwahati': 'India',
+    'Mumbai': 'India', 'Kolkata': 'India', 'Calcutta': 'India', 'Chennai': 'India', 'Guwahati': 'India', 'Puducherry': 'India', 'Pondicherry': 'India',
     'Lahore': 'Pakistan',
     'Colombo': 'Sri Lanka', 'Kandy': 'Sri Lanka', 'Galle': 'Sri Lanka', 'Sigiriya': 'Sri Lanka', 'Dambulla': 'Sri Lanka', 'Anuradhapura': 'Sri Lanka',
     'Dhaka': 'Bangladesh',
