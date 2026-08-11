@@ -404,6 +404,8 @@
     "Ica": "Ica",
     "Huacachina": "Huacachina",
     "Santiago": "Santiago",
+    "Valparaíso": "Valparaíso",
+    "Valparaiso": "Valparaíso",
     "Bogota": "Bogotá",
     "Mexico City": "Ciudad de México",
 

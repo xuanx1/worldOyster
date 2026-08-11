@@ -378,6 +378,8 @@
         "Uyuni":         { ar:"أويوني", zh:"乌尤尼", ru:"Уюни" },
         "Valencia":      { ar:"فالنسيا", zh:"瓦伦西亚", fr:"Valence", ru:"Валенсия" },
         "Valletta":      { ar:"فاليتا", zh:"瓦莱塔", fr:"La Valette", ru:"Валлетта" },
+        "Valparaíso":    { ar:"بالبارايسو", zh:"瓦尔帕莱索", fr:"Valparaíso", ru:"Вальпараисо", es:"Valparaíso" },
+        "Valparaiso":    { ar:"بالبارايسو", zh:"瓦尔帕莱索", fr:"Valparaíso", ru:"Вальпараисо", es:"Valparaíso" },
         "Vancouver":     { ar:"فانكوفر", zh:"温哥华", ru:"Ванкувер" },
         "Vatican City":  { ar:"الفاتيكان", zh:"梵蒂冈", fr:"Cité du Vatican", ru:"Ватикан", es:"Ciudad del Vaticano" },
         "Venice":        { ar:"البندقية", zh:"威尼斯", fr:"Venise", ru:"Венеция", es:"Venecia" },

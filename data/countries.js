@@ -310,7 +310,7 @@ window.CITY_TO_COUNTRY = {
     // South America
     'La Paz': 'Bolivia', 'Uyuni': 'Bolivia', 'Puno': 'Peru', 'Cusco': 'Peru', 'Cuzco': 'Peru',
     'Ollantaytambo': 'Peru', 'Aguas Calientes': 'Peru', 'Aguas Caliente': 'Peru',
-    'Lima': 'Peru', 'Ica': 'Peru', 'Huacachina': 'Peru', 'Santiago': 'Chile', 'Bogotá': 'Colombia', 'Bogota': 'Colombia',
+    'Lima': 'Peru', 'Ica': 'Peru', 'Huacachina': 'Peru', 'Santiago': 'Chile', 'Valparaíso': 'Chile', 'Valparaiso': 'Chile', 'Bogotá': 'Colombia', 'Bogota': 'Colombia',
     'Tamanrasset': 'Algeria', 'Constantine': 'Algeria',
 
     // Middle East / North Africa extras

@@ -218,7 +218,12 @@
   min-width: 120px;
   line-height: 1.25;
 }
-.atc-scope-tip.route { transform: translate(14px, 8px); }
+/* Hover tips sit clear of the pointer, top-left of it: the bottom-right corner
+   lands 16px left and 10px above the anchor. The percentages resolve against the
+   tip's own size, so nothing needs measuring in JS. Route tips previously used
+   translate(14px, 8px), which put the box under the cursor arrow. */
+.atc-scope-tip.city,
+.atc-scope-tip.route { transform: translate(calc(-100% - 16px), calc(-100% - 10px)); }
 .atc-scope-tip .cn {
   font-family: var(--atc-cond);
   font-size: 13px;

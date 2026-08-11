@@ -357,6 +357,8 @@ window.CITY_COORDINATES = {
     'Ica': [-14.0678, -75.7286],
     'Huacachina': [-14.0873, -75.7627],
     'Santiago': [-33.4489, -70.6693],
+    'Valparaíso': [-33.0472, -71.6127],
+    'Valparaiso': [-33.0472, -71.6127],
     'Bogotá': [4.7110, -74.0721],
 
     // Australia & Oceania

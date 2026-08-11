@@ -340,6 +340,8 @@ Aguas Caliente,Cusco,train,98.62,8/9/2025
 Lima,Ica,bus,28.2,15/9/2025
 Huacachina,Lima,bus,23.83,15/9/2025
 Ica,Huacachina,car,2,15/9/2025
+Santiago,Valparaiso,bus,5,18/9/2025
+Valparaiso,Santiago,bus,5,18/9/2025
 Jakarta,Bandung,train,23.5,19/10/2025
 Bandung,Jakarta,train,23.5,19/10/2025
 Bangkok,Vientiane,train,26,14/11/2025
