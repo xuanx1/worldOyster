@@ -187,7 +187,7 @@ window.AIRPORT_TO_COUNTRY = {
 // City Name to Country Mapping
 window.CITY_TO_COUNTRY = {
     // Japan
-    'Sapporo': 'Japan', 'Tokyo': 'Japan', 'Osaka': 'Japan', 'Kyoto': 'Japan', 'Nara': 'Japan',
+    'Sapporo': 'Japan', 'Otaru': 'Japan', 'Tokyo': 'Japan', 'Osaka': 'Japan', 'Kyoto': 'Japan', 'Nara': 'Japan',
     'Nagoya': 'Japan', 'Kobe': 'Japan', 'Chiba': 'Japan', 'Kawasaki': 'Japan', 'Yokohama': 'Japan',
     'Otsuki': 'Japan', 'Fujiyoshida': 'Japan',
 
@@ -197,14 +197,14 @@ window.CITY_TO_COUNTRY = {
 
     // Europe - Austria & Switzerland
     'Vienna': 'Austria', 'Salzburg': 'Austria', 'Innsbruck': 'Austria',
-    'Zurich': 'Switzerland', 'Geneva': 'Switzerland', 'Basel': 'Switzerland',
+    'Zurich': 'Switzerland', 'Geneva': 'Switzerland', 'Basel': 'Switzerland', 'Chiasso': 'Switzerland', 'Lugano': 'Switzerland',
 
     // Europe - France
     'Paris': 'France', 'Versailles': 'France', 'Monaco': 'Monaco', 'Nice': 'France',
     'Marseille': 'France', 'Narbonne': 'France',
 
     // Europe - Netherlands
-    'Amsterdam': 'Netherlands', 'Utrecht': 'Netherlands', 'Rotterdam': 'Netherlands',
+    'Amsterdam': 'Netherlands', 'Utrecht': 'Netherlands', 'Rotterdam': 'Netherlands', 'The Hague': 'Netherlands',
 
     // Europe - Belgium
     'Brussels': 'Belgium', 'Antwerp': 'Belgium',
@@ -224,41 +224,44 @@ window.CITY_TO_COUNTRY = {
     'Rome': 'Italy', 'Florence': 'Italy', 'Venice': 'Italy', 'Milan': 'Italy', 'Verona': 'Italy',
     'Turin': 'Italy', 'Brescia': 'Italy', 'Naples': 'Italy', 'Pompeii': 'Italy',
     'Salerno': 'Italy', 'Amalfi': 'Italy', 'Catania': 'Italy', 'Palermo': 'Italy', 'Modena': 'Italy',
+    'Rimini': 'Italy', 'Caserta': 'Italy', 'Genoa': 'Italy', 'La Spezia': 'Italy', 'Como': 'Italy', 'Monza': 'Italy',
     'Vatican City': 'Vatican City', 'San Marino': 'San Marino', 'Bozen': 'Italy', 'Trieste': 'Italy', 'Novara': 'Italy', 'Pisa': 'Italy',
 
     // Europe - Nordic
     'Stockholm': 'Sweden', 'Gothenburg': 'Sweden', 'Malmö': 'Sweden', 'Malmo': 'Sweden',
-    'Copenhagen': 'Denmark', 'Oslo': 'Norway', 'Reykjavik': 'Iceland', 'Helsinki': 'Finland',
+    'Copenhagen': 'Denmark', 'Oslo': 'Norway', 'Reykjavik': 'Iceland', 'Helsinki': 'Finland', 'Espoo': 'Finland',
 
     // Europe - Eastern Europe
     'Warsaw': 'Poland', 'Krakow': 'Poland', 'Poznan': 'Poland',
-    'Kyiv': 'Ukraine', 'Lviv': 'Ukraine',
+    'Kyiv': 'Ukraine', 'Lviv': 'Ukraine', 'Chernobyl': 'Ukraine', 'Pripyat': 'Ukraine',
     'Budapest': 'Hungary', 'Bucharest': 'Romania', 'Brașov': 'Romania', 'Brasov': 'Romania',
     'Sofia': 'Bulgaria', 'Skopje': 'North Macedonia', 'Pristina': 'Kosovo', 'Belgrade': 'Serbia', 'Novi Sad': 'Serbia',
     'Ljubljana': 'Slovenia', 'Zagreb': 'Croatia', 'Bratislava': 'Slovakia',
     'Sarajevo': 'Bosnia and Herzegovina', 'Mostar': 'Bosnia and Herzegovina', 'Visoko': 'Bosnia and Herzegovina',
-    'Podgorica': 'Montenegro', 'Tirana': 'Albania', 'Iasi': 'Romania',
+    'Podgorica': 'Montenegro', 'Kotor': 'Montenegro', 'Bar': 'Montenegro', 'Tirana': 'Albania', 'Iasi': 'Romania',
 
 
     // Europe - Greece & Balkans
-    'Athens': 'Greece', 'Thessaloniki': 'Greece', 'Ouranoupoli': 'Greece', 'Daphni': 'Greece',
+    'Athens': 'Greece', 'Piraeus': 'Greece', 'Thessaloniki': 'Greece', 'Ouranoupoli': 'Greece', 'Daphni': 'Greece', 'Karyes': 'Greece',
 
     // Europe - Turkey & Caucasus
-    'Istanbul': 'Turkey', 'Ankara': 'Turkey', 'Antalya': 'Turkey', 'Denizli': 'Turkey', 'Pamukkale': 'Turkey',
-    'Tbilisi': 'Georgia', 'Yerevan': 'Armenia', 'Stepanakert': 'Artsakh', 'Gori': 'Georgia', 'Batumi': 'Georgia', 'Kutaisi': 'Georgia',
+    'Istanbul': 'Turkey', 'Ankara': 'Turkey', 'Antalya': 'Turkey', 'Denizli': 'Turkey', 'Pamukkale': 'Turkey', 'Sarp': 'Turkey',
+    'Tbilisi': 'Georgia', 'Yerevan': 'Armenia', 'Stepanakert': 'Artsakh', 'Gori': 'Georgia', 'Batumi': 'Georgia', 'Kutaisi': 'Georgia', 'Sarpi': 'Georgia',
 
     // Middle East
-    'Beirut': 'Lebanon', 'Tripoli': 'Lebanon', 'Jerusalem': 'Israel', 'Tel Aviv': 'Israel', 'Eilat': 'Israel',
-    'Haifa': 'Israel', "Be'er Sheva": 'Israel',
+    'Beirut': 'Lebanon', 'Tripoli': 'Lebanon', 'Batroun': 'Lebanon', 'Jerusalem': 'Israel', 'Tel Aviv': 'Israel', 'Eilat': 'Israel',
+    'Haifa': 'Israel', "Be'er Sheva": 'Israel', 'Herzliya': 'Israel', 'Holon': 'Israel', 'Beit Shemesh': 'Israel',
     'Jericho': 'Palestine', 'Ramallah': 'Palestine', 'Bethlehem': 'Palestine', 'Hebron': 'Palestine',
     'Amman': 'Jordan', 'Petra': 'Jordan', 'Taba': 'Egypt',
 
     // Africa
-    'Cairo': 'Egypt', 'Alexandria': 'Egypt', 'Luxor': 'Egypt', 'New Cairo City': 'Egypt', 'Suez': 'Egypt',
+    'Cairo': 'Egypt', 'Alexandria': 'Egypt', 'Luxor': 'Egypt', 'New Cairo City': 'Egypt', '6 October City': 'Egypt', 'Suez': 'Egypt',
     'Casablanca': 'Morocco', 'Marrakech': 'Morocco', 'Chefchaoun': 'Morocco', 'Tangier': 'Morocco', 'Rabat': 'Morocco', 'Marrakesh': 'Morocco',
-    'Tunis': 'Tunisia', 'Bizerte': 'Tunisia',
+    'Kénitra': 'Morocco', 'Kenitra': 'Morocco', 'Salé': 'Morocco', 'Sale': 'Morocco',
+    'Ouarzazate': 'Morocco', 'Aït Benhaddou': 'Morocco', 'Ait Benhaddou': 'Morocco',
+    'Tunis': 'Tunisia', 'Bizerte': 'Tunisia', 'Carthage': 'Tunisia',
     'Algiers': 'Algeria', 'Oran': 'Algeria', 'Constantine': 'Algeria',
-    'Larnaca': 'Cyprus', 'Kyrenia': 'Northern Cyprus',
+    'Larnaca': 'Cyprus', 'Nicosia': 'Cyprus', 'Kyrenia': 'Northern Cyprus',
 
     // Asia
     'Seoul': 'ROK Korea', 'Busan': 'ROK Korea', 'Pusan': 'ROK Korea', 'Daegu': 'ROK Korea', 'Daejeon': 'ROK Korea',
@@ -267,7 +270,7 @@ window.CITY_TO_COUNTRY = {
     'Dandong': 'PR China',
     'Beijing': 'PR China', 'Peking': 'PR China', 'Tianjin': 'PR China', 'Shanghai': 'PR China', 'Chengdu': 'PR China', 'Chongqing': 'PR China', 'Wuhan': 'PR China', 'Changsha': 'PR China',
     'Hohhot': 'PR China', 'Ordos City': 'PR China', 'Baotou': 'PR China',
-    'Nanyang': 'PR China', 'Xian': 'PR China', "Xi'an": 'PR China', 'Lanzhou': 'PR China', 'Haikou': 'PR China',
+    'Nanyang': 'PR China', 'Xian': 'PR China', "Xi'an": 'PR China', 'Xianyang': 'PR China', 'Lanzhou': 'PR China', 'Haikou': 'PR China',
     'Guangzhou': 'PR China', 'Shenzhen': 'PR China', 'Foshan': 'PR China', 'Nanning': 'PR China', 'Kunming': 'PR China', 'Hekou': 'PR China',
     'Hong Kong': 'PR China', 'Macau': 'PR China', 'Zhuhai': 'PR China',
     'Taipei': 'ROC Taiwan', 'Taichung': 'ROC Taiwan', 'Tainan': 'ROC Taiwan', 'Kaohsiung': 'ROC Taiwan',
@@ -293,12 +296,12 @@ window.CITY_TO_COUNTRY = {
     'Ulaanbaatar': 'Mongolia',
     'Turkmenabat': 'Turkmenistan', 'Merv': 'Turkmenistan', 'Mary': 'Turkmenistan',
     'Ashgabat': 'Turkmenistan', 'Darvaza': 'Turkmenistan', 'Dashoguz': 'Turkmenistan',
-    'Chiang Mai': 'Thailand','Bangkok': 'Thailand', 'Phuket': 'Thailand', 'Hatyai': 'Thailand', 'Songkhla': 'Thailand',
+    'Chiang Mai': 'Thailand','Bangkok': 'Thailand', 'Kanchanaburi': 'Thailand', 'Phuket': 'Thailand', 'Hatyai': 'Thailand', 'Songkhla': 'Thailand',
     'Yogyakarta': 'Indonesia', 'Surakarta': 'Indonesia', 'Jakarta': 'Indonesia', 'Bandung': 'Indonesia', 'Denpasar': 'Indonesia',
 
     // North America
-    'New York': 'USA', 'Philadelphia': 'USA', 'Los Angeles': 'USA', 'Los Angles': 'USA',
-    'San Diego': 'USA', 'Chicago': 'USA', 'Milwaukee': 'USA', 'San Francisco': 'USA', 'Seattle': 'USA',
+    'New York': 'USA', 'Hoboken': 'USA', 'Philadelphia': 'USA', 'Los Angeles': 'USA', 'Los Angles': 'USA',
+    'San Diego': 'USA', 'Chicago': 'USA', 'Milwaukee': 'USA', 'San Francisco': 'USA', 'San José': 'USA', 'San Jose': 'USA', 'Seattle': 'USA', 'Tacoma': 'USA',
     'Boston': 'USA', 'Atlantic City': 'USA', 'Washington, D.C.': 'USA',
     'Toronto': 'Canada', 'Vancouver': 'Canada', 'Montreal': 'Canada', 'Ottawa': 'Canada', 'Niagara': 'Canada',
     'Tijuana': 'Mexico', 'Mexico City': 'Mexico', 'Oaxaca': 'Mexico',

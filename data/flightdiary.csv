@@ -7,6 +7,8 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2017-07-10,AY991,Helsinki / Vantaa (HEL/EFHK),Keflavik / Keflavik (KEF/BIKF),07:20:00,09:15:00,03:55:00,Finnair (AY/FIN),Airbus A320-200 (A320),,,0,0,0,,1110,1400,304,2059,125.14
 2017-07-17,AY992,Keflavik / Keflavik (KEF/BIKF),Helsinki / Vantaa (HEL/EFHK),10:00:00,15:25:00,03:25:00,Finnair (AY/FIN),Airbus A320-200 (A320),,,0,0,0,,1400,1110,304,2059,125.14
 2017-07-18,AY131,Helsinki / Vantaa (HEL/EFHK),Singapore / Changi (SIN/WSSS),23:55:00,18:40:00,12:45:00,Finnair (AY/FIN),Airbus A350-900 (A359),,,0,0,0,,1110,2672,304,2110,474.86
+2018-06-16,,Singapore / Changi (SIN/WSSS),Bangkok / Suvarnabhumi (BKK/VTBS),0:00:00,0:00:00,02:20:00,Thai Airways (TG/THA),,,,0,0,0,,2672,331,767,0,0
+2018-06-30,,Bangkok / Suvarnabhumi (BKK/VTBS),Singapore / Changi (SIN/WSSS),0:00:00,0:00:00,02:20:00,Thai Airways (TG/THA),,,,0,0,0,,331,2672,767,0,0
 2018-12-20,JL38,Singapore / Changi (SIN/WSSS),Tokyo / Haneda (HND/RJTT),1:55:00,9:50:00,6:55:00,Japan Airlines (JL/JAL),Boeing 767 (B767),,,0,0,0,,2672,1152,406,2011,790.65
 2018-12-20,JL519,Tokyo / Haneda (HND/RJTT),Sapporo / New Chitose (CTS/RJCC),14:30:00,16:05:00,1:35:00,Japan Airlines (JL/JAL),Airbus A350-900 (A359),,,0,0,0,,1152,631,406,2110,122.35
 2019-01-31,JL106,Osaka / Itami (ITM/RJOO),Tokyo / Haneda (HND/RJTT),8:30:00,9:40:00,1:10:00,Japan Airlines (JL/JAL),Boeing 787-8 (B788),,,0,0,0,,1285,1152,406,2087,49.43

@@ -2546,7 +2546,11 @@ class AnimatedFlightMap {
         if (lower === 'hue') return 'Hue';
         if (lower === 'perth') return 'Perth';
         if (lower === 'malta' || trimmed === 'Malta') return 'Valletta';
-        if (lower === 'ho chi minh (saigon)') return 'Ho Chi Minh City';
+        // Fold every Ho Chi Minh City spelling in the data (flightdiary uses
+        // "Ho Chi Minh (Saigon)" and "Hochiminh"; AIRPORT_TO_CITY once emitted
+        // "Ho Chi Minh City (Saigon)") so the city counts once, not four times.
+        if (lower === 'ho chi minh (saigon)' || lower === 'ho chi minh city (saigon)' ||
+            lower === 'hochiminh' || lower === 'saigon') return 'Ho Chi Minh City';
         return name;
     }
 
