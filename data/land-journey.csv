@@ -394,12 +394,21 @@ Hong Kong,Shenzhen,train,9,8/8/2026
 Shenzhen,Guangzhou,train,17.12,9/8/2026
 Guangzhou,Foshan,train,1.30,9/8/2026
 Foshan,Guangzhou,train,1.30,9/8/2026
+Miri,Bandar Seri Begawan,car,40,22/8/2026
+Bandar Seri Begawan,Miri,car,40,23/8/2026
 Hohhot,Ordos City,train,16.72,29/8/2026
 Ordos City,Baotou,taxi,22.62,29/8/2026
 Baotou,Hohhot,train,7.82,29/8/2026
 Hanoi,Nanning,train,54.09,5/9/2026
 Chennai,Puducherry,train,13.5,19/9/2026
 Puducherry,Chennai,bus,6.2,19/9/2026
+Xiamen,Fuzhou,train,14,25/9/2026
+Fuzhou,Putian,train,7,25/9/2026
+Putian,Meizhou,ferry,6,25/9/2026
+Meizhou,Putian,ferry,6,25/9/2026
+Putian,Quanzhou,train,7,25/9/2026
+Quanzhou,Kinmen,ferry,25,26/9/2026
+Kinmen,Xiamen,ferry,30,26/9/2026
 Tashkent,Shymkent,bus,6.2,5/10/2026
 Shymkent,Tashkent,bus,7.4,5/10/2026
 Tashkent,Samarkand,train,26,6/10/2026

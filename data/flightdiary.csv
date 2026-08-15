@@ -235,6 +235,8 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2026-08-07,5J110,Manila / Ninoy Aquino International (MNL/RPLL),Hong Kong / Hong Kong International (HKG/VHHH),07:10:00,09:45:00,02:35:00,Cebu Pacific (5J/CEB), (),,,0,0,0,,1898,1135,0,0,55.4
 2026-08-10,CZ8489,Guangzhou / Canton-Baiyun (CAN/ZGGG),Singapore / Changi (SIN/WSSS),22:40:00,02:50:00,04:10:00,China Southern Airlines (CZ/CSN),Airbus A321 (A321),,,0,0,0,,478,2672,207,28,209
 2026-08-22,TR438,Singapore / Changi (SIN/WSSS),Kuching / Kuching (KCH/WBGG),06:00:00,07:35:00,01:35:00,Scoot (TR/TGW),Airbus A320-200 (A320),,,0,0,0,,2672,1392,2695,2059,80.745
+2026-08-22,AK6186,"Kuching / Kuching (KCH/WBGG)","Miri / Miri (MYY/WBGR)",13:00:00,14:05:00,01:05:00,"Air Asia (AK/AXM)","Airbus A320-200 (A320)",,,0,0,0,,1392,1995,103,2059,55
+2026-08-23,AK6187,"Miri / Miri (MYY/WBGR)","Kuching / Kuching (KCH/WBGG)",14:30:00,15:30:00,01:00:00,"Air Asia (AK/AXM)","Airbus A320-200 (A320)",,,0,0,0,,1995,1392,103,2059,55
 2026-08-23,AK1771,Kuching / Kuching (KCH/WBGG),Singapore / Changi (SIN/WSSS),18:00:00,19:35:00,01:35:00,Air Asia (AK/AXM),Airbus A320-200 (A320),,,0,0,0,,1392,2672,103,2059,80.745
 2026-08-28,CZ8088,"Singapore / Changi (SIN/WSSS)","Changsha / Huanghua (CSX/ZGHA)",02:45:00,07:35:00,04:50:00,"China Southern Airlines (CZ/CSN)"," ()",,,0,0,0,,2672,624,207,0,266.27
 2026-08-28,CZ5339,"Changsha / Huanghua (CSX/ZGHA)","Hohhot / Baita (HET/ZBHH)",10:50:00,13:15:00,02:25:00,"China Southern Airlines (CZ/CSN)","Boeing 737-800 (B738)",,,0,0,0,,624,3702,207,231,119.90
@@ -245,6 +247,10 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2026-09-07,TR115,Nanning / Wuxu (NNG/ZGNN),Singapore / Changi (SIN/WSSS),14:00:00,18:10:00,04:10:00,Scoot (TR/TGW),Airbus A321LR (A21N),,,0,0,0,,2080,2672,2695,2181,124.21
 2026-09-18,TR778,"Singapore / Changi (SIN/WSSS)","Chennai / Chennai (MAA/VOMM)",21:20:00,22:50:00,04:30:00,"Scoot (TR/TGW)","Boeing 787-8 (B788)",,,0,0,0,,2672,1737,2695,2087,141.79
 2026-09-20,TR779,"Chennai / Chennai (MAA/VOMM)","Singapore / Changi (SIN/WSSS)",23:50:00,06:50:00,04:00:00,"Scoot (TR/TGW)","Boeing 787-8 (B788)",,,0,0,0,,1737,2672,2695,2087,141.79
+2026-09-25,CX714,"Singapore / Changi (SIN/WSSS)","Hong Kong / Hong Kong International (HKG/VHHH)",01:45:00,05:50:00,04:05:00,"Cathay Pacific (CX/CPA)","Airbus A330-300 (A333)",,,0,0,0,,2672,1135,199,31,149.69
+2026-09-25,CX970,"Hong Kong / Hong Kong International (HKG/VHHH)","Xiamen / Gaoqi (XMN/ZSAM)",09:30:00,11:05:00,01:35:00,"Cathay Pacific (CX/CPA)","Boeing 777-300 (B773)",,,0,0,0,,1135,3285,199,247,40.31
+2026-09-27,CX979,"Xiamen / Gaoqi (XMN/ZSAM)","Hong Kong / Hong Kong International (HKG/VHHH)",20:35:00,22:20:00,01:45:00,"Cathay Pacific (CX/CPA)","Airbus A330-300 (A333)",,,0,0,0,,3285,1135,199,31,40.31
+2026-09-28,CX659,"Hong Kong / Hong Kong International (HKG/VHHH)","Singapore / Changi (SIN/WSSS)",01:45:00,05:30:00,03:45:00,"Cathay Pacific (CX/CPA)","Airbus A330-300 (A333)",,,0,0,0,,1135,2672,199,31,149.69
 2026-10-01,AK722,"Singapore / Changi (SIN/WSSS)","Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)",23:25:00,00:30:00,01:05:00,"Air Asia (AK/AXM)"," ()",,,0,0,0,,2672,1527,0,0,23.28
 2026-10-02,OD751,"Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)","Tashkent / Yuzhnyy (TAS/UTTT)",13:20:00,17:50:00,07:30:00,"Batik Air (OD/MXD)"," ()",,,0,0,0,,1527,2857,0,0,421.22
 2026-10-12,OD752,"Tashkent / Yuzhnyy (TAS/UTTT)","Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)",19:15:00,05:55:00,07:40:00,"Batik Air (OD/MXD)"," ()",,,0,0,0,,2857,1527,0,0,421.22
