@@ -10,6 +10,18 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 ### 🌐 Multilingual Support
 - Full i18n across all widgets and UI — **English, Arabic, Chinese, French, Russian, Spanish**
 
+### 🌗 Light & Dark Mode
+- **Light mode by default**, with a LIGHT/DARK toggle in the playbar — the choice is remembered between visits
+- **Crossfaded switch**: Panels, chrome and the globe tween between palettes rather than cutting
+- **Full-depth theming**: Not just the page — the globe's ocean/land/coastlines, city pins, route arcs, conceptual overlays (Asia–Europe divide, Great Wall), Leaflet basemaps, Chart.js grids and the trophy panel all repaint
+- **Marks vs. text are tuned separately**: Text tones are cut for contrast on white, while canvas pins keep a vivid mid-tone — a 2px dot is read by hue against pale ocean, not by legibility
+- **Respects `prefers-reduced-motion`**: Background motion holds a still frame
+
+### ✨ Animated Backdrop
+- **Flowing colour field**: A WebGL shader samples 3D simplex noise across the viewport and maps it to a drifting hue, with a fine grain and a soft falloff
+- **Pointer parallax**: The field shifts with the cursor, eased rather than snapped
+- **Cheap by design**: Renders at half resolution (the field is too soft to tell) and idles entirely while the tab is hidden
+
 ### 🎮 Interactive Timeline Controls
 - **Video-like scrubber**: Drag the glowing timeline head to jump to any point in the journey
 - **Play/Pause controls**: Start, stop, and resume animation with smooth transitions
@@ -27,13 +39,15 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - **Route hover popups**: Hover any route segment to see origin, destination, mode, cost, and duration
 - **Pinned popups**: Click/tap a route to pin its popup persistently
 - **Reset view**: Return the map to its default position
+- **Null Island marker**: A pulsing crosshair at 0°N 0°E — where the Equator crosses the Prime Meridian, and where every broken geocode lands. Hover it for a readout
+- **Continental divide**: The Asia–Europe line lights amber on hover, labels included
 
 ### 🏙️ City List
 - **Live city grid**: Visited, current, and upcoming cities shown in a scrollable grid
 - **Numbered badges**: Each city shows its visit order
 - **Native names**: Each city displays its local-language name (e.g. 東京, කොළඹ / කொழும்பு, กรุงเทพมหานคร)
 - **Country labels**: Every city entry shows its country
-- **Status indicators**: Green = visited, Gold = current (with pulse animation), Grey = upcoming
+- **Status indicators**: Green = visited, Gold = current (with pulse animation), Grey = upcoming. In light mode the badges invert to outlined buttons — green numeral on white, filling green with a white numeral for the current city
 
 ### 📊 Travel Statistics (live, with animated counters)
 | Stat | Detail |
@@ -68,7 +82,7 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - **Duration Trend** — avg/total trip duration over time
 - **Records Cards** — personal travel records (longest flight, farthest city, etc.)
 - **Unvisited Neighbours** — bordering countries of visited nations, with flag icons and trophy indicators
-- **Return Visits** — cities visited more than once
+- **Return Visits** — cities arrived at more than once. Counted by arrival only: the itinerary is one continuous chain, so scoring both endpoints of every leg would count each stop twice (once arriving, again on leaving)
 - **Longest Stays** — cities with the most days spent
 - **Top Airlines** — most-flown carriers
 - **Journey Timeline** — continent-coloured timeline of every leg
