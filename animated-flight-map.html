@@ -10,7 +10,7 @@
          works fully offline (no CDN round-trip on export click). -->
     <script src="asset/vendor/jspdf.umd.min.js" defer></script>
     <script src="asset/vendor/html2canvas.min.js" defer></script>
-    <link rel="stylesheet" href="atc-skin.css?v=170" />
+    <link rel="stylesheet" href="atc-skin.css?v=174" />
     <style>
     /* Local Segoe UI (TTF files supplied in /asset/font/SegoeUI/) */
     @font-face {
@@ -1750,6 +1750,9 @@
         #durationTrend svg { width: 100%; height: 100%; display: block; }
 
     </style>
+    <!-- Light mode. Must load AFTER the inline <style> above, since it
+         overrides that block's hardcoded dark colour literals. -->
+    <link rel="stylesheet" href="atc-light.css?v=11" />
 </head>
 <body>
     <div class="title-section">
@@ -1962,7 +1965,7 @@
     <script src="data/city-native-names.js"></script>
     <script src="data/city-names-i18n.js"></script>
     <script src="widget/country-trophy.js?v=6"></script>
-    <script src="animated-flight-map.js"></script>
+    <script src="animated-flight-map.js?v=3"></script>
     <script src="widget/danmaku.js"></script>
     <script src="widget/spending-heatmap.js?v=140"></script>
     <script src="widget/cost-choropleth.js?v=140"></script>
@@ -1970,12 +1973,14 @@
     <script src="widget/records-cards.js"></script>
     <script src="data/visa-sg.js"></script>
     <script src="widget/unvisited-neighbors.js?v=158"></script>
-    <script src="widget/return-visits.js"></script>
+    <script src="widget/return-visits.js?v=2"></script>
     <script src="widget/longest-stays.js?v=140"></script>
     <script src="widget/top-airlines.js?v=140"></script>
     <script src="widget/journey-timeline.js?v=140"></script>
-    <script src="atc-scope.js?v=49"></script>
-    <script src="atc-skin.js?v=172"></script>
+    <script src="atc-bg.js?v=4"></script>
+    <script src="atc-scope.js?v=52"></script>
+    <script src="atc-skin.js?v=175"></script>
+    <script src="atc-theme.js?v=4"></script>
     <script src="data/asia-europe-border.js?v=1"></script>
     <script src="widget/final-boss.js?v=41"></script>
     <script>

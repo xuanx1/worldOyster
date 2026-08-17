@@ -189,7 +189,24 @@
         routePast:    g('--atc-route-past')    || '#305a6d',
         routeActive:  g('--atc-route-active')  || '#43d4e6',
         dim:          g('--atc-dim')           || '#607583',
-        text:         g('--atc-text')          || '#c4d4df'
+        text:         g('--atc-text')          || '#c4d4df',
+        // Conceptual overlays (Asia-Europe divide, Great Wall) and the
+        // context rail network. These were hardcoded pale-on-dark, which
+        // leaves them invisible on a light globe — hence the vars.
+        overlay:      g('--atc-scope-overlay') || '#d0d8e0',
+        rail:         g('--atc-scope-rail')    || '#5a636b',
+        railBg:       g('--atc-scope-rail-bg') || '#3a4652',
+        // Halo stroked behind canvas labels for legibility.
+        halo:         g('--atc-scope-halo')    || 'rgba(10, 20, 29, 0.9)',
+        chip:         g('--atc-scope-chip')    || 'rgba(0, 0, 0, 0.75)',
+        // Multiplier on every canvas glow. A shadowBlur in the mark's own
+        // colour reads as light only against a dark ground; on a pale globe
+        // the same halo just smears the mark and makes it look muddy. The
+        // light theme turns this most of the way down.
+        glowScale: (function () {
+          const v = parseFloat(g('--atc-scope-glow'));
+          return isNaN(v) ? 1 : v;
+        })()
       };
     }
     refreshTheme() { this.theme = this._readTheme(); }
@@ -499,7 +516,7 @@
         ctx.lineWidth = 4;
         ctx.globalAlpha = 1;
         ctx.shadowColor = col;
-        ctx.shadowBlur = 18;
+        ctx.shadowBlur = 18 * this.theme.glowScale;
         ctx.stroke();
       } else {
         tracePath();
@@ -509,7 +526,7 @@
         if (active) {
           ctx.strokeStyle = surface ? this.theme.accent2 : this.theme.routeActive;
           ctx.lineWidth = 1.8;
-          ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = 10;
+          ctx.shadowColor = ctx.strokeStyle; ctx.shadowBlur = 10 * this.theme.glowScale;
           ctx.globalAlpha = 1;
         } else {
           ctx.strokeStyle = surface ? this.theme.accent2 : this.theme.routePast;
@@ -570,7 +587,7 @@
           ctx.globalAlpha = 1;
           ctx.beginPath(); ctx.arc(p.x, p.y, 3.2, 0, 7);
           ctx.fillStyle = T.accent2;
-          ctx.shadowColor = T.accent2; ctx.shadowBlur = 10;
+          ctx.shadowColor = T.accent2; ctx.shadowBlur = 10 * T.glowScale;
           ctx.fill();
           ctx.shadowBlur = 0;
         } else if (a.visited) {
@@ -586,7 +603,7 @@
           }
           ctx.beginPath(); ctx.arc(p.x, p.y, 2.2 + g * 1.4, 0, 7);
           ctx.fillStyle = T.accent;
-          ctx.shadowColor = T.accent; ctx.shadowBlur = 6 + g * 18;
+          ctx.shadowColor = T.accent; ctx.shadowBlur = (6 + g * 18) * T.glowScale;
           ctx.fill();
           ctx.shadowBlur = 0;
         } else {
@@ -627,7 +644,7 @@
         // bright core dot
         ctx.beginPath(); ctx.arc(p.x, p.y, 4.5, 0, 7);
         ctx.fillStyle = col;
-        ctx.shadowColor = col; ctx.shadowBlur = 16;
+        ctx.shadowColor = col; ctx.shadowBlur = 16 * T.glowScale;
         ctx.fill();
         ctx.shadowBlur = 0;
         // ring outline
@@ -642,7 +659,7 @@
           ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
           const tw = ctx.measureText(label).width;
           // backdrop strip for legibility
-          ctx.fillStyle = 'rgba(0,0,0,0.75)';
+          ctx.fillStyle = T.chip;
           ctx.fillRect(p.x - tw / 2 - 4, p.y - 24, tw + 8, 14);
           ctx.fillStyle = col;
           ctx.fillText(label, p.x, p.y - 12);
@@ -735,7 +752,7 @@
       ctx.save();
       ctx.translate(p.x, p.y);
       const col = this.blip.surface ? T.accent2 : T.blip;
-      ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 14;
+      ctx.fillStyle = col; ctx.shadowColor = col; ctx.shadowBlur = 14 * T.glowScale;
       // Arrow rotates by the current bearing for BOTH air and surface
       // legs — surface only differs by colour, so the rotation is
       // visible whether you're flying or on a train/car/walk.
@@ -802,7 +819,7 @@
       octx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
       octx.clearRect(0, 0, this.w, this.h);
       octx.setLineDash([]);
-      octx.strokeStyle = '#3a4652';
+      octx.strokeStyle = this.theme.railBg;
       octx.globalAlpha = 0.35;
       octx.lineWidth = 0.5;
       octx.beginPath();
@@ -827,7 +844,7 @@
       if (!entries || !entries.length) return;
       ctx.save();
       ctx.setLineDash([]);
-      ctx.strokeStyle = '#5a636b';
+      ctx.strokeStyle = this.theme.rail;
       ctx.globalAlpha = 0.55;
       ctx.lineWidth = 0.9;
       for (const entry of entries) {
@@ -863,7 +880,7 @@
         if (!p.vis) { started = false; continue; }
         if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y);
       }
-      ctx.strokeStyle = '#5a636b';
+      ctx.strokeStyle = this.theme.rail;
       ctx.globalAlpha = 0.55;
       ctx.lineWidth = 0.9;
       ctx.stroke();
@@ -935,7 +952,7 @@
         ctx.shadowColor = this.theme.accent2;
         ctx.shadowBlur = 8;
       } else {
-        ctx.strokeStyle = '#d0d8e0';
+        ctx.strokeStyle = this.theme.overlay;
         ctx.globalAlpha = 0.65;
         ctx.lineWidth = 1;
       }
@@ -1000,7 +1017,7 @@
           ctx.save();
           ctx.translate(x, y);
           ctx.rotate(angle);
-          ctx.strokeStyle = 'rgba(10, 20, 29, 0.9)';
+          ctx.strokeStyle = this.theme.halo;
           ctx.lineWidth = 1.5;
           ctx.strokeText(text, 0, 0);
           // Follow the line's hover state so the whole divide reads as one object.
@@ -1024,7 +1041,7 @@
       ctx.setLineDash([]);
       // Same muted style as the Asia-Europe divider so both read as
       // conceptual overlays rather than travel routes.
-      ctx.strokeStyle = '#d0d8e0';
+      ctx.strokeStyle = this.theme.overlay;
       ctx.globalAlpha = 0.65;
       ctx.lineWidth = 1;
       for (let s = 0; s < segments.length; s++) {
@@ -1076,7 +1093,7 @@
       ctx.lineJoin = 'round';
       ctx.translate(x, y);
       ctx.rotate(angle);
-      ctx.strokeStyle = 'rgba(10, 20, 29, 0.9)';
+      ctx.strokeStyle = this.theme.halo;
       ctx.lineWidth = 3;
       ctx.strokeText('THE GREAT WALL OF CHINA', 0, 0);
       ctx.fillStyle = this.theme.text || '#c4d4df';
@@ -1099,7 +1116,7 @@
         ctx.arc(p.x, p.y, hovered ? 2.6 : 1.4, 0, 7);
         ctx.fillStyle = T.accent;
         ctx.shadowColor = T.accent;
-        ctx.shadowBlur = hovered ? 10 : 4;
+        ctx.shadowBlur = (hovered ? 10 : 4) * T.glowScale;
         ctx.fill();
         ctx.shadowBlur = 0;
       }
@@ -1166,7 +1183,7 @@
         ctx.arc(p.x, p.y, hovered ? 3.6 : 2.6, 0, 7);
         ctx.fillStyle = T.accent;
         ctx.shadowColor = T.accent;
-        ctx.shadowBlur = hovered ? 14 : 8;
+        ctx.shadowBlur = (hovered ? 14 : 8) * T.glowScale;
         ctx.fill();
         ctx.shadowBlur = 0;
 

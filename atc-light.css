@@ -1,0 +1,615 @@
+/* ============================================================
+   LIGHT MODE — white-based palette for the whole viz.
+
+   Applied by adding `atc-light` to <body> (see atc-theme.js).
+   Nothing here fires unless that class is present, so dark mode
+   is untouched by this file.
+
+   Why it is written as selector overrides rather than variables:
+   the page's own <style> block hardcodes ~200 colour literals
+   (#fff / #ccc / #999 / #666 / #555 / rgba(255,255,255,.06) …),
+   so there is nothing to re-point. What IS systematic is that
+   those literals form a greyscale ramp, so the selectors below
+   are grouped by which rung of that ramp they used, and each
+   group is remapped to the inverted rung. Adding a new panel
+   means adding its selector to the matching group.
+
+   Load order matters: this file must come AFTER the page's
+   inline <style>, so it is linked at the end of <head>.
+   ============================================================ */
+
+body.atc-light {
+  /* ── the ramp, inverted ──
+     t1 was #fff  (headline text)      t4 was #666  (meta text)
+     t2 was #ccc  (body text)          t5 was #555  (rank numerals)
+     t3 was #999  (labels)             t6 was #3d3d3d (disabled) */
+  --l-t1: #131a20;
+  --l-t2: #38454f;
+  --l-t3: #5d6b77;
+  --l-t4: #7a8892;
+  --l-t5: #96a2ac;
+  --l-t6: #c2cad1;
+
+  --l-page:    #f1f4f8;   /* behind everything */
+  --l-panel:   #ffffff;   /* cards, sections, chart wells */
+  --l-panel-2: #f4f6f9;   /* recessed strips, tracks */
+  --l-line:    rgba(17, 27, 36, 0.12);
+  --l-line-2:  rgba(17, 27, 36, 0.07);
+  --l-hover:   rgba(17, 27, 36, 0.05);
+  --l-shadow:  0 6px 20px rgba(19, 26, 32, 0.10);
+
+  /* Brand colours, re-cut for white. Darkening alone is not enough — it
+     just makes them look washed out, because a mid-tone loses the punch on
+     white that it had glowing on black. Saturation has to go UP as
+     lightness comes down, keeping the original hue:
+       green #4CAF50 hsl(122,39%,49%) -> hsl(122,65%,28%)
+       gold  #FFD700 hsl( 51,100%,50%) -> hsl( 45,100%,32%)
+     Measured contrast on white: green 5.8:1, gold 4.9:1, accent2 5.3:1
+     (they were 2.8:1 and 1.3:1). */
+  --l-accent:  #19752c;
+  --l-accent2: #a8560c;
+  --l-gold:    #8f6b00;
+  --l-danger:  #c62828;
+
+  /* Backdrop field strength. The earlier grey cast came from the shader
+     being desaturated, not from this being high — that is fixed in
+     atc-bg.js, so the field can carry real colour here. Turn this down if
+     it competes with the panels; 0 disables the field in light mode. */
+  --atc-bg-opacity: 0.45;
+}
+
+/* ── ATC scope canvas ───────────────────────────────────────
+   atc-scope.js reads these off <body> in _readTheme(); the
+   toggle calls refreshTheme() so the globe repaints light. */
+body.atc-light {
+  --atc-scope-ocean: #dfe8f0;
+  --atc-scope-land:  #fbfcfd;
+  --atc-scope-coast: #9db0c0;
+  --atc-scope-grid:  #cdd9e3;
+  --atc-scope-ring:  #b4c3d0;
+
+  /* Canvas overlays. These were pale-on-dark literals in atc-scope.js
+     (#d0d8e0 for the Asia-Europe divide and the Great Wall, #5a636b /
+     #3a4652 for the context rail network) — white lines on a white globe.
+     They now read from these vars, with the old values as the dark
+     defaults. Halo/chip are the backdrops stroked behind canvas labels,
+     which have to invert with the ground they sit on. */
+  --atc-scope-overlay: #64768a;
+  --atc-scope-rail:    #93a3b0;
+  --atc-scope-rail-bg: #b6c2cc;
+  --atc-scope-halo:    rgba(255, 255, 255, 0.92);
+  --atc-scope-chip:    rgba(255, 255, 255, 0.88);
+
+  /* Glow multiplier for every canvas mark (city pins, the aircraft blip,
+     route arcs). Each is drawn with a shadowBlur in its OWN colour, which
+     reads as light on a dark globe but as a dark smear on a pale one —
+     that is what made the city dots look heavy and muddy. A little is kept
+     so hovered marks still lift off the map. 0 removes it entirely. */
+  --atc-scope-glow: 0.25;
+
+  --atc-bg:        var(--l-page);
+  --atc-panel:     var(--l-panel);
+  --atc-panel-2:   var(--l-panel-2);
+  --atc-line:      var(--l-line);
+  --atc-text:      #223039;
+  --atc-dim:       #6f8090;
+  --atc-faint:     #a2b0bc;
+  /* Canvas marks are deliberately NOT var(--l-accent) & co. Those tones are
+     cut for text contrast on white, which makes them too dark and heavy as
+     dots on a pale ocean. A city pin is a graphic mark a few pixels across,
+     read by hue against a light blue ground — it wants a vivid mid-tone,
+     not a legible dark one. Text keeps the darker --l-* values. */
+  --atc-accent:    #2f9e44;   /* visited pins, active routes */
+  --atc-accent2:   #d9741a;   /* current city, surface legs */
+  --atc-blip:      #e8a400;   /* aircraft symbol */
+  --atc-glow:      rgba(47, 158, 68, 0.30);
+  --atc-glow-amb:  rgba(217, 116, 26, 0.35);
+  --atc-route-past:   #86bd94;
+  --atc-route-active: #2f9e44;
+}
+
+/* ── page shell ───────────────────────────────────────────── */
+body.atc-light { color: var(--l-t1); }
+/* Literal, not var(--l-page): the tokens live on <body>, and custom
+   properties inherit downward only — <html> cannot see them. */
+html.atc-light-root { background: #f1f4f8 !important; }
+body.atc-light .main-container,
+body.atc-light #map,
+body.atc-light .leaflet-container { background: var(--l-page) !important; }
+
+body.atc-light .header {
+  background: rgba(255, 255, 255, 0.72);
+  border-bottom: 1px solid var(--l-line);
+}
+body.atc-light .main-title,
+body.atc-light .stat-value,
+body.atc-light .chart-label,
+body.atc-light .record-value,
+body.atc-light .duration-tip-avg,
+body.atc-light .city-status { color: var(--l-t1); }
+body.atc-light .header-slogan { color: rgba(19, 26, 32, 0.70); }
+body.atc-light .title-cursor { background: var(--l-t1); }
+
+/* Brand green — one group, retinted for white. */
+body.atc-light .header h1,
+body.atc-light .header-ticker .tl,
+body.atc-light .header-ticker .ticker-text,
+body.atc-light .city-list-title,
+body.atc-light .city-item.visited,
+body.atc-light .stats-title,
+body.atc-light .stat-value.highlight,
+body.atc-light .stat-increment,
+body.atc-light .bottom-bar-footer a,
+body.atc-light .chart-filter-btn.active,
+body.atc-light .chart-tooltip .ct-title,
+body.atc-light .widget-title,
+body.atc-light .hm-tip-val,
+body.atc-light .widget-row-tooltip .tip-val,
+body.atc-light .record-route,
+body.atc-light .rv-count,
+body.atc-light .ls-days,
+body.atc-light .ta-count,
+body.atc-light .duration-tip-year,
+body.atc-light .leaflet-tooltip.city-tooltip .city-name,
+body.atc-light .leaflet-popup-content-wrapper.route-popup .city-name { color: var(--l-accent); }
+
+body.atc-light .city-item.current { color: var(--l-gold); }
+body.atc-light .footer-heart { color: var(--l-danger); }
+body.atc-light .header-ticker .tv { color: var(--l-t1); }
+
+/* ── the greyscale text ramp ──────────────────────────────── */
+body.atc-light .cr-country,
+body.atc-light .un-name,
+body.atc-light .rv-city,
+body.atc-light .ls-name,
+body.atc-light .ta-name,
+body.atc-light .widgets-toggle,
+body.atc-light .widget-row-tooltip,
+body.atc-light .neighbors-legend-item,
+body.atc-light .timeline-legend-item,
+body.atc-light .city-item .city-native,
+body.atc-light .chart-tooltip .ct-value,
+body.atc-light .widget-map-tooltip,
+body.atc-light .leaflet-tooltip.city-tooltip .city-native { color: var(--l-t2) !important; }
+
+body.atc-light .city-country,
+body.atc-light .stat-label,
+body.atc-light .bottom-bar-footer,
+body.atc-light .hm-tip-date,
+body.atc-light .widget-row-tooltip .tip-label,
+body.atc-light .record-label,
+body.atc-light .heatmap-year-label,
+body.atc-light .duration-tip-detail { color: var(--l-t3); }
+
+body.atc-light .record-date,
+body.atc-light .neighbors-region-count,
+body.atc-light .rv-country,
+body.atc-light .chart-filter-btn { color: var(--l-t4); }
+
+body.atc-light .cr-rank,
+body.atc-light .rv-rank,
+body.atc-light .ls-rank,
+body.atc-light .ta-rank,
+body.atc-light .neighbors-region-label { color: var(--l-t5); }
+
+body.atc-light .chart-filter-btn:disabled { color: var(--l-t6); }
+body.atc-light .chart-filter-btn:hover:not(:disabled),
+body.atc-light .cr-row:hover .cr-country,
+body.atc-light .widgets-toggle:hover { color: var(--l-t1); }
+body.atc-light .chart-tooltip .ct-label { color: rgba(19, 26, 32, 0.55); }
+body.atc-light .chart-tooltip .ct-footer { color: rgba(19, 26, 32, 0.45); }
+body.atc-light .leaflet-tooltip.city-tooltip .city-country,
+body.atc-light .leaflet-popup-content-wrapper.route-popup .city-country { color: var(--l-t2); }
+
+/* ── panels & surfaces ──────────────────────────────────────
+   Dark mode gets away with panel and container being the same #070b10,
+   separated only by a hairline. On white that reads as one flat sheet, so
+   the containers drop to the page tone and the cards stay pure white — the
+   cards then sit ON something instead of dissolving into it. */
+body.atc-light .widgets-section { background: var(--l-page); }
+
+body.atc-light .city-list-container,
+body.atc-light .widget-card,
+body.atc-light #chartContainer,
+body.atc-light #priceChartContainer {
+  background: var(--l-panel);
+  border-color: var(--l-line);
+}
+body.atc-light .city-list-container { border-top: 1px solid var(--l-line); }
+body.atc-light .widget-card,
+body.atc-light .city-list-container { box-shadow: var(--l-shadow); }
+
+/* Dark gradient tooltips → flat white cards. */
+body.atc-light .leaflet-tooltip.city-tooltip,
+body.atc-light .leaflet-popup-content-wrapper.route-popup,
+body.atc-light .chart-tooltip,
+body.atc-light .heatmap-tooltip,
+body.atc-light .widget-row-tooltip,
+body.atc-light .record-card,
+body.atc-light .lang-btn::after {
+  background: var(--l-panel) !important;
+  border: 1px solid var(--l-line) !important;
+  box-shadow: var(--l-shadow) !important;
+}
+
+body.atc-light .progress-bar { background: rgba(17, 27, 36, 0.10); }
+body.atc-light .progress-scrubber { background: var(--l-accent); }
+body.atc-light .stat-increment {
+  background: rgba(47, 139, 65, 0.12);
+  border: 1px solid var(--l-accent);
+}
+body.atc-light .cr-row:hover { background: var(--l-hover); }
+body.atc-light .cr-bar-bg,
+body.atc-light .rv-bar-bg,
+body.atc-light .ls-bar-bg { background: rgba(17, 27, 36, 0.10); }
+body.atc-light .rv-bar-fill { background: var(--l-accent); }
+body.atc-light .un-row,
+body.atc-light .rv-row,
+body.atc-light .ls-row,
+body.atc-light .neighbors-region { border-color: var(--l-line-2); }
+body.atc-light .neighbors-region { background: var(--l-panel-2); }
+body.atc-light .neighbors-legend-visa {
+  background: var(--l-panel-2);
+  border: 1px solid var(--l-line);
+}
+body.atc-light .neighbors-dot.visited  { background: rgba(47, 139, 65, 0.75); }
+body.atc-light .neighbors-dot.unvisited { background: rgba(199, 124, 20, 0.85); }
+/* City-list number buttons: white with green numerals by default, and the
+   fill inverts on the selected city — green button, white numeral. The
+   outline is what keeps a white button visible, since the list itself is
+   transparent over a white page.
+
+   The dark theme also gives these a coloured glow (box-shadow: 0 0 8px of
+   the fill colour), which needs a dark ground to read as light — on white
+   it is just a coloured smudge around each button, so it is dropped. */
+body.atc-light .city-status,
+body.atc-light .city-status.visited {
+  background: #ffffff;
+  color: var(--l-accent);
+  border: 1px solid rgba(25, 117, 44, 0.38);
+  box-shadow: none;
+  box-sizing: border-box;
+}
+body.atc-light .city-status.current {
+  background: var(--l-accent);
+  color: #ffffff;
+  border: 1px solid var(--l-accent);
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+body.atc-light .widgets-toggle,
+body.atc-light .lang-btn {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--l-line);
+}
+body.atc-light .widgets-toggle:hover { background: #ffffff; }
+body.atc-light .lang-btn:hover { border-color: var(--l-t4); }
+body.atc-light .lang-btn.active { border-color: var(--l-accent); }
+body.atc-light .lang-btn::after { background: var(--l-accent) !important; }
+
+body.atc-light .leaflet-control-zoom,
+body.atc-light .leaflet-control-zoom a {
+  background: var(--l-panel);
+  border-color: var(--l-line);
+  color: var(--l-t2);
+}
+body.atc-light .leaflet-control-zoom a:hover { background: var(--l-panel-2); }
+
+/* Scrollbars */
+body.atc-light::-webkit-scrollbar-track,
+body.atc-light .city-list::-webkit-scrollbar-track,
+body.atc-light .chart-scrollbar-track,
+body.atc-light #spendingHeatmap::-webkit-scrollbar-track { background: var(--l-panel-2); }
+body.atc-light .city-list::-webkit-scrollbar-thumb,
+body.atc-light .chart-scrollbar-thumb,
+body.atc-light #spendingHeatmap::-webkit-scrollbar-thumb { background: var(--l-t6); }
+body.atc-light .chart-scrollbar-thumb:hover,
+body.atc-light .chart-scrollbar-thumb.dragging { background: var(--l-t5); }
+
+/* ── records cards ──────────────────────────────────────────
+   These are painted by a 3-class !important rule in atc-skin.css: a
+   two-layer background where layer 1 is the card FACE (a flat #282828
+   fill, clipped to padding-box) and layer 2 is the animated green
+   gradient showing only through the transparent 1px border. The generic
+   `.record-card` override above loses on specificity, so the face has to
+   be restated here at 4 classes. The border gradient is copied verbatim
+   so the flow animation keeps working — only the face colour changes. */
+body.atc-light .widget-stack .atc-records-area .record-card {
+  background-image:
+    linear-gradient(#ffffff, #ffffff),
+    linear-gradient(
+      90deg,
+      #1b4d21 0%, #2d6a32 12.5%, #4CAF50 25%, #7fe091 37.5%, #b5f5b5 50%,
+      #7fe091 62.5%, #4CAF50 75%, #2d6a32 87.5%, #1b4d21 100%
+    ) !important;
+  box-shadow: 0 8px 22px rgba(19, 26, 32, 0.12) !important;
+}
+body.atc-light .widget-card:has(#recordsCards) .record-card {
+  box-shadow: 0 8px 22px rgba(19, 26, 32, 0.12) !important;
+}
+
+/* ── spending heatmap ───────────────────────────────────────
+   The cells are SVG rects whose colour is a `fill` PRESENTATION
+   ATTRIBUTE, which any CSS rule outranks — so the zero-spend swatch
+   (#161b22, built for a dark page) can be retargeted by value. The
+   spend buckets themselves are left alone: they are data encoding, and
+   the GitHub greens still read on white. */
+body.atc-light .hm-cell[fill="#161b22"] { fill: #e4e9ee; }
+body.atc-light .hm-cell { outline-color: rgba(17, 27, 36, 0.06) !important; }
+body.atc-light #spendingHeatmap text[fill="#8b949e"] { fill: var(--l-t3); }
+
+/* ── grouped city list + stats column ───────────────────────
+   The city list stays transparent, as designed — it is meant to float on
+   the page, not sit in a card. Only its colours are corrected here.
+
+   Stats panel paints an inner fill to padding-box and a rotating green
+   conic sweep to border-box. Only the inner fill changes; the sweep is
+   restated verbatim so the border animation survives. */
+body.atc-light .stats-citylist-row > .stats-section {
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    conic-gradient(
+      from var(--atc-stats-sweep, 0deg),
+      rgba(76, 175, 80, 0)   0deg,
+      rgba(76, 175, 80, 0)  60deg,
+      rgba(76, 175, 80, 0.35) 80deg,
+      #4CAF50  95deg,
+      #b5f5b5 100deg,
+      #4CAF50 105deg,
+      rgba(76, 175, 80, 0.35) 120deg,
+      rgba(76, 175, 80, 0) 140deg,
+      rgba(76, 175, 80, 0) 360deg
+    ) border-box !important;
+  box-shadow: 0 8px 22px rgba(19, 26, 32, 0.12) !important;
+}
+/* Ungrouped fallback layout. */
+body.atc-light > .stats-section {
+  background: var(--l-panel);
+  border-color: var(--l-line);
+  box-shadow: var(--l-shadow);
+}
+/* The gold "current city" glow smears into a yellow haze on white. */
+body.atc-light .city-item.current { text-shadow: none; }
+
+/* ── unvisited-neighbours legend bar ────────────────────────
+   The "visited" swatch sits directly on the legend BAR, whose dark
+   translucent fill is set with !important in atc-skin.css. The visa groups
+   inside it are separate .neighbors-legend-visa elements, which is why
+   those turned white earlier and this one did not. */
+body.atc-light .widget-card:has(#unvisitedNeighbors) #unvisitedNeighbors > .neighbors-legend {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-color: rgba(25, 117, 44, 0.30) !important;
+  box-shadow: 0 4px 16px rgba(19, 26, 32, 0.14) !important;
+}
+
+/* ── trophy / achievements panel ────────────────────────────
+   widget/country-trophy.js injects its stylesheet at runtime, so it lands
+   in the cascade AFTER this file. Order cannot win that; every rule below
+   therefore leans on the body.atc-light prefix to out-specify it. */
+body.atc-light #achievements-overlay { background: rgba(19, 26, 32, 0.45); }
+body.atc-light .achievements-panel {
+  background: var(--l-panel);
+  box-shadow: 0 20px 60px rgba(19, 26, 32, 0.28);
+}
+body.atc-light .achievements-header,
+body.atc-light .world-progress,
+body.atc-light .ach-section-header { border-bottom-color: var(--l-line); }
+body.atc-light .achievements-title,
+body.atc-light .world-progress-title { color: var(--l-accent); }
+body.atc-light .achievements-summary,
+body.atc-light .world-progress-count,
+body.atc-light .ach-desc { color: var(--l-t3); }
+body.atc-light .achievements-close,
+body.atc-light .world-progress-pct,
+body.atc-light .ach-section-count,
+body.atc-light .ach-date { color: var(--l-t4); }
+body.atc-light .achievements-close:hover { color: var(--l-t1); }
+body.atc-light .world-progress-bar,
+body.atc-light .ach-progress { background: rgba(17, 27, 36, 0.10); }
+body.atc-light .ach-divider { background: var(--l-line); }
+body.atc-light .ach-row:hover { background: var(--l-hover); }
+body.atc-light .ach-badge.earned-badge {
+  background: rgba(25, 117, 44, 0.14);
+  color: var(--l-accent);
+}
+body.atc-light .ach-badge.locked-badge {
+  background: rgba(17, 27, 36, 0.06);
+  color: var(--l-t5);
+}
+body.atc-light .achievements-body::-webkit-scrollbar-track { background: var(--l-panel-2); }
+body.atc-light .achievements-body::-webkit-scrollbar-thumb { background: var(--l-t6); }
+body.atc-light .achievements-body::-webkit-scrollbar-thumb:hover { background: var(--l-t5); }
+/* Toast that pops when an achievement unlocks. */
+body.atc-light .trophy-notification {
+  background: var(--l-panel);
+  box-shadow: var(--l-shadow);
+}
+body.atc-light .trophy-label { color: var(--l-t3); }
+body.atc-light .trophy-subtitle { color: var(--l-t1); }
+
+/* ── quote widget ───────────────────────────────────────────
+   #c4d4df is a pale blue-grey picked to sit on near-black; on the light
+   page it is about 1.4:1 and all but vanishes. The widget is transparent,
+   so this text lands straight on the page — it needs a body-text tone,
+   not a muted one. Author line stays one step down the ramp. */
+body.atc-light .atc-quote-widget .atc-quote-text { color: var(--l-t1); }
+body.atc-light .atc-quote-widget .atc-quote-author { color: var(--l-t3); }
+body.atc-light .atc-quote-widget .atc-quote-cursor { background: var(--l-accent); }
+body.atc-light .atc-quote-widget .atc-quote-translation,
+body.atc-light .atc-quote-widget .atc-quote-author-en { color: var(--l-accent) !important; }
+
+/* ── map chrome: playbar + leaflet control stack ─────────────
+   PAUSE / RESET / speed / LEG readout, and the ROUTES / FOLLOW /
+   TROPHY / J2L III button column. Both are built as translucent DARK
+   panels with green text-glow, which on white turns into dark boxes
+   with smeared haloes — so the panels flip to translucent white and
+   every glow is dropped (a glow needs a dark ground to read as light;
+   on white it just reads as blur). Specificity has to beat the base
+   rules' !important, hence the body.atc-light prefix throughout. */
+body.atc-light .atc-playbar {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(47, 139, 65, 0.34);
+  box-shadow: 0 0 10px rgba(47, 139, 65, 0.10),
+              0 6px 18px rgba(19, 26, 32, 0.12);
+}
+body.atc-light .atc-playbar .atc-pb-btn {
+  color: var(--l-accent);
+  border-color: rgba(47, 139, 65, 0.30);
+  text-shadow: none;
+}
+body.atc-light .atc-playbar .atc-pb-btn:hover {
+  background: rgba(47, 139, 65, 0.12);
+  color: #1c6b2f;
+  border-color: rgba(47, 139, 65, 0.65);
+}
+body.atc-light .atc-playbar .atc-pb-btn.atc-pb-on {
+  background: rgba(47, 139, 65, 0.18);
+  color: #15542a;
+  border-color: rgba(47, 139, 65, 0.65);
+  box-shadow: inset 0 0 8px rgba(47, 139, 65, 0.22);
+}
+body.atc-light .atc-playbar .atc-pb-status {
+  color: var(--l-t3);
+  border-left-color: rgba(47, 139, 65, 0.28);
+}
+
+body.atc-light .leaflet-control-zoom,
+body.atc-light .leaflet-bar {
+  background: rgba(255, 255, 255, 0.90) !important;
+  border-color: rgba(47, 139, 65, 0.34) !important;
+  box-shadow: 0 0 10px rgba(47, 139, 65, 0.10),
+              0 6px 18px rgba(19, 26, 32, 0.12) !important;
+}
+body.atc-light .leaflet-control-zoom a,
+body.atc-light .leaflet-bar a,
+body.atc-light .leaflet-control-custom {
+  color: var(--l-accent) !important;
+  border-bottom-color: rgba(47, 139, 65, 0.20) !important;
+  text-shadow: none !important;
+}
+body.atc-light .leaflet-control-zoom a:hover,
+body.atc-light .leaflet-bar a:hover,
+body.atc-light .leaflet-control-custom:hover {
+  background: rgba(47, 139, 65, 0.12) !important;
+  color: #1c6b2f !important;
+  text-shadow: none !important;
+}
+body.atc-light .leaflet-control-custom.atc-active {
+  background: rgba(47, 139, 65, 0.20) !important;
+  color: #15542a !important;
+  text-shadow: none !important;
+  box-shadow: inset 0 0 10px rgba(47, 139, 65, 0.25) !important;
+}
+body.atc-light .leaflet-control-custom svg,
+body.atc-light .leaflet-control-custom.atc-active svg { filter: none; }
+body.atc-light .leaflet-control-custom.atc-mb.atc-speed-active {
+  color: #a06a00 !important;              /* #ffce4d is invisible on white */
+  text-shadow: none !important;
+}
+body.atc-light .leaflet-control-zoom:focus-within,
+body.atc-light .leaflet-bar:focus-within {
+  border-color: rgba(47, 139, 65, 0.75) !important;
+  box-shadow: 0 0 12px rgba(47, 139, 65, 0.22),
+              0 6px 18px rgba(19, 26, 32, 0.14) !important;
+}
+
+/* ── scope corner readouts ──────────────────────────────────
+   PPI · ORTHOGRAPHIC · N-UP (top left) and RANGE-FOLLOW / SWEEP 60RPM /
+   GAIN AUTO (top right). These carry `text-shadow: 0 0 4px rgba(0,0,0,.85)`
+   — a black halo for legibility over a dark globe, which over a pale one
+   is just a dark smudge behind every glyph. Inverted to a white halo,
+   which does the same job on a light ground. */
+body.atc-light .atc-scope-tag,
+body.atc-light .atc-scope-mode {
+  color: var(--l-t3);
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.95),
+               0 0 2px rgba(255, 255, 255, 0.95);
+}
+body.atc-light .atc-scope-tag b,
+body.atc-light .atc-scope-mode b { color: var(--l-accent); }
+
+/* Same treatment for the year overlay stamped across the map. */
+body.atc-light .year-overlay {
+  color: rgba(47, 139, 65, 0.90) !important;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.85) !important;
+}
+
+/* Unvisited-neighbours deltas: the up-arrow's near-white #cfcfcf with a
+   white glow disappears entirely on a white card. */
+body.atc-light .widget-card:has(#unvisitedNeighbors) .atc-rdiv-up {
+  color: var(--l-t2) !important;
+  text-shadow: none;
+}
+body.atc-light .widget-card:has(#unvisitedNeighbors) .atc-rdiv-down {
+  color: #9c4d57 !important;
+  text-shadow: none;
+}
+
+/* ── ATC skin chrome ──────────────────────────────────────── */
+/* The scope's own vignette is a hard black ellipse (rgba(0,0,0,0.65))
+   burned into the map area — separate from the page backdrop's, and the
+   one still darkening the globe in light mode. */
+body.atc-light .atc-vignette {
+  background: radial-gradient(ellipse at center, transparent 62%, rgba(96, 122, 148, 0.16) 100%);
+}
+body.atc-light .atc-scope-tip,
+body.atc-light .atc-null-tip {
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--l-t2);
+  box-shadow: var(--l-shadow);
+}
+body.atc-light .atc-scope-tip .cn { text-shadow: none; }
+body.atc-light .atc-scope-tip .cd { border-top-color: var(--l-line); }
+body.atc-light .fbl-tooltip.variant-divider,
+body.atc-light .fbl-tooltip.variant-boss {
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--l-t2);
+  box-shadow: var(--l-shadow);
+}
+
+/* The dark vignette rings a white page in soot, and combined with the
+   backdrop field it was the main source of the grey cast. Barely-there here,
+   and cool rather than neutral so it reads as shading, not dirt.
+   It lives on <html>, hence the root-level class rather than body's. */
+html.atc-light-root::after {
+  background:
+    radial-gradient(140% 105% at 50% 42%, transparent 62%, rgba(96, 122, 148, 0.09) 100%) !important;
+}
+
+/* Radar sweep / scanlines are built for a dark scope, where they add texture.
+   Over a pale globe they just lay down grey, so the scanlines go entirely and
+   the sweep drops to a hint. */
+body.atc-light .atc-sweep { opacity: 0.28; }
+body.atc-light .atc-scanlines { display: none; }
+
+/* ── theme-change crossfade ───────────────────────────────────
+   atc-theme.js adds .atc-theming for the duration of the swap, so
+   every themed surface tweens between palettes instead of cutting.
+   It is removed afterwards, which keeps these transitions from
+   interfering with the UI's own hover/active transitions. */
+/* Scoped to the big surfaces ON PURPOSE. The first version of this rule
+   was `body.atc-theming *`, which put a 7-property transition on every
+   node in the document — and this document is enormous (721 legs, the
+   full city list, every widget row and chart label). Recalculating and
+   compositing that many animated elements for 650ms, on top of the rAF
+   globe loop and the WebGL backdrop, is what froze the viz on toggle.
+   A dozen large panels crossfading reads the same to the eye and costs
+   almost nothing; the small text inside them simply cuts. */
+body.atc-theming,
+body.atc-theming .header,
+body.atc-theming .main-container,
+body.atc-theming .city-list-container,
+body.atc-theming .stats-section,
+body.atc-theming .widgets-section,
+body.atc-theming .widget-card,
+body.atc-theming #chartContainer,
+body.atc-theming #priceChartContainer,
+body.atc-theming .atc-playbar,
+body.atc-theming .leaflet-control-zoom,
+body.atc-theming .leaflet-bar {
+  transition:
+    background-color var(--atc-theme-ms, 650ms) ease,
+    border-color     var(--atc-theme-ms, 650ms) ease,
+    color            var(--atc-theme-ms, 650ms) ease !important;
+}

@@ -3738,8 +3738,7 @@ class AnimatedFlightMap {
                 scales: {
                     x: {
                         ticks: { display: false },
-                        grid: { color: '#1e1e1e09' }
-                        
+                        grid: { display: false }
                     },
                     y1: {
                         type: 'linear',
@@ -3803,7 +3802,7 @@ class AnimatedFlightMap {
                     scales: {
                         x: {
                             ticks: { display: false },
-                            grid: { color: '#1e1e1e09' }
+                            grid: { display: false }
                         },
                         y: {
                             ticks: { color: '#4CAF50', font: { size: 11 }, maxTicksLimit: 3 },

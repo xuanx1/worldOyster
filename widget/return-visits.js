@@ -37,17 +37,28 @@
             if (country && !counts[key].country) counts[key].country = country;
         }
 
-        data.forEach(j => {
+        // A visit is an ARRIVAL, so only destinations are counted.
+        //
+        // The itinerary is one continuous chain: every leg departs from the
+        // city the previous leg arrived at. Counting both endpoints therefore
+        // scored each stop twice — once on arriving, again on leaving — which
+        // is why Singapore read 107x for roughly half that many actual stays.
+        //
+        // The one city with no arriving leg is the chain's very first origin,
+        // so it is credited once, below. Journeys are taken in array order,
+        // which is the chronological order the rest of the viz plays them in.
+        data.forEach((j, idx) => {
             const cost = parseFloat(j.costSGD || j.actualCostSGD || 0) || 0;
-            // Full journey cost credited to the DESTINATION city
-            // (cost to arrive). Origin city still counts as a visit
-            // but contributes no extra cost.
+            let fromCity, toCity, fromCountry, toCountry;
+
             if (j.type === 'land') {
-                add(j.origin, cityCountryMap[j.origin], 0);
-                add(j.destination, cityCountryMap[j.destination], cost);
+                fromCity = j.origin;
+                toCity = j.destination;
+                fromCountry = cityCountryMap[j.origin];
+                toCountry = cityCountryMap[j.destination];
             } else {
-                let fromCity = j.fromCode && airportToCity[j.fromCode] ? airportToCity[j.fromCode] : null;
-                let toCity = j.toCode && airportToCity[j.toCode] ? airportToCity[j.toCode] : null;
+                fromCity = j.fromCode && airportToCity[j.fromCode] ? airportToCity[j.fromCode] : null;
+                toCity = j.toCode && airportToCity[j.toCode] ? airportToCity[j.toCode] : null;
                 if (!fromCity) {
                     const m = (j.from || '').match(/^([^/]+?)(?:\s*\/|$)/);
                     fromCity = m ? m[1].trim() : j.from;
@@ -56,9 +67,15 @@
                     const m = (j.to || '').match(/^([^/]+?)(?:\s*\/|$)/);
                     toCity = m ? m[1].trim() : j.to;
                 }
-                add(fromCity, airportToCountry[j.fromCode], 0);
-                add(toCity, airportToCountry[j.toCode], cost);
+                fromCountry = airportToCountry[j.fromCode];
+                toCountry = airportToCountry[j.toCode];
             }
+
+            // Starting point of the whole journey — nothing ever arrives
+            // there, so it would otherwise be missing a visit.
+            if (idx === 0) add(fromCity, fromCountry, 0);
+            // Full journey cost is credited to the destination (cost to arrive).
+            add(toCity, toCountry, cost);
         });
 
         return Object.values(counts)
