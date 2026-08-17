@@ -65,6 +65,12 @@
       this.greatWallLines = null;   // Array of segments (each = array of [lat, lng])
       this.greatWallPasses = [];    // [{ lat, lng, name, _sx, _sy, _vis }]
       this.hoveredPassIdx = null;   // Great Wall pass under cursor
+      // Null Island (0°N, 0°E) marker — geometry parsed from asset/icons/null.svg.
+      this.nullIsland = null;       // { vb, groups: Map<id, Path2D> } — set by loadNullIsland
+      this.showNullIsland = true;
+      this.nullIslandSize = 14;     // marker width in CSS px
+      this.nullIslandHovered = false; // set externally on canvas mousemove
+      this._niScreen = null;        // last projected screen point (hit-testing)
       // Alternate trans-continental rail lines drawn as darker context in FBL.
       this.otherTransLines = null;  // Array of { line: [[lat,lng]...], name }
       // Natural Earth 1:10m global rail network — background layer in FBL.
@@ -228,6 +234,37 @@
       this.countries = countries;
     }
 
+    // Load the Null Island marker artwork. Each top-level <g> in the SVG
+    // becomes one Path2D keyed by its id, so layers can be drawn (and
+    // animated) independently — "outer" is the group we pulse.
+    async loadNullIsland(url) {
+      const txt = await (await fetch(url)).text();
+      const doc = new DOMParser().parseFromString(txt, 'image/svg+xml');
+      const svg = doc.querySelector('svg');
+      if (!svg || doc.querySelector('parsererror')) throw new Error('null.svg parse failed');
+      const vbAttr = (svg.getAttribute('viewBox') || '0 0 100 100').trim().split(/[\s,]+/).map(Number);
+      const vb = { x: vbAttr[0], y: vbAttr[1], w: vbAttr[2], h: vbAttr[3] };
+
+      const groups = new Map();
+      svg.querySelectorAll('g[id]').forEach(g => {
+        const path = new Path2D();
+        g.querySelectorAll('polygon, polyline, path').forEach(el => {
+          if (el.tagName === 'path') {
+            const d = el.getAttribute('d');
+            if (d) path.addPath(new Path2D(d));
+            return;
+          }
+          const nums = (el.getAttribute('points') || '').trim().split(/[\s,]+/).map(Number);
+          if (nums.length < 4) return;
+          path.moveTo(nums[0], nums[1]);
+          for (let i = 2; i + 1 < nums.length; i += 2) path.lineTo(nums[i], nums[i + 1]);
+          if (el.tagName === 'polygon') path.closePath();
+        });
+        groups.set(g.id, path);
+      });
+      this.nullIsland = { vb, groups };
+    }
+
     setVisitedCountries(setOrArray) {
       const next = (!setOrArray) ? null
         : (setOrArray instanceof Set) ? setOrArray : new Set(setOrArray);
@@ -296,6 +333,8 @@
         this._drawRoutes();
       }
       this._drawAirports();
+      // Hidden during FBL — that mode isolates the rail story.
+      if (this.showNullIsland && !this.fblActive) this._drawNullIsland();
       // Great Wall passes intentionally hidden (only lines are drawn).
       // Trans-Sib station dots are NOT drawn in FBL — the normal airport
       // pipeline (syncAirports → _drawAirports) shows a green pin only
@@ -612,6 +651,81 @@
       });
     }
 
+    // Null Island — the phantom fix at 0°N 0°E where the graticule crosses.
+    // The static crosshair layer ("Objects") sits at a fixed screen size; the
+    // "outer" bracket layer breathes and throws an expanding echo so the
+    // contact reads as live rather than as another airport pin.
+    _drawNullIsland() {
+      const ni = this.nullIsland;
+      if (!ni) { this._niScreen = null; return; }
+      const p = this.project(0, 0);
+      if (!p.vis) { this._niScreen = null; return; }
+      this._niScreen = p;
+      const ctx = this.ctx, T = this.theme;
+      const hov = this.nullIslandHovered;
+      const SIZE = this.nullIslandSize;
+      const unit = SIZE / ni.vb.w;     // SVG units → screen px
+      const cx = ni.vb.x + ni.vb.w / 2, cy = ni.vb.y + ni.vb.h / 2;
+
+      // Draw `path` centred on the marker, scaled by `k` (1 = nominal size).
+      // At this size the artwork's strokes land well under a pixel (the
+      // crosshair arms are 1.6% of the viewBox), so each shape is stroked as
+      // well as filled to hold a ~0.6px floor — otherwise it fades to nothing.
+      const paint = (path, k, alpha, colour, glow) => {
+        if (!path) return;
+        const s = unit * k;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.scale(s, s);
+        ctx.translate(-cx, -cy);
+        ctx.fillStyle = colour;
+        ctx.strokeStyle = colour;
+        ctx.lineWidth = 0.6 / s;      // 0.6 screen px, expressed in SVG units
+        ctx.lineJoin = 'round';
+        ctx.globalAlpha = alpha;
+        // shadowBlur is unaffected by the CTM, so it stays in screen px.
+        if (glow) { ctx.shadowColor = colour; ctx.shadowBlur = glow; }
+        ctx.fill(path);
+        ctx.stroke(path);
+        ctx.restore();
+      };
+
+      const t = (performance.now() % 2200) / 2200;   // 0..1 pulse cycle
+
+      // Static crosshair — dim, so it doesn't read as a visited pin.
+      paint(ni.groups.get('Objects'), 1, hov ? 0.9 : 0.5, hov ? T.text : T.dim, 0);
+
+      // "outer" layer: breathing brackets…
+      const breathe = 0.5 - 0.5 * Math.cos(t * Math.PI * 2);   // 0..1..0
+      const col = hov ? T.accent2 : T.accent;
+      paint(ni.groups.get('outer'), 1 + breathe * 0.06, (hov ? 0.6 : 0.35) + breathe * 0.4, col, 6 + breathe * 12);
+      // …plus an echo that expands outward and fades.
+      if (t < 0.85) {
+        const e = t / 0.85;
+        paint(ni.groups.get('outer'), 1 + e * 0.45, (1 - e) * (hov ? 0.5 : 0.35), col, 0);
+      }
+
+      if (this.showLabels || hov) {
+        ctx.save();
+        ctx.font = '8.5px "IBM Plex Mono", monospace';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.fillStyle = hov ? col : T.dim; ctx.globalAlpha = hov ? 1 : 0.8;
+        ctx.fillText('NULL ISLAND', p.x, p.y + SIZE / 2 + 4);
+        ctx.restore();
+      }
+    }
+
+    // True when (sx, sy) is over the Null Island marker. Mirrors
+    // hitTestDivider's contract so atc-skin can drive a hover tooltip.
+    hitTestNullIsland(sx, sy, tol) {
+      if (!this._niScreen || !this.showNullIsland || this.fblActive) return false;
+      // Floor the radius at 10px — the marker is small enough that its own
+      // half-width would make it fiddly to hover.
+      const r = (tol != null ? tol : Math.max(10, this.nullIslandSize / 2));
+      const dx = this._niScreen.x - sx, dy = this._niScreen.y - sy;
+      return (dx * dx + dy * dy) <= r * r;
+    }
+
     _drawBlip() {
       if (!this.blip) { this._blipScreen = null; return; }
       const p = this.project(this.blip.lat, this.blip.lng);
@@ -812,9 +926,19 @@
         : d;
       ctx.save();
       ctx.setLineDash([4, 6]);
-      ctx.strokeStyle = '#d0d8e0';
-      ctx.globalAlpha = 0.65;
-      ctx.lineWidth = 1;
+      // Hover (set by final-boss.js via hitTestDivider) lights the whole line
+      // amber, matching its tooltip's accent border.
+      if (this.dividerNear) {
+        ctx.strokeStyle = this.theme.accent2;
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = 1.8;
+        ctx.shadowColor = this.theme.accent2;
+        ctx.shadowBlur = 8;
+      } else {
+        ctx.strokeStyle = '#d0d8e0';
+        ctx.globalAlpha = 0.65;
+        ctx.lineWidth = 1;
+      }
       for (let s = 0; s < segments.length; s++) {
         const seg = segments[s];
         if (!seg || seg.length < 2) continue;
@@ -879,7 +1003,8 @@
           ctx.strokeStyle = 'rgba(10, 20, 29, 0.9)';
           ctx.lineWidth = 1.5;
           ctx.strokeText(text, 0, 0);
-          ctx.fillStyle = this.theme.text || '#c4d4df';
+          // Follow the line's hover state so the whole divide reads as one object.
+          ctx.fillStyle = this.dividerNear ? this.theme.accent2 : (this.theme.text || '#c4d4df');
           ctx.globalAlpha = 0.9;
           ctx.fillText(text, 0, 0);
           ctx.globalAlpha = 1;

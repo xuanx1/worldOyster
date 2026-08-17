@@ -270,6 +270,42 @@
 .atc-scope-tip .rt-arr { font-style: normal; color: var(--atc-dim); padding: 0 4px; }
 .atc-scope-tip .rt-dim { font-size: 9.5px; color: var(--atc-dim); letter-spacing: 0.18em; margin-top: 3px; font-variant-numeric: tabular-nums; }
 
+/* Null Island tip. Lives on <body> and is positioned in viewport coords, so
+   unlike .atc-scope-tip it is not clipped by .card-container's overflow:hidden
+   — matches how final-boss.js floats the continental-divide tooltip. */
+.atc-null-tip {
+  position: fixed;
+  z-index: 9999;
+  background: rgba(7,11,16,0.94);
+  border: 1px solid var(--atc-accent2, #f4a13c);
+  padding: 7px 11px;
+  font-family: var(--atc-mono, 'IBM Plex Mono', ui-monospace, monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--atc-text, #c4d4df);
+  line-height: 1.25;
+  min-width: 120px;
+  max-width: 320px;
+  box-shadow: 0 0 0 1px rgba(244,161,60,0.18), 0 8px 24px rgba(0,0,0,0.6);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.atc-null-tip.on { opacity: 1; }
+.atc-null-tip .rh {
+  font-family: var(--atc-cond, 'Barlow Semi Condensed', sans-serif);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: var(--atc-accent2, #f4a13c);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.atc-null-tip .rt-line { font-size: 11px; color: var(--atc-text, #c4d4df); letter-spacing: 0.06em; }
+.atc-null-tip .rt-end { font-weight: 600; }
+.atc-null-tip .rt-arr { font-style: normal; color: var(--atc-dim, #607583); padding: 0 4px; }
+.atc-null-tip .rt-dim { font-size: 9.5px; color: var(--atc-dim, #607583); letter-spacing: 0.18em; margin-top: 3px; font-variant-numeric: tabular-nums; }
+
 /* Boot splash inside the map */
 .atc-scope-boot {
   position: absolute; inset: 0;

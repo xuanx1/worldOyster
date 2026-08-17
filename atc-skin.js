@@ -190,6 +190,57 @@
     tip.style.top = my + 'px';
   }
 
+  // Null Island popup. Unlike #atcScopeTip (a child of .map-container, and so
+  // clipped by .card-container's overflow:hidden), this lives on document.body
+  // and is positioned in viewport coords — same trick the continental-divide
+  // tooltip in final-boss.js uses, so it can spill outside the card.
+  let nullTipEl = null;
+  function ensureNullTip() {
+    if (nullTipEl) return nullTipEl;
+    const el = document.createElement('div');
+    el.className = 'atc-null-tip';
+    el.id = 'atcNullTip';
+    document.body.appendChild(el);
+    nullTipEl = el;
+    return el;
+  }
+
+  // (ax, ay) = the MARKER's viewport position, not the cursor's. Anchoring to
+  // the marker keeps the box still while the mouse moves inside the hit area,
+  // and lets it sit clear of both the cursor and the icon it describes.
+  function showNullIslandTip(ax, ay) {
+    const el = ensureNullTip();
+    // Content is static — only write it on the transition into hover so a
+    // mousemove doesn't re-parse HTML every frame.
+    if (!el.classList.contains('on')) {
+      el.innerHTML =
+        '<div class="rh">NULL ISLAND</div>' +
+        '<div class="rt-line"><span class="rt-end">0°00′00″N</span>' +
+          ' <em class="rt-arr">·</em> ' +
+          '<span class="rt-end">0°00′00″E</span></div>' +
+        '<div class="rt-line" style="opacity:.8">Where the Equator crosses the Prime Meridian — open ocean, ' +
+          'and the fix every broken geocode lands on.</div>' +
+        '<div class="rt-dim">GULF OF GUINEA · WGS-84 ORIGIN</div>';
+      el.classList.add('on');
+    }
+    // Default placement: up and to the LEFT of the marker, so neither the box
+    // nor the cursor arrow covers it. Matches .atc-scope-tip.city/.route, which
+    // land their bottom-right corner clear of the anchor. Flip on either axis
+    // only when the viewport edge forces it.
+    const GAP = 22;
+    const w = el.offsetWidth, h = el.offsetHeight;
+    let x = ax - GAP - w;
+    let y = ay - GAP - h;
+    if (x < 8) x = Math.min(ax + GAP, window.innerWidth - 8 - w);
+    if (y < 8) y = Math.min(ay + GAP, window.innerHeight - 8 - h);
+    el.style.left = Math.max(8, x) + 'px';
+    el.style.top = Math.max(8, y) + 'px';
+  }
+
+  function hideNullIslandTip() {
+    if (nullTipEl) nullTipEl.classList.remove('on');
+  }
+
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
@@ -685,7 +736,8 @@
     const tip = document.getElementById('atcScopeTip');
     let lastHoverIdx = null;
     cv.addEventListener('mousemove', e => {
-      if (dragging || !scope) return;
+      if (dragging) { hideNullIslandTip(); return; }
+      if (!scope) return;
       // While a chart row is being hovered, leave its route highlight
       // and tooltip alone — canvas hover shouldn't fight it.
       if (lastChartHighlightIdx != null) return;
@@ -708,6 +760,8 @@
             lastHoverIdx = null;
           }
           scope.hoveredCityName = bestCity.a.city || null;
+          scope.nullIslandHovered = false;
+          hideNullIslandTip();
           if (tip) showCityTip(tip, bestCity);
           cv.style.cursor = 'pointer';
           return;
@@ -715,6 +769,22 @@
       } else {
         scope.hoveredCityName = null;
       }
+      // Null Island marker — sits between city pins and route arcs in
+      // hover priority (a real city under it always wins).
+      const onNull = scope.hitTestNullIsland ? scope.hitTestNullIsland(mx, my) : false;
+      scope.nullIslandHovered = onNull;
+      if (onNull) {
+        scope.hoveredRouteIdx = null;
+        scope.hoveredCityName = null;
+        lastHoverIdx = null;
+        if (tip) tip.style.display = 'none';
+        // Anchor on the marker itself (canvas coords → viewport coords).
+        const ni = scope._niScreen;
+        showNullIslandTip(r.left + (ni ? ni.x : mx), r.top + (ni ? ni.y : my));
+        cv.style.cursor = 'pointer';
+        return;
+      }
+      hideNullIslandTip();
       // otherwise nearest route arc
       const rt = pickRouteUnder(mx, my);
       if (rt) {
@@ -740,7 +810,8 @@
     });
     cv.addEventListener('mouseleave', () => {
       if (tip) tip.style.display = 'none';
-      if (scope) { scope.hoveredRouteIdx = null; scope.hoveredCityName = null; }
+      hideNullIslandTip();
+      if (scope) { scope.hoveredRouteIdx = null; scope.hoveredCityName = null; scope.nullIslandHovered = false; }
       resumeFlightAfterHover();
     });
   }
@@ -1789,6 +1860,7 @@
     scope = new window.ATCScope(cv);
     window._atcScope = scope;
     try { await scope.loadCoast('data/coastlines.geojson'); } catch (e) { console.warn('[atc-skin] coastlines failed:', e); }
+    scope.loadNullIsland('asset/icons/null.svg').catch(e => console.warn('[atc-skin] null island marker failed:', e));
     scope.refreshTheme();
 
     prepareTopTicker();

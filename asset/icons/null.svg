@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 837.9 837.9">
+  <!-- Null Island marker. Two layers: "Objects" = static crosshair, "outer" = pulsing corner brackets. -->
+  <g id="Objects">
+    <polygon points="425.9 412.1 425.9 0 412.1 0 412.1 412.1 0 412.1 0 425.9 412.1 425.9 412.1 837.9 425.9 837.9 425.9 425.9 837.9 425.9 837.9 412.1 425.9 412.1"/>
+  </g>
+  <g id="outer">
+    <polygon points="82 82 371.8 82 371.8 44.9 44.9 44.9 44.9 371.8 82 371.8 82 82"/>
+    <polygon points="82 466.2 44.9 466.2 44.9 793.1 371.8 793.1 371.8 756 82 756 82 466.2"/>
+    <polygon points="756 756 466.2 756 466.2 793.1 793.1 793.1 793.1 466.2 756 466.2 756 756"/>
+    <polygon points="756 371.8 793.1 371.8 793.1 44.9 466.2 44.9 466.2 82 756 82 756 371.8"/>
+  </g>
+</svg>
