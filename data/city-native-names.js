@@ -209,6 +209,7 @@
     "Da Nang": "Đà Nẵng",
     "Hoi An": "Hội An",
     "Bangkok": "กรุงเทพมหานคร",
+    "Pattaya": "พัทยา",
     "Kanchanaburi": "กาญจนบุรี",
     "Yangon": "ရန်ကုန်",
     "Mandalay": "မန္တလေး",

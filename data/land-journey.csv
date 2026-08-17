@@ -114,6 +114,8 @@ Milan,Geneva,bus,48.74,7/7/2022
 Geneva,Milan,bus,48.74,7/7/2022
 Milan,Modena,train,19,11/7/2022
 Modena,Milan,bus,27.88,11/7/2022
+Bangkok,Pattaya,bus,5,27/7/2022
+Pattaya,Bangkok,bus,5,27/7/2022
 Singapore,Johor Bahru,bus,2,3/8/2022
 Johor Bahru,Singapore,bus,2,3/8/2022
 Singapore,Johor Bahru,bus,2,11/8/2022
