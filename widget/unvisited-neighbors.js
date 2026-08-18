@@ -510,8 +510,7 @@
         // incorrectly — use dot markers for these instead.
         const SKIP_GEOJSON = new Set();
 
-        fetch('asset/ne_110m_countries.geojson')
-            .then(r => r.json())
+        window.GeoLOD.load('110m')
             .then(geo => {
                 const matchedCountries = new Set();
 
@@ -588,9 +587,58 @@
                     }
                 }
 
+                // Re-stamp the visa hatch fills onto every unvisited polygon.
+                // Runs after each render, since a tier swap builds new paths.
+                function applyAllHatches() {
+                    Object.keys(countryLayers).forEach(function (country) {
+                        if (visited.has(country)) return;
+                        var visa = visaData[country];
+                        if (!visa) return;
+                        countryLayers[country].forEach(function (entry) {
+                            if (entry.type === 'geo') applyHatch(entry.layer, visa);
+                        });
+                    });
+                }
+
                 // Render GeoJSON at -360, 0, +360 so shapes always visible when panning
-                [-360, 0, 360].forEach(function (offset) {
-                    L.geoJSON(shiftGeo(geo, offset), { style: styleFeature, onEachFeature: onFeature }).addTo(map);
+                let polyLayers = [];
+
+                function renderCountryPolygons(source) {
+                    polyLayers.forEach(function (l) { map.removeLayer(l); });
+                    polyLayers = [];
+                    // Drop the polygon entries, keep the dot markers — those
+                    // stand in for countries with no usable polygon at any
+                    // tier. Mutated in place because the legend and the
+                    // hover/highlight helpers close over this object.
+                    Object.keys(countryLayers).forEach(function (k) {
+                        const kept = countryLayers[k].filter(function (e) { return e.type !== 'geo'; });
+                        if (kept.length) countryLayers[k] = kept; else delete countryLayers[k];
+                    });
+                    clearHovered();
+
+                    [-360, 0, 360].forEach(function (offset) {
+                        const layer = L.geoJSON(shiftGeo(source, offset), { style: styleFeature, onEachFeature: onFeature }).addTo(map);
+                        polyLayers.push(layer);
+                    });
+                    applyAllHatches();
+                }
+
+                renderCountryPolygons(geo);
+
+                // Swap in finer geometry as the map zooms (this map runs 2-5).
+                let geoTier = '110m';
+                map.on('zoomend', function () {
+                    const want = window.GeoLOD.leafletTier(map.getZoom());
+                    if (want === geoTier) return;
+                    const ready = window.GeoLOD.peek(want);
+                    if (ready) { geoTier = want; renderCountryPolygons(ready); return; }
+                    window.GeoLOD.load(want).then(function (finer) {
+                        if (window.GeoLOD.leafletTier(map.getZoom()) !== want) return;
+                        geoTier = want;
+                        renderCountryPolygons(finer);
+                    }).catch(function (err) {
+                        console.warn('[unvisited-neighbors] geo tier ' + want + ' failed', err);
+                    });
                 });
 
                 // Inject SVG hatch patterns into the map's SVG element
@@ -1072,7 +1120,12 @@
         const pipLayers = {};
         const pipDotLayers = {};
 
-        fetch('asset/ne_110m_countries.geojson').then(r => r.json()).then(geo => {
+        // The PIP stays on the coarse tier deliberately. It has no zoom control
+        // of its own — its zoom is a 0.3s flyToBounds fired by list hover, and
+        // that same hover drives pipLayers highlighting, so swapping geometry
+        // mid-flight would tear down the layers being highlighted. At 420x280
+        // there is nothing to gain.
+        window.GeoLOD.load('110m').then(geo => {
             const pipMatched = new Set();
             function pipStyle(feature) {
                 const gn = feature.properties.NAME;

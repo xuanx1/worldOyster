@@ -1859,7 +1859,12 @@
     }
     scope = new window.ATCScope(cv);
     window._atcScope = scope;
-    try { await scope.loadCoast('data/coastlines.geojson'); } catch (e) { console.warn('[atc-skin] coastlines failed:', e); }
+    // Start on the coarse tier so first paint is a 0.2 MB fetch, then let zoom
+    // pull in the finer ones (see data/geo-lod.js).
+    try {
+      scope._ingestCoast(await window.GeoLOD.load('110m'), '110m');
+      scope.enableCoastLOD();
+    } catch (e) { console.warn('[atc-skin] coastlines failed:', e); }
     scope.loadNullIsland('asset/icons/null.svg').catch(e => console.warn('[atc-skin] null island marker failed:', e));
     scope.refreshTheme();
 

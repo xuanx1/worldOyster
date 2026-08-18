@@ -315,6 +315,7 @@ window.CITY_TO_COUNTRY = {
 
     // Middle East / North Africa extras
     'Jeddah': 'Saudi Arabia', 'Mecca': 'Saudi Arabia', 'Medina': 'Saudi Arabia',
+    'Riyadh': 'Saudi Arabia', 'Dammam': 'Saudi Arabia', 'Al Khobar': 'Saudi Arabia',
     'Muscat': 'Oman', 'Salalah': 'Oman',
     'Abu Dhabi': 'UAE', 'Sharjah': 'UAE',
     'Kuwait': 'Kuwait',

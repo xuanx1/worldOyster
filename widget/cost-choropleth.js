@@ -191,8 +191,7 @@
         let initialCenter = [20, 30];
         let initialZoom = 2;
 
-        fetch('asset/ne_110m_countries.geojson')
-            .then(r => r.json())
+        window.GeoLOD.load('110m')
             .then(geo => {
                 function styleFeature(feature) {
                     const geoName = feature.properties.NAME;
@@ -266,16 +265,54 @@
 
                 // Render GeoJSON at -360, 0, +360 so shapes always visible when panning
                 const matchedCountries = new Set();
-                [-360, 0, 360].forEach(function (offset) {
-                    L.geoJSON(shiftGeo(geo, offset), {
-                        style: styleFeature,
-                        onEachFeature: function (feature, layer) {
-                            const geoName = feature.properties.NAME;
-                            const appName = NAME_MAP[geoName] || geoName;
-                            matchedCountries.add(appName);
-                            onFeature(feature, layer);
-                        }
-                    }).addTo(map);
+                let polyLayers = [];      // the three L.geoJSON layers, so a tier swap can drop them
+
+                function renderCountryPolygons(source) {
+                    polyLayers.forEach(function (l) { map.removeLayer(l); });
+                    polyLayers = [];
+                    // Drop the polygon entries but keep the dot markers, which
+                    // stand in for countries too small to hit at any tier.
+                    // Mutated in place — highlightCountry and the auto-cycle
+                    // both close over this object.
+                    Object.keys(countryLayers).forEach(function (k) {
+                        const kept = countryLayers[k].filter(function (e) { return e.type === 'dot'; });
+                        if (kept.length) countryLayers[k] = kept; else delete countryLayers[k];
+                    });
+                    clearHovered();
+
+                    [-360, 0, 360].forEach(function (offset) {
+                        const layer = L.geoJSON(shiftGeo(source, offset), {
+                            style: styleFeature,
+                            onEachFeature: function (feature, layer) {
+                                const geoName = feature.properties.NAME;
+                                const appName = NAME_MAP[geoName] || geoName;
+                                matchedCountries.add(appName);
+                                onFeature(feature, layer);
+                            }
+                        }).addTo(map);
+                        polyLayers.push(layer);
+                    });
+                }
+
+                renderCountryPolygons(geo);
+
+                // Swap in finer geometry as the map zooms. GeoLOD caps Leaflet
+                // at 50m — see the note in data/geo-lod.js about why 10m and
+                // three world copies don't mix.
+                let geoTier = '110m';
+                map.on('zoomend', function () {
+                    const want = window.GeoLOD.leafletTier(map.getZoom());
+                    if (want === geoTier) return;
+                    const ready = window.GeoLOD.peek(want);
+                    if (ready) { geoTier = want; renderCountryPolygons(ready); return; }
+                    window.GeoLOD.load(want).then(function (finer) {
+                        // Zoom may have moved on while this downloaded.
+                        if (window.GeoLOD.leafletTier(map.getZoom()) !== want) return;
+                        geoTier = want;
+                        renderCountryPolygons(finer);
+                    }).catch(function (err) {
+                        console.warn('[cost-choropleth] geo tier ' + want + ' failed', err);
+                    });
                 });
 
                 // Add dot markers for small/missing countries that have spending

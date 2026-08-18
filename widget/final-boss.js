@@ -590,7 +590,7 @@
 
   // CITY_TO_COUNTRY uses studio-preferred labels ("PR China", "UK",
   // "ROC Taiwan", …) that other widgets rely on. The scope's country
-  // polygons come from Natural Earth via data/coastlines.geojson and use
+  // polygons come from Natural Earth via asset/geo/world-*.geojson and use
   // different names ("China", "United Kingdom", "Taiwan"). Translate here
   // so the visited-countries set actually matches the polygon names —
   // otherwise the arrow reaches Beijing / London and nothing lights up.

@@ -89,6 +89,7 @@ window.AIRPORT_COORDINATES = {
 
     // Middle East
     'JED': [21.6796, 39.1564],  // Jeddah
+    'RUH': [24.9576, 46.6988],  // Riyadh King Khalid
     'MCT': [23.5933, 58.2844],  // Muscat
     'AUH': [24.4331, 54.6511],  // Abu Dhabi
     'SHJ': [25.3286, 55.5172],  // Sharjah
@@ -484,6 +485,7 @@ window.AIRPORT_TO_CITY = {
     'NAP': 'Naples',
     'OAX': 'Oaxaca',
     'PUS': 'Busan',
+    'RUH': 'Riyadh',
     'SCL': 'Santiago',
     'SFO': 'San Francisco',
     'SHJ': 'Sharjah',

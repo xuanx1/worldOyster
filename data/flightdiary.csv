@@ -257,6 +257,10 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2026-10-13,AK715,"Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)","Singapore / Changi (SIN/WSSS)",07:10:00,08:20:00,01:10:00,"Air Asia (AK/AXM)","Airbus A320-200 (A320)",,,0,0,0,,1527,2672,103,2059,23.28
 2026-10-16,TR346,"Singapore / Changi (SIN/WSSS)","Denpasar Bali / Ngurah Rai (DPS/WADD)",21:15:00,00:05:00,02:50:00,"Scoot (TR/TGW)","Airbus A321LR (A21N)",,,0,0,0,,2672,3582,2695,2181,121.82
 2026-10-18,KL836,"Denpasar Bali / Ngurah Rai (DPS/WADD)","Singapore / Changi (SIN/WSSS)",20:45:00,23:25:00,02:40:00,"KLM Royal Dutch Airlines (KL/KLM)","Boeing 777-300ER (B77W)",,,0,0,0,,3582,2672,440,2023,111.58
+2026-10-29,WY892,"Singapore / Changi (SIN/WSSS)","Muscat / Seeb (MCT/OOMS)",20:50:00,00:10:00,07:20:00,"Oman Air (WY/OMA)","Boeing 737 MAX 8 (B38M)",,,0,0,0,,2672,1770,579,2123,305.9
+2026-10-30,WY685,"Muscat / Seeb (MCT/OOMS)","Riyadh / King Khalid (RUH/OERK)",01:45:00,03:05:00,02:20:00,"Oman Air (WY/OMA)","Boeing 737 MAX 8 (B38M)",,,0,0,0,,1770,2570,579,2123,66.65
+2026-11-01,WY686,"Riyadh / King Khalid (RUH/OERK)","Muscat / Seeb (MCT/OOMS)",03:55:00,07:10:00,02:15:00,"Oman Air (WY/OMA)","Boeing 737-800 (B738)",,,0,0,0,,2570,1770,579,231,66.65
+2026-11-01,WY891,"Muscat / Seeb (MCT/OOMS)","Singapore / Changi (SIN/WSSS)",08:00:00,19:50:00,07:50:00,"Oman Air (WY/OMA)","Boeing 737 MAX 8 (B38M)",,,0,0,0,,1770,2672,579,2123,305.9
 2026-11-04,VJ916,"Singapore / Changi (SIN/WSSS)","Hanoi / Noibai (HAN/VVNB)",14:55:00,17:25:00,03:30:00,"VietJet Air (VJ/VJC)","Airbus A321-200 (A321)",,,0,0,0,,2672,1094,1632,2076,155
 2026-11-09,TG613,"Kunming / Kunming Wujiaba International Airport (KMG/ZPPP)","Bangkok / Suvarnabhumi (BKK/VTBS)",15:20:00,16:30:00,02:10:00,"Thai Airways (TG/THA)","Airbus A320-200 (A320)",,,0,0,0,,9558,331,767,2059,183.58
 2026-11-09,TG401,"Bangkok / Suvarnabhumi (BKK/VTBS)","Singapore / Changi (SIN/WSSS)",19:10:00,22:30:00,02:20:00,"Thai Airways (TG/THA)","Airbus A320-200 (A320)",,,0,0,0,,331,2672,767,2059,201.72

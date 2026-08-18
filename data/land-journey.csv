@@ -423,6 +423,10 @@ Ashgabat,Darvaza,car,22,10/10/2026
 Darvaza,Dashoguz,car,21,11/10/2026
 Dashoguz,Khiva,car,9,11/10/2026
 Khiva,Tashkent,train,68.38,11/10/2026
+Riyadh,Dammam,train,35.79,31/10/2026
+Dammam,Al Khobar,taxi,22.86,31/10/2026
+Al Khobar,Dammam,taxi,21.12,31/10/2026
+Dammam,Riyadh,train,35.79,31/10/2026
 Hanoi,Lao Cai,train,78.9,4/11/2026
 Lao Cai,Sapa,car,5.5,5/11/2026
 Sapa,Lao Cai,car,5.5,6/11/2026

@@ -39,6 +39,16 @@
       // Country grouping — populated by loadCoast so _drawCoast can colour
       // each country independently (used by FBL to black out non-visited).
       this.countries = null;
+      // Coastline level of detail. `coastTier` is the GeoLOD tier currently
+      // ingested; enableCoastLOD() lets zoom swap it for a finer one.
+      this.coastLOD = false;
+      this.coastTier = null;
+      this._coastPending = null;
+      this._coastRingCount = 0;
+      this._coastCache = null;      // offscreen raster, see _drawCoast
+      this._coastCacheKey = null;
+      this._coastPrevKey = null;    // last frame's view key — detects "settled"
+      this._coastLastVisiblePts = 0; // feeds _motionStride()
       this.visitedCountries = null;   // Set<string> of visited country names
       this.routes = [];
       this.airports = new Map();
@@ -228,27 +238,103 @@
     setZoom(z) {
       this.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, z));
       this._computeRadius();
+      this._syncCoastLOD();
     }
     zoomBy(factor) { this.setZoom(this.zoom * factor); }
 
     async loadCoast(url) {
-      const gj = await (await fetch(url)).json();
+      this._ingestCoast(await (await fetch(url)).json(), null);
+    }
+
+    // Turn a parsed admin-0 FeatureCollection into the draw structures.
+    // Split out from loadCoast so a level-of-detail swap can reuse geometry
+    // GeoLOD already holds in memory without going back to the network.
+    _ingestCoast(gj, tier) {
       const polys = [];        // flat list (back-compat with any code reading .coast)
       const countries = [];    // grouped per country for FBL blackout
+      let ringCount = 0;
+      const take = (r, rings) => {
+        const bound = this._ringBound(r);
+        // A ring that collapses to nothing can't be bounded — skip rather
+        // than let a NaN centre poison the visibility test every frame.
+        if (!bound) return;
+        const entry = { pts: r, b: bound };
+        polys.push(r); rings.push(entry); ringCount++;
+      };
       for (const f of gj.features) {
         const g = f.geometry; if (!g) continue;
         const props = f.properties || {};
         const name = props.SOVEREIGNT || props.ADMIN || props.NAME || '';
         const rings = [];
         if (g.type === 'Polygon') {
-          g.coordinates.forEach(r => { polys.push(r); rings.push(r); });
+          g.coordinates.forEach(r => take(r, rings));
         } else if (g.type === 'MultiPolygon') {
-          g.coordinates.forEach(p => p.forEach(r => { polys.push(r); rings.push(r); }));
+          g.coordinates.forEach(p => p.forEach(r => take(r, rings)));
         }
         if (rings.length) countries.push({ name, rings });
       }
       this.coast = polys;
       this.countries = countries;
+      this.coastTier = tier;
+      this._coastRingCount = ringCount;
+      this._coastCache = null;      // geometry changed — the raster is stale
+      this._coastCacheKey = null;
+    }
+
+    // Bounding cap for one ring: the unit vector at its centre plus the
+    // angular radius that covers every vertex. Lets _paintCoast reject a ring
+    // with one dot product instead of projecting all 22k of Russia's points.
+    _ringBound(ring) {
+      let sx = 0, sy = 0, sz = 0;
+      for (let i = 0; i < ring.length; i++) {
+        const la = ring[i][1] * D2R, lo = ring[i][0] * D2R, cl = Math.cos(la);
+        sx += cl * Math.cos(lo); sy += cl * Math.sin(lo); sz += Math.sin(la);
+      }
+      const len = Math.sqrt(sx * sx + sy * sy + sz * sz);
+      // Degenerate (empty, or vertices that cancel out into the origin).
+      if (!len || !isFinite(len)) return null;
+      sx /= len; sy /= len; sz /= len;
+      let minDot = 1;
+      for (let i = 0; i < ring.length; i++) {
+        const la = ring[i][1] * D2R, lo = ring[i][0] * D2R, cl = Math.cos(la);
+        const d = sx * cl * Math.cos(lo) + sy * cl * Math.sin(lo) + sz * Math.sin(la);
+        if (d < minDot) minDot = d;
+      }
+      return { x: sx, y: sy, z: sz, angR: Math.acos(Math.max(-1, Math.min(1, minDot))) };
+    }
+
+    // ---- coastline level of detail -------------------------------------
+    // Opt in from the host page (atc-skin) so a Scope embedded elsewhere keeps
+    // the old single-file behaviour.
+    enableCoastLOD() {
+      this.coastLOD = true;
+      this._syncCoastLOD();
+    }
+
+    // Called on every zoom change. Swapping to an already-loaded tier is
+    // synchronous; a tier we don't hold yet is fetched once and applied when
+    // it lands, provided the zoom still wants it by then.
+    _syncCoastLOD() {
+      if (!this.coastLOD || !window.GeoLOD) return;
+      const want = window.GeoLOD.scopeTier(this.zoom);
+      if (want === this.coastTier) return;
+
+      const ready = window.GeoLOD.peek(want);
+      if (ready) { this._ingestCoast(ready, want); return; }
+
+      if (this._coastPending === want) return;   // already on its way
+      this._coastPending = want;
+      window.GeoLOD.load(want).then(geo => {
+        this._coastPending = null;
+        // The view may have zoomed back out while this was downloading — only
+        // apply if it's still an upgrade on what's drawn.
+        if (!this.coastLOD) return;
+        const now = window.GeoLOD.scopeTier(this.zoom);
+        if (now === want || window.GeoLOD.isFinerThan(now, want)) this._ingestCoast(geo, want);
+      }).catch(err => {
+        this._coastPending = null;
+        console.warn('[atc-scope] coast tier ' + want + ' failed, staying on ' + this.coastTier, err);
+      });
     }
 
     // Load the Null Island marker artwork. Each top-level <g> in the SVG
@@ -394,11 +480,138 @@
       ctx.stroke();
     }
 
+    // Largest angular distance from the view centre that can still land on
+    // the canvas. At zoom 1 the whole visible hemisphere qualifies; by zoom 6
+    // it is around 20°, which is what makes the 10m tier affordable — nearly
+    // every ring fails the cap test in _paintCoast and is never projected.
+    _visibleAngle() {
+      const screenR = Math.sqrt(this.w * this.w + this.h * this.h) / 2;
+      return Math.asin(Math.min(1, screenR / this.radius));
+    }
+
+    // True while any country is mid-crossfade out of FBL blackout, i.e. while
+    // colours still change from frame to frame and caching would freeze them.
+    _coastFading() {
+      if (!this.fblActive || !this._visitedFadeStart) return false;
+      const now = performance.now();
+      for (const ts of this._visitedFadeStart.values()) {
+        if (now - ts < 1400) return true;
+      }
+      return false;
+    }
+
     _drawCoast() {
+      if (!this.countries && !this.coast) return;
+
+      // The 110m tier is cheap enough to reproject every frame (~1.5 ms). The
+      // finer tiers are not — a full 10m pass is 20-30 ms even after culling —
+      // so they get the treatment _drawNeRailroads uses for the 10m rail
+      // network: rasterise once per view state, then blit.
+      //
+      // That leaves the frames where the view is actually moving, which would
+      // miss the cache every time. Those draw decimated instead: while the
+      // globe is in motion a stride of every Nth vertex is indistinguishable,
+      // and full detail lands on the first frame after it settles.
+      const heavy = this._coastRingCount > 600;
+      if (heavy && !this._coastFading()) {
+        const q = 0.005;
+        const key = Math.round(this.lat0 / q) + ',' + Math.round(this.lon0 / q) +
+                    ',' + Math.round(this.zoom * 1000) +
+                    ',' + this.canvas.width + ',' + this.canvas.height +
+                    ',' + this.coastTier + ',' + this.theme.land + ',' + this.theme.coast +
+                    ',' + (this.fblActive ? 1 : 0) +
+                    ',' + ((this.fblActive && this.visitedCountries) ? this.visitedCountries.size : -1);
+
+        // Steady state — the raster still matches the view.
+        if (this._coastCache && this._coastCacheKey === key) {
+          this._blitCoast();
+          return;
+        }
+        // The view held still for a frame, so it is worth paying for detail.
+        if (this._coastPrevKey === key) {
+          this._renderCoastToCache();
+          this._coastCacheKey = key;
+          if (this._coastCache) { this._blitCoast(); return; }
+        } else {
+          // Still moving.
+          this._coastPrevKey = key;
+          this._coastCacheKey = null;
+          this._paintCoast(this.ctx, this._motionStride());
+          return;
+        }
+      }
+
+      this._paintCoast(this.ctx, 1);
+    }
+
+    // Offscreen is sized in device pixels, so blit at the underlying pixel
+    // scale rather than through the parent DPR transform.
+    _blitCoast() {
       const ctx = this.ctx;
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(this._coastCache, 0, 0);
+      ctx.restore();
+    }
+
+    // Vertex stride for in-motion frames, sized off how much geometry the last
+    // pass actually projected so it adapts to tier, zoom and viewport instead
+    // of guessing. ~24k points keeps a moving frame in the 3-5 ms range.
+    _motionStride() {
+      const n = this._coastLastVisiblePts || 0;
+      return n > 24000 ? Math.ceil(n / 24000) : 1;
+    }
+
+    _renderCoastToCache() {
+      let off = this._coastCache;
+      if (!off || off.width !== this.canvas.width || off.height !== this.canvas.height) {
+        off = document.createElement('canvas');
+        off.width = this.canvas.width;
+        off.height = this.canvas.height;
+        this._coastCache = off;
+      }
+      const octx = off.getContext('2d');
+      octx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+      octx.clearRect(0, 0, this.w, this.h);
+      octx.setLineDash([]);
+      this._paintCoast(octx, 1);
+    }
+
+    _paintCoast(ctx, stride) {
       const T = this.theme;
       const blackoutFill   = '#050505';
       const blackoutStroke = '#0d0d0d';
+      const step = Math.max(1, stride | 0);
+      let projected = 0;
+
+      // Trace one ring, taking every `step`-th vertex. The last vertex is
+      // always included so a decimated ring still closes where it should.
+      const trace = (pts) => {
+        projected += pts.length;
+        ctx.beginPath();
+        let started = false, drew = false;
+        const last = pts.length - 1;
+        for (let i = 0; i <= last; i += step) {
+          const q = i + step > last ? last : i;      // snap the final step onto the end
+          const p = this.project(pts[q][1], pts[q][0]);
+          if (!p.vis) { started = false; continue; }
+          if (!started) { ctx.moveTo(p.x, p.y); started = true; } else { ctx.lineTo(p.x, p.y); drew = true; }
+        }
+        return drew;
+      };
+
+      // Ring-level frustum cull. `thr` is cos(maxVisibleAngle + ringRadius):
+      // a ring whose centre sits further off than that cannot touch the
+      // canvas, so it never gets projected.
+      const vis = this._visibleAngle();
+      const cv = Math.cos(vis), sv = Math.sin(vis);
+      const v0 = toVec(this.lat0, this.lon0);
+      const culled = (b) => {
+        const sum = vis + b.angR;
+        if (sum >= Math.PI) return false;      // cap covers the whole sphere
+        const thr = cv * Math.cos(b.angR) - sv * Math.sin(b.angR);
+        return (b.x * v0[0] + b.y * v0[1] + b.z * v0[2]) < thr;
+      };
 
       // When we have per-country grouping (Natural Earth admin-0), draw
       // each country individually so FBL can black out non-visited ones.
@@ -436,15 +649,11 @@
           ctx.fillStyle = fillCss;
           ctx.strokeStyle = strokeCss;
           for (const ring of c.rings) {
-            ctx.beginPath(); let started = false, drew = false;
-            for (let i = 0; i < ring.length; i++) {
-              const p = this.project(ring[i][1], ring[i][0]);
-              if (!p.vis) { started = false; continue; }
-              if (!started) { ctx.moveTo(p.x, p.y); started = true; } else { ctx.lineTo(p.x, p.y); drew = true; }
-            }
-            if (drew) { ctx.fill(); ctx.stroke(); }
+            if (culled(ring.b)) continue;
+            if (trace(ring.pts)) { ctx.fill(); ctx.stroke(); }
           }
         }
+        this._coastLastVisiblePts = projected;
         return;
       }
 
@@ -455,14 +664,9 @@
       ctx.lineWidth = 1;
       ctx.lineJoin = 'round';
       for (const ring of this.coast) {
-        ctx.beginPath(); let started = false, drew = false;
-        for (let i = 0; i < ring.length; i++) {
-          const p = this.project(ring[i][1], ring[i][0]);
-          if (!p.vis) { started = false; continue; }
-          if (!started) { ctx.moveTo(p.x, p.y); started = true; } else { ctx.lineTo(p.x, p.y); drew = true; }
-        }
-        if (drew) { ctx.fill(); ctx.stroke(); }
+        if (trace(ring)) { ctx.fill(); ctx.stroke(); }
       }
+      this._coastLastVisiblePts = projected;
     }
 
     _gcPoints(from, to, n) {

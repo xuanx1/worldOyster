@@ -226,11 +226,49 @@ body.atc-light .chart-tooltip,
 body.atc-light .heatmap-tooltip,
 body.atc-light .widget-row-tooltip,
 body.atc-light .record-card,
-body.atc-light .lang-btn::after {
+body.atc-light .lang-btn::after,
+/* The two widget-map surfaces. Both are declared with !important — the
+   .widget-map-tooltip block lives inline in animated-flight-map.html and
+   .atc-cycle-tip in atc-skin.css — so they need the extra body.atc-light
+   specificity here or they keep their dark fill on a white page. */
+body.atc-light .widget-map-tooltip,
+body.atc-light .leaflet-tooltip.atc-cycle-tip,
+/* Avg Duration / Year. Its inner text (.duration-tip-year/-avg/-detail) was
+   already retoned for light mode above, but the container kept its dark
+   gradient — so the tooltip was dark text on a dark card. */
+body.atc-light .duration-tooltip {
   background: var(--l-panel) !important;
   border: 1px solid var(--l-line) !important;
   box-shadow: var(--l-shadow) !important;
 }
+
+/* Tooltip and popup arrows. Dark mode paints these rgba(32,32,32,.98) to match
+   the gradient's bottom stop; on white they read as a black notch hanging off
+   the card. Leaflet colours the arrow with whichever border side faces the
+   anchor, so each direction needs its own property. */
+body.atc-light .leaflet-tooltip.city-tooltip.leaflet-tooltip-top:before,
+body.atc-light .leaflet-tooltip.atc-cycle-tip.leaflet-tooltip-top:before,
+body.atc-light .leaflet-popup-content-wrapper.route-popup + .leaflet-popup-tip,
+body.atc-light .widget-map-tooltip::before {
+  border-top-color: var(--l-panel) !important;
+}
+body.atc-light .leaflet-tooltip.city-tooltip.leaflet-tooltip-bottom:before,
+body.atc-light .leaflet-tooltip.atc-cycle-tip.leaflet-tooltip-bottom:before {
+  border-bottom-color: var(--l-panel) !important;
+}
+body.atc-light .leaflet-tooltip.city-tooltip.leaflet-tooltip-left:before,
+body.atc-light .leaflet-tooltip.atc-cycle-tip.leaflet-tooltip-left:before {
+  border-left-color: var(--l-panel) !important;
+}
+body.atc-light .leaflet-tooltip.city-tooltip.leaflet-tooltip-right:before,
+body.atc-light .leaflet-tooltip.atc-cycle-tip.leaflet-tooltip-right:before {
+  border-right-color: var(--l-panel) !important;
+}
+
+/* Auto-cycle tooltip internals — its own greyscale ramp and green figure. */
+body.atc-light .leaflet-tooltip.atc-cycle-tip { color: var(--l-t2) !important; }
+body.atc-light .leaflet-tooltip.atc-cycle-tip .tip-label { color: var(--l-t3); }
+body.atc-light .leaflet-tooltip.atc-cycle-tip .tip-val { color: var(--l-accent); }
 
 body.atc-light .progress-bar { background: rgba(17, 27, 36, 0.10); }
 body.atc-light .progress-scrubber { background: var(--l-accent); }
@@ -331,11 +369,22 @@ body.atc-light .widget-card:has(#recordsCards) .record-card {
 
 /* ── spending heatmap ───────────────────────────────────────
    The cells are SVG rects whose colour is a `fill` PRESENTATION
-   ATTRIBUTE, which any CSS rule outranks — so the zero-spend swatch
-   (#161b22, built for a dark page) can be retargeted by value. The
-   spend buckets themselves are left alone: they are data encoding, and
-   the GitHub greens still read on white. */
+   ATTRIBUTE, which any CSS rule outranks — so each swatch in the ramp
+   can be retargeted by value.
+
+   The whole ramp has to be retargeted, not just the zero swatch. GitHub's
+   dark greens encode "more" as BRIGHTER (#0e4429 lowest → #39d353 highest),
+   which is right on a near-black page and backwards on a white one: the
+   cheapest days came out darkest and the most expensive nearly disappeared,
+   so the grid read as an inverted scale. On white, more spend has to mean
+   more ink — hence a light-to-dark ramp ending on the light accent. Bucket
+   luminance now falls 0.84 → 0.71 → 0.54 → 0.36 as spend rises, with the
+   zero swatch left a neutral grey so "no spend" never reads as "a little". */
 body.atc-light .hm-cell[fill="#161b22"] { fill: #e4e9ee; }
+body.atc-light .hm-cell[fill="#0e4429"] { fill: #b7e4c7; }
+body.atc-light .hm-cell[fill="#006d32"] { fill: #74c692; }
+body.atc-light .hm-cell[fill="#26a641"] { fill: #3f9d5c; }
+body.atc-light .hm-cell[fill="#39d353"] { fill: #19752c; }
 body.atc-light .hm-cell { outline-color: rgba(17, 27, 36, 0.06) !important; }
 body.atc-light #spendingHeatmap text[fill="#8b949e"] { fill: var(--l-t3); }
 

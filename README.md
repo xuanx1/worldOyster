@@ -15,6 +15,8 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - **Crossfaded switch**: Panels, chrome and the globe tween between palettes rather than cutting
 - **Full-depth theming**: Not just the page — the globe's ocean/land/coastlines, city pins, route arcs, conceptual overlays (Asia–Europe divide, Great Wall), Leaflet basemaps, Chart.js grids and the trophy panel all repaint
 - **Marks vs. text are tuned separately**: Text tones are cut for contrast on white, while canvas pins keep a vivid mid-tone — a 2px dot is read by hue against pale ocean, not by legibility
+- **Every tooltip surface repaints**: City tooltips, route popups, chart and heatmap tips, record cards, the two widget-map hover tips, the auto-cycle tooltip and the Avg Duration / Year tip all flip from dark gradient to flat white card — arrows and popup tips included, since a leftover dark notch reads as a bug
+- **Sequential ramps invert, not just recolour**: GitHub-style greens encode "more" as *brighter*, which is correct on a near-black page and backwards on a white one. In light mode the Spending Heatmap ramp runs light-to-dark instead, so more spend always means more ink — the zero swatch stays a neutral grey so "no spend" never reads as "a little"
 - **Respects `prefers-reduced-motion`**: Background motion holds a still frame
 
 ### ✨ Animated Backdrop
@@ -41,6 +43,14 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - **Reset view**: Return the map to its default position
 - **Null Island marker**: A pulsing crosshair at 0°N 0°E — where the Equator crosses the Prime Meridian, and where every broken geocode lands. Hover it for a readout
 - **Continental divide**: The Asia–Europe line lights amber on hover, labels included
+
+### 🔍 Coastline Level of Detail
+- **Three tiers, fetched on demand**: Natural Earth admin-0 at 110m / 50m / 10m (`asset/geo/`, built by `tools/build-geo-lod.py`). Only the 0.2 MB coarse tier loads up front; zooming in pulls the finer ones once and caches them, so a visitor who never zooms never downloads them
+- **Thresholds set by measurement, not taste**: Median segment length per tier is 62.8 km / 7.96 km / 1.69 km, and a tier is retired once its median segment draws shorter than ~2 px. On the globe that puts 50m at 1.2× and 10m at 4×; Leaflet switches at z3 and stops at 50m, which is the last tier that pays for itself before its maxZoom
+- **Stripped to what's read**: Natural Earth ships 168 properties per feature and the app reads three (`NAME`, `SOVEREIGNT`, `ADMIN`). Dropping the rest and quantising to 3dp — sub-pixel even at the globe's maxZoom of 12 — took the base tier from 838 KB to 200 KB
+- **Ring-level frustum culling**: Every ring carries a bounding cap (centre vector + angular radius), so geometry off the visible hemisphere is rejected with one dot product instead of being projected. At 4× that discards ~94% of rings
+- **Three draw paths**: while the view moves, a vertex stride keeps frames at 4–6 ms; the frame after it settles pays once for full detail; every frame after that blits a cached raster at ~0.2 ms — cheaper than the old 110m redraw at 1.8 ms
+- **Finer tiers also fix small countries**: Bahrain, Malta, Monaco, San Marino and Singapore have no usable polygon at 110m and gain real outlines from 50m up
 
 ### 🏙️ City List
 - **Live city grid**: Visited, current, and upcoming cities shown in a scrollable grid
@@ -77,7 +87,7 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - **Leg efficiency chart**: Cost efficiency per journey leg
 - **Period filters**: ALL, 1Y, 3Y, 5Y, 7Y, 10Y
 - **Scrollable chart preview** with thumb slider
-- **Spending Heatmap** — monthly spending by year
+- **Spending Heatmap** — monthly spending by year, in GitHub-contributions quantile buckets. The ramp direction flips with the theme: brighter = more on dark, darker = more on white
 - **Cost Choropleth** — world map coloured by total spend per country
 - **Duration Trend** — avg/total trip duration over time
 - **Records Cards** — personal travel records (longest flight, farthest city, etc.)
@@ -125,6 +135,25 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
   - **Mid-speed express** (USA Acela, Russia Sapsan, Nordics X2000, Portugal Alfa Pendular, Poland Pendolino, India Vande Bharat): ~130 km/h
   - **Trans-Siberian** stops auto-detected → 55 km/h (matches real Rossiya schedule)
 - Optional `duration_hours` CSV column overrides the estimate for edge cases
+
+### 🛠️ Data & Build
+The site is static — open `animated-flight-map.html` and it runs. There is no bundler, and the only generated assets are the world-map tiers.
+
+| Path | What it is |
+|------|-----------|
+| `data/flightdiary.csv` | One row per flight leg. `Cost_sgd` is the actual fare; a blank falls back to a distance estimate |
+| `data/land-journey.csv` | One row per surface leg (`origin,destination,mode,cost_sgd,date`, dates `DD/MM/YYYY`) |
+| `data/cities.js` | City → `[lat, lng]`. **A new city needs an entry here or its leg draws no distance and never appears** |
+| `data/countries.js` | Airport → country and city → country. A city missing from `CITY_TO_COUNTRY` shows as unknown |
+| `data/city-native-names.js`, `data/city-names-i18n.js` | Local-language name, and ar/zh/fr/ru/es translations |
+| `data/geo-lod.js` | Which world-map tier each renderer wants at a given zoom |
+| `asset/geo/world-*.geojson` | **Generated** — do not hand-edit |
+
+Rebuilding the map tiers (only needed to change resolution, quantisation, or which Natural Earth properties survive):
+
+```bash
+python3 tools/build-geo-lod.py     # from the repo root; downloads are cached in tools/.ne-cache/
+```
 
 ---
 
