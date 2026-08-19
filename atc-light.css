@@ -129,6 +129,22 @@ body.atc-light .duration-tip-avg,
 body.atc-light .city-status { color: var(--l-t1); }
 body.atc-light .header-slogan { color: rgba(19, 26, 32, 0.70); }
 body.atc-light .title-cursor { background: var(--l-t1); }
+/* The typewriter paints .title-text white via -webkit-text-fill-color, which
+   beats `color` and left the headline invisible on a white page until the green
+   flow layer swept in. Type it in dark slate instead, then hand off to the
+   gradient exactly as dark mode does. */
+body.atc-light .main-title .title-text {
+  color: var(--l-t2);
+  -webkit-text-fill-color: var(--l-t2);
+}
+body.atc-light .main-title.flowing .title-text {
+  -webkit-text-fill-color: transparent;
+}
+
+/* Segmented world-progress bar keys */
+body.atc-light .world-progress-keys { color: var(--l-t3); }
+body.atc-light .wp-key b { color: var(--l-t1); }
+body.atc-light .world-progress-bar { background: rgba(17, 27, 36, 0.10); }
 
 /* Brand green — one group, retinted for white. */
 body.atc-light .header h1,
@@ -426,7 +442,8 @@ body.atc-light .city-item.current { text-shadow: none; }
    translucent fill is set with !important in atc-skin.css. The visa groups
    inside it are separate .neighbors-legend-visa elements, which is why
    those turned white earlier and this one did not. */
-body.atc-light .widget-card:has(#unvisitedNeighbors) #unvisitedNeighbors > .neighbors-legend {
+body.atc-light .widget-card:has(#unvisitedNeighbors) #unvisitedNeighbors > .neighbors-legend,
+body.atc-light .widget-card:has(#unvisitedNeighbors) #unvisitedNeighbors > .neighbors-legend-aux {
   background: rgba(255, 255, 255, 0.88) !important;
   border-color: rgba(25, 117, 44, 0.30) !important;
   box-shadow: 0 4px 16px rgba(19, 26, 32, 0.14) !important;
@@ -476,6 +493,15 @@ body.atc-light .trophy-notification {
 }
 body.atc-light .trophy-label { color: var(--l-t3); }
 body.atc-light .trophy-subtitle { color: var(--l-t1); }
+
+/* ── SGD/USD sparkline ──────────────────────────────────────
+   Same green accent as dark mode; only the neutrals are retinted. */
+body.atc-light .atc-fx-widget .atc-fx-label { color: var(--l-accent); }
+body.atc-light .atc-fx-widget .atc-fx-value { color: var(--l-t1); }
+body.atc-light .atc-fx-widget .atc-fx-axis { color: var(--l-t4); }
+body.atc-light .atc-fx-widget .atc-fx-track { stroke: rgba(17, 27, 36, 0.18); }
+body.atc-light .atc-fx-widget .atc-fx-live { stroke: var(--l-accent); }
+body.atc-light .atc-fx-widget .atc-fx-dot { fill: var(--l-accent); stroke: #ffffff; }
 
 /* ── quote widget ───────────────────────────────────────────
    #c4d4df is a pale blue-grey picked to sit on near-black; on the light

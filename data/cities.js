@@ -490,6 +490,9 @@ window.CITY_COORDINATES = {
     'Somaliland': [9.56, 44.06],
     'Artsakh': [39.82, 46.75],
     'Andaman and Nicobar Islands': [11.74, 92.73],
+    'Lakshadweep': [10.57, 72.64],
+    'Tibet': [29.65, 91.14],             // Lhasa
+    'Meizhou Island': [25.0625, 119.1050],   // Putian, Fujian
     'Christmas Island': [-10.49, 105.63],
     'Cocos Islands': [-12.19, 96.83],
     'British Indian Ocean Territory': [-6.34, 71.88],

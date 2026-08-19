@@ -44,7 +44,8 @@
         'Philippines': 'ph', 'India': 'in', 'Sri Lanka': 'lk', 'Bangladesh': 'bd',
         'Bhutan': 'bt', 'Nepal': 'np', 'Pakistan': 'pk', 'Afghanistan': 'af',
         'Maldives': 'mv', 'Mongolia': 'mn', 'Brunei': 'bn', 'Timor-Leste': 'tl',
-        'Andaman and Nicobar Islands': 'in',
+        'Andaman and Nicobar Islands': 'in', 'Lakshadweep': 'in',
+        'Tibet': 'cn', 'Meizhou Island': 'cn', 'Kinmen': 'tw',
         'Christmas Island': 'cx', 'Cocos Islands': 'cc',
         'British Indian Ocean Territory': 'io',
         'Uzbekistan': 'uz', 'Kazakhstan': 'kz', 'Turkmenistan': 'tm',
@@ -287,6 +288,46 @@
         platinum:     { color: '#B76E79', bg: 'rgba(183,110,121,0.20)' }
     };
 
+    // On a white panel the metallic greys invert the hierarchy: earned silver
+    // (#C0C0C0) sits LIGHTER than the locked state (#444), so an awarded trophy
+    // reads as disabled. Light mode therefore gets darker, denser greys, and the
+    // locked state gets lighter — restoring "earned is the bolder one".
+    const TIERS_LIGHT = {
+        unrecognised: { color: '#6B7683', bg: 'rgba(107,118,131,0.14)' },
+        silver:       { color: '#5F6B76', bg: 'rgba(95,107,118,0.16)' }
+    };
+    const LOCKED = { dark: { icon: '#444', name: '#666' }, light: { icon: '#c2cad1', name: '#a3adb6' } };
+
+    function isLightMode() {
+        return !!(document.body && document.body.classList.contains('atc-light'));
+    }
+    function tierStyle(tier) {
+        return (isLightMode() && TIERS_LIGHT[tier]) || TIERS[tier];
+    }
+    function lockedStyle() {
+        return isLightMode() ? LOCKED.light : LOCKED.dark;
+    }
+
+    // COUNTRY_TO_CONTINENT is a travel list, not a political one: it carries
+    // dependencies and partially-recognised entities alongside real states.
+    // Listing the exclusions (rather than the 197) keeps the denominator honest
+    // when a new entry is added - anything not named here counts as sovereign.
+    //   197 = 193 UN members + 2 observers (Vatican City, Palestine)
+    //             + Cook Islands and Niue, the two non-member states the UN
+    //               treats as having full treaty-making capacity.
+    const NON_SOVEREIGN = new Set([
+        // British Overseas Territories & Crown dependencies
+        'Anguilla', 'Bermuda', 'British Virgin Islands', 'Cayman Islands',
+        'Falkland Islands', 'Gibraltar', 'Montserrat', 'Turks and Caicos Islands',
+        'Guernsey', 'Jersey', 'Isle of Man',
+        // Danish realm
+        'Faroe Islands', 'Greenland',
+        // Chinese SARs
+        'Hong Kong SAR', 'Macau SAR',
+        // Recognised by some, not UN members
+        'Kosovo', 'ROC Taiwan', 'Sahrawi Republic'
+    ]);
+
     const UNRECOGNISED_TERRITORIES = [
         'Kosovo', 'Transnistria', 'Abkhazia', 'South Ossetia', 'Northern Cyprus', 'Somaliland', 'Artsakh'
     ];
@@ -490,13 +531,47 @@
             background: rgba(255,255,255,0.06);
             border-radius: 3px;
             overflow: hidden;
+            display: flex;
         }
+        /* Two additive segments of one track - flex:none so the declared widths
+           are the real widths, not a starting point for the flex algorithm. */
         .world-progress-fill {
             height: 100%;
-            border-radius: 3px;
-            background: linear-gradient(90deg, #4CAF50, #81C784);
+            flex: 0 0 auto;
             transition: width 0.5s ease;
         }
+        .world-progress-fill.wp-seg-sovereign {
+            background: linear-gradient(90deg, #4CAF50, #81C784);
+            border-radius: 3px 0 0 3px;
+        }
+        .world-progress-fill.wp-seg-territory {
+            background: linear-gradient(90deg, #B76E79, #d3a2a9);
+            border-radius: 0 3px 3px 0;
+        }
+        .world-progress-keys {
+            display: flex;
+            gap: 14px;
+            margin-top: 7px;
+            font-size: 0.55em;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #8b8b8b;
+        }
+        .wp-key {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .wp-key::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        .wp-key-sovereign::before { background: #4CAF50; }
+        .wp-key-territory::before { background: #B76E79; }
+        .wp-key b { color: #c8c8c8; font-weight: 700; }
         .world-progress-pct {
             font-size: 0.5em;
             color: #666;
@@ -663,7 +738,7 @@
         if (trophyQueue.length === 0) { isShowing = false; return; }
         isShowing = true;
         const trophy = trophyQueue.shift();
-        const tier = TIERS[trophy.tier];
+        const tier = tierStyle(trophy.tier);
 
         const el = document.createElement('div');
         el.className = `trophy-notification tier-${trophy.tier}`;
@@ -941,6 +1016,8 @@
             'ulaanbaatar': ['achUlaanbaatarName','achUlaanbaatarDesc'],
             'mandalay': ['achMandalayName','achMandalayDesc'],
             'xian': ['achTerracottaName','achTerracottaDesc'],
+            'meizhou': ['achMatsuName','achMatsuDesc'],
+            'kinmen': ['achKinmenName','achKinmenDesc'],
             'beijing': ['achForbiddenCityName','achForbiddenCityDesc'],
             'agra': ['achTajMahalName','achTajMahalDesc'],
             'petra': ['achPetraName','achPetraDesc'],
@@ -1066,13 +1143,28 @@
         const existingRows = body.querySelectorAll('[data-ach-id]');
         const needsFullBuild = existingRows.length === 0;
 
+        // Sovereign-state progress: the same visited set, narrowed to real states
+        // One bar, two additive segments. The track is every place (215); the fill
+        // splits into sovereign states and dependencies/territories, so both counts
+        // read off a single scale instead of two bars with different denominators.
+        const sovereignTotal = Object.keys(COUNTRY_TO_CONTINENT).filter(c => !NON_SOVEREIGN.has(c)).length;
+        const sovereignVisited = [...seenCountries].filter(c => COUNTRY_TO_CONTINENT[c] && !NON_SOVEREIGN.has(c)).length;
+        const territoryTotal = totalWorldCountries - sovereignTotal;
+        const territoryVisited = visitedWorldCountries - sovereignVisited;
+        const segPct = n => totalWorldCountries > 0 ? (n / totalWorldCountries) * 100 : 0;
+
         const worldProgressHtml = `<div class="world-progress" id="world-progress">
             <div class="world-progress-label">
                 <span class="world-progress-title">${t('worldExplored')}</span>
                 <span class="world-progress-count">${visitedWorldCountries} / ${totalWorldCountries}</span>
             </div>
             <div class="world-progress-bar">
-                <div class="world-progress-fill" style="width:${worldPct}%"></div>
+                <div class="world-progress-fill wp-seg-sovereign" style="width:${segPct(sovereignVisited)}%"></div>
+                <div class="world-progress-fill wp-seg-territory" style="width:${segPct(territoryVisited)}%"></div>
+            </div>
+            <div class="world-progress-keys">
+                <span class="wp-key wp-key-sovereign">${t('sovereignStates')} <b>${sovereignVisited} / ${sovereignTotal}</b></span>
+                <span class="wp-key wp-key-territory">${t('specialTerritories')} <b>${territoryVisited} / ${territoryTotal}</b></span>
             </div>
             <div class="world-progress-pct">${worldPct}%</div>
         </div>`;
@@ -1083,7 +1175,7 @@
             groups.forEach(g => {
                 const items = achs.filter(a => a.tier === g.tier);
                 if (items.length === 0) return;
-                const tierConf = TIERS[g.tier];
+                const tierConf = tierStyle(g.tier);
                 const sectionEarned = items.filter(a => a.earned).length;
 
                 html += `<div class="ach-section-header" data-section="${g.tier}">
@@ -1099,13 +1191,16 @@
             const wp = body.querySelector('#world-progress');
             if (wp) {
                 wp.querySelector('.world-progress-count').textContent = `${visitedWorldCountries} / ${totalWorldCountries}`;
-                wp.querySelector('.world-progress-fill').style.width = worldPct + '%';
+                wp.querySelector('.wp-seg-sovereign').style.width = segPct(sovereignVisited) + '%';
+                wp.querySelector('.wp-seg-territory').style.width = segPct(territoryVisited) + '%';
+                wp.querySelector('.wp-key-sovereign b').textContent = `${sovereignVisited} / ${sovereignTotal}`;
+                wp.querySelector('.wp-key-territory b').textContent = `${territoryVisited} / ${territoryTotal}`;
                 wp.querySelector('.world-progress-pct').textContent = worldPct + '%';
             }
             // Diff update — only touch changed rows
             groups.forEach(g => {
                 const items = achs.filter(a => a.tier === g.tier);
-                const tierConf = TIERS[g.tier];
+                const tierConf = tierStyle(g.tier);
                 const sectionEarned = items.filter(a => a.earned).length;
 
                 // Update section count
@@ -1230,7 +1325,8 @@
                 progressHtml = `<div class="ach-progress"><div class="ach-progress-fill" style="width:${pct}%;background:${tierConf.color}"></div></div>`;
             }
 
-            const iconColor = a.earned ? tierConf.color : '#444';
+            const _locked = lockedStyle();
+            const iconColor = a.earned ? tierConf.color : _locked.icon;
             const iconHtml = a.isCountry
                 ? flagImg(a.name, 20) || trophySVG(iconColor, 20)
                 : achIcon(a.id, iconColor, 20);
@@ -1240,7 +1336,7 @@
                     ${iconHtml}
                 </div>
                 <div class="ach-info">
-                    <div class="ach-name" style="color:${a.earned ? tierConf.color : '#666'}">${a.isCountry && window.translateCountry ? window.translateCountry(a.name) : a.name}</div>
+                    <div class="ach-name" style="color:${a.earned ? tierConf.color : _locked.name}">${a.isCountry && window.translateCountry ? window.translateCountry(a.name) : a.name}</div>
                     <div class="ach-desc">${a.desc}</div>
                 </div>
                 ${progressHtml}
@@ -1343,6 +1439,18 @@
             name: 'Terracotta Army',
             desc: "Visit the Terracotta Warriors",
             match: city => ["xi'an", 'xian'].includes((city.name || '').trim().toLowerCase())
+        },
+        {
+            id: 'meizhou',
+            name: 'Birthplace of Matsu',
+            desc: 'Visit Meizhou Island, the Ancestral Home of Matsu',
+            match: city => (city.name || '').trim().toLowerCase() === 'meizhou'
+        },
+        {
+            id: 'kinmen',
+            name: 'Cold War Frontline',
+            desc: 'Visit Kinmen, Within Sight of the Mainland',
+            match: city => ['kinmen', 'jinmen', 'quemoy'].includes((city.name || '').trim().toLowerCase())
         },
         {
             id: 'beijing',
@@ -1606,6 +1714,8 @@
                     'ulaanbaatar': ['achUlaanbaatarName','achUlaanbaatarDesc'],
                     'mandalay': ['achMandalayName','achMandalayDesc'],
                     'xian': ['achTerracottaName','achTerracottaDesc'],
+                    'meizhou': ['achMatsuName','achMatsuDesc'],
+                    'kinmen': ['achKinmenName','achKinmenDesc'],
                     'beijing': ['achForbiddenCityName','achForbiddenCityDesc'],
                     'agra': ['achTajMahalName','achTajMahalDesc'],
                     'petra': ['achPetraName','achPetraDesc'],
@@ -1888,5 +1998,15 @@
             if (body) body.innerHTML = '';
             renderPanel();
         }
+    });
+
+    // Tier colours are written inline as the rows are built, so a theme flip
+    // needs the same full rebuild that a language change does.
+    window.addEventListener('atc-theme-change', function () {
+        if (!panelOpen) return;
+        prevEarnedIds = new Set();
+        const body = document.getElementById('achievements-body');
+        if (body) body.innerHTML = '';
+        renderPanel();
     });
 })();

@@ -10,7 +10,7 @@
          works fully offline (no CDN round-trip on export click). -->
     <script src="asset/vendor/jspdf.umd.min.js" defer></script>
     <script src="asset/vendor/html2canvas.min.js" defer></script>
-    <link rel="stylesheet" href="atc-skin.css?v=174" />
+    <link rel="stylesheet" href="atc-skin.css?v=209" />
     <style>
     /* Local Segoe UI (TTF files supplied in /asset/font/SegoeUI/) */
     @font-face {
@@ -1372,6 +1372,48 @@
             margin-bottom: 12px;
         }
 
+        /* Title row with a data-freshness stamp on the right. data-i18n sits on the
+           inner span, since applyTranslations() overwrites textContent wholesale. */
+        .widget-title-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .widget-title-asof {
+            font-size: 8px;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            text-transform: none;
+            color: #6b6b6b;
+            white-space: nowrap;
+        }
+        /* The date itself flows green, same treatment as the visa-free tooltip
+           values, so the freshness stamp reads as live rather than as filler. */
+        .widget-title-asof .asof-date {
+            background-image: linear-gradient(
+                90deg,
+                #1b4d21 0%, #2d6a32 12.5%, #4CAF50 25%, #7fe091 37.5%, #b5f5b5 50%,
+                #7fe091 62.5%, #4CAF50 75%, #2d6a32 87.5%, #1b4d21 100%
+            );
+            background-size: 200% 100%;
+            background-repeat: repeat-x;
+            -webkit-background-clip: text;
+                    background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            font-weight: 700;
+            animation: asofGreenFlow 3s linear infinite;
+        }
+        @keyframes asofGreenFlow {
+            from { background-position-x: 0; }
+            to   { background-position-x: 200%; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .widget-title-asof .asof-date { animation: none; }
+        }
+
         /* Spending Heatmap */
         .heatmap-year { margin-bottom: 10px; }
         .heatmap-year-label {
@@ -1509,10 +1551,49 @@
             transition: opacity 0.15s;
             user-select: none;
         }
+        /* Pre-travel authorisation (ETA/ESTA) — cyan, sits above the permit line */
+        .tip-auth {
+            font-size: 10px;
+            line-height: 1.35;
+            color: #4DD0E1;
+            margin-top: 3px;
+            max-width: 220px;
+            white-space: normal;
+        }
+        /* Permit line under the visa value in the row tooltips */
+        .tip-permit {
+            font-size: 10px;
+            line-height: 1.35;
+            color: #B388FF;
+            margin-top: 3px;
+            max-width: 220px;
+            white-space: normal;
+        }
+        .neighbors-legend-permit {
+            border-color: rgba(179, 136, 255, 0.35) !important;
+        }
+        /* The swatch must never be the thing that gives: as a flex child it
+           defaults to flex-shrink:1, so under any overflow it collapses to zero
+           width and the icons vanish before the text does. */
+        .neighbors-legend-item svg {
+            flex-shrink: 0;
+        }
         .neighbors-legend-item.legend-active {
             opacity: 1 !important;
             text-decoration: underline;
             text-underline-offset: 3px;
+        }
+        .neighbors-legend-aux {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 8px;
+            padding: 5px 10px;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.03);
+            width: fit-content;
+            margin-left: auto;
         }
         .neighbors-legend-visa {
             display: flex;
@@ -1752,7 +1833,7 @@
     </style>
     <!-- Light mode. Must load AFTER the inline <style> above, since it
          overrides that block's hardcoded dark colour literals. -->
-    <link rel="stylesheet" href="atc-light.css?v=12" />
+    <link rel="stylesheet" href="atc-light.css?v=17" />
 </head>
 <body>
     <div class="title-section">
@@ -1945,7 +2026,10 @@
 
             <!-- Row 5: Unvisited Neighbors (full) -->
             <div class="widget-card full">
-                <div class="widget-title" data-i18n="unvisitedNeighbours">Unvisited Countries/Places</div>
+                <div class="widget-title widget-title-row">
+                    <span data-i18n="unvisitedNeighbours">Unvisited Countries/Places</span>
+                    <span class="widget-title-asof" id="visaAsOf"></span>
+                </div>
                 <div id="unvisitedNeighbors"></div>
             </div>
         </div>
@@ -1965,22 +2049,23 @@
     <script src="data/exchange-rates.js"></script>
     <script src="data/city-native-names.js"></script>
     <script src="data/city-names-i18n.js"></script>
-    <script src="widget/country-trophy.js?v=6"></script>
+    <script src="widget/country-trophy.js?v=10"></script>
     <script src="animated-flight-map.js?v=3"></script>
     <script src="widget/danmaku.js"></script>
+    <script src="widget/fx-rate.js?v=4"></script>
     <script src="widget/spending-heatmap.js?v=140"></script>
-    <script src="widget/cost-choropleth.js?v=141"></script>
+    <script src="widget/cost-choropleth.js?v=142"></script>
     <script src="widget/duration-trend.js?v=140"></script>
     <script src="widget/records-cards.js"></script>
     <script src="data/visa-sg.js"></script>
-    <script src="widget/unvisited-neighbors.js?v=159"></script>
+    <script src="widget/unvisited-neighbors.js?v=177"></script>
     <script src="widget/return-visits.js?v=2"></script>
     <script src="widget/longest-stays.js?v=140"></script>
     <script src="widget/top-airlines.js?v=140"></script>
     <script src="widget/journey-timeline.js?v=140"></script>
     <script src="atc-bg.js?v=4"></script>
     <script src="atc-scope.js?v=53"></script>
-    <script src="atc-skin.js?v=176"></script>
+    <script src="atc-skin.js?v=177"></script>
     <script src="atc-theme.js?v=4"></script>
     <script src="data/asia-europe-border.js?v=1"></script>
     <script src="widget/final-boss.js?v=41"></script>

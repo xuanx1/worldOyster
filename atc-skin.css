@@ -730,15 +730,16 @@
     align-content: stretch !important;
     overflow: visible !important;
   }
-  /* Quote widget (above city-list) — fits the fixed 110px header
-     row. width pinned to its 360px grid cell so the column
+  /* Quote widget (above city-list) — fits the fixed 80px header
+     row (was 110px; the unused space under the text was halved). width pinned to its 360px grid cell so the column
      can't be widened by a long unbreakable run of text. */
   .stats-citylist-row > .atc-quote-widget {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    height: 110px !important;
-    max-height: 110px !important;
+    height: 80px !important;
+    max-height: 80px !important;
+    align-self: start !important;
     overflow: hidden !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -1280,6 +1281,9 @@
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
+    /* Spread the seven entries so the bar fills the map width instead of
+       bunching them at the left. */
+    justify-content: space-between !important;
     gap: 4px 8px !important;
     overflow: visible !important;
     padding: 6px 10px !important;
@@ -1291,9 +1295,37 @@
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
     pointer-events: auto !important;
   }
-  .widget-card:has(#unvisitedNeighbors) #unvisitedNeighbors > .neighbors-legend .neighbors-legend-item {
+  .widget-card:has(#unvisitedNeighbors) #unvisitedNeighbors > .neighbors-legend .neighbors-legend-item,
+  .widget-card:has(#unvisitedNeighbors) #unvisitedNeighbors > .neighbors-legend-aux .neighbors-legend-item {
     font-size: 9px !important;
     white-space: nowrap !important;
+  }
+  /* Travel Authorisation + Local Permit are a different axis from the visa
+     categories, so they get their own island floating above the main bar and
+     flush with its right edge. Same panel treatment, sized to its content. */
+  .widget-card:has(#unvisitedNeighbors) #unvisitedNeighbors > .neighbors-legend-aux {
+    position: absolute !important;
+    /* Main bar is 40px tall at bottom:8px, so clear it by 8px. The container is
+       the whole widget (map + region lists), NOT the map, so anchoring with
+       `right` would push this past the map. Pin the LEFT edge at the map's
+       right inset (787 - 8 = 779px) and pull it back by its own width. */
+    bottom: 56px !important;
+    left: 779px !important;
+    transform: translateX(-100%) !important;
+    z-index: 1100 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 14px !important;
+    padding: 6px 10px !important;
+    background: rgba(7, 11, 16, 0.78) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(76, 175, 80, 0.28) !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+    pointer-events: auto !important;
   }
   /* Country region lists. Right strip = 1200px. The atc-skin.js
      splits the region cards into TWO side-by-side columns:
@@ -1458,7 +1490,10 @@
   }
   /* Tighten row spacing so the lists don't look spread out. */
   .widget-card:has(#unvisitedNeighbors) .un-row {
-    padding: 3px 0 !important;
+    /* Right padding so an over-long name clips BEFORE the cell edge. Without it
+       the clip lands flush against the next column's flag ("Andaman and Nicobar
+       Islan|" hard up against Lakshadweep). */
+    padding: 3px 14px 3px 0 !important;
   }
 
   /* Spending-heatmap tooltip — trip details (mode/route/dist/cost) */
@@ -1496,14 +1531,32 @@
     margin-top: 2px;
     letter-spacing: 0.03em;
   }
+  /* .un-row is a GRID item, so it defaults to min-width:auto and sizes itself
+     to its own min-content - the whole nowrap name. That is why a long name
+     grew past its 155px column and painted over the next entry's flag: the row
+     never shrank, so .un-name below never had to clip. min-width:0 lets the row
+     take its track width, and the clip below finally applies. */
+  .widget-card:has(#unvisitedNeighbors) .neighbors-region-list > .un-row,
+  .widget-card:has(#unvisitedNeighbors) .disputed-grid > .un-row {
+    min-width: 0 !important;
+  }
+
   /* Strip is now wide enough that every country name fits on
      ONE line. Restore nowrap so the names render tidily. */
   .widget-card:has(#unvisitedNeighbors) .un-name {
+    /* display:block, not flex - text-overflow only applies to block containers,
+       so as a flex box the name truncated with no ellipsis. The flag goes back
+       to being an inline image beside the text. */
+    display: block !important;
     white-space: nowrap !important;
     overflow: hidden !important;
-    text-overflow: clip !important;
+    text-overflow: ellipsis !important;
     flex-shrink: 1 !important;
     min-width: 0 !important;
+  }
+  .widget-card:has(#unvisitedNeighbors) .un-name img {
+    vertical-align: -3px !important;
+    margin-right: 4px !important;
   }
 
   /* Hide the INSIGHTS toggle (widgets always visible now). Keep Export. */
@@ -1558,9 +1611,13 @@
        overrun. */
     display: grid !important;
     grid-template-columns: minmax(0, 360px) minmax(0, 360px) !important;
-    grid-template-rows: 110px 1fr !important;
+    /* Middle row is the SGD/USD sparkline, between the quote and the city list.
+       The RIGHT column is unaffected by it: the title keeps row 1 and the stats
+       box spans rows 2-3, so the fx row costs height only on the left. */
+    grid-template-rows: 80px 103px 1fr !important;
     grid-template-areas:
       "quote  title"
+      "fx     stats"
       "city   stats" !important;
     column-gap: 40px !important;
     row-gap: 12px !important;
@@ -1570,6 +1627,84 @@
     overflow: visible !important;
   }
   .stats-citylist-row > .atc-quote-widget { grid-area: quote !important; }
+  /* ── SGD/USD sparkline ─────────────────────────────────────
+     Tracks the animation: the faint track is the whole 2017-2026
+     curve, the green overlay is clipped to the current flight
+     date, and the dot rides the head of it. */
+  .stats-citylist-row > .atc-fx-widget {
+    grid-area: fx !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    align-self: end !important;
+    padding: 0 !important;
+    /* 12px row-gap + 22px = 34px of clearance under the chart.
+       Row height carries the extra so the top space is unchanged. */
+    margin: 0 0 22px 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-sizing: border-box !important;
+  }
+  .atc-fx-widget .atc-fx-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+  .atc-fx-widget .atc-fx-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #4CAF50;
+  }
+  .atc-fx-widget .atc-fx-value {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #e8e8e8;
+    font-variant-numeric: tabular-nums;
+  }
+  .atc-fx-widget .atc-fx-chart {
+    display: block;
+    width: 100%;
+    height: 34px;
+    overflow: visible;
+  }
+  .atc-fx-widget .atc-fx-track {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.16);
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+  }
+  .atc-fx-widget .atc-fx-live {
+    fill: none;
+    stroke: #4CAF50;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .atc-fx-widget .atc-fx-dot {
+    /* Positioned by transform (see fx-rate.js) so it can be animated along the
+       path; cx/cy stay at 0 and the transform carries the real coordinates. */
+    fill: #4CAF50;
+    stroke: rgba(7, 11, 16, 0.9);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .atc-fx-widget .atc-fx-axis .atc-fx-res {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    opacity: 0.55;
+  }
+  .atc-fx-widget .atc-fx-axis {
+    display: flex;
+    justify-content: space-between;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    color: #6b6b6b;
+    margin-top: 1px;
+  }
   .stats-citylist-row > .city-list-container { grid-area: city !important; }
   .stats-citylist-row > .stats-section { grid-area: stats !important; }
   /* Title spans the full WIDTH of the stats column. Shifted up
@@ -1766,7 +1901,10 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
     padding: 18px 16px !important;
     box-sizing: border-box !important;
-    margin-top: -65px !important;
+    /* Title sits at the top of an 80px row; the stats box starts one 12px
+       row-gap later and is pulled back up by this margin. At -65px the clear
+       space under the title was ~8px; -49px triples it to ~24px. */
+    margin-top: -49px !important;
     animation: atcStatsBorderSweep 4.5s linear infinite !important;
   }
   @keyframes atcStatsBorderSweep {
@@ -1957,6 +2095,14 @@
 }
 .leaflet-tooltip.atc-cycle-tip .tip-label {
   font-size: 10px; color: #999; letter-spacing: 0.10em; text-transform: uppercase;
+}
+.leaflet-tooltip.atc-cycle-tip .tip-auth {
+  font-size: 10px; color: #4DD0E1; margin-top: 3px;
+  max-width: 220px; white-space: normal;
+}
+.leaflet-tooltip.atc-cycle-tip .tip-permit {
+  font-size: 10px; color: #B388FF; margin-top: 3px;
+  max-width: 220px; white-space: normal;
 }
 .leaflet-tooltip.atc-cycle-tip .tip-val {
   font-size: 13px; font-weight: 600; color: #4CAF50; margin-top: 2px;

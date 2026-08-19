@@ -126,7 +126,8 @@
         // Asia micro & territories
         'Bahrain', 'Singapore', 'Brunei', 'Timor-Leste', 'Maldives',
         'Hong Kong SAR', 'Macau SAR', 'Socotra', 'Somaliland', 'Artsakh',
-        'Andaman and Nicobar Islands', 'Christmas Island', 'Cocos Islands',
+        'Andaman and Nicobar Islands', 'Lakshadweep', 'Christmas Island', 'Cocos Islands',
+        'Tibet', 'Kinmen', 'Meizhou Island',
         'British Indian Ocean Territory', 'Gorno-Badakhshan', 'Baikonur', 'Kish Island', 'Panmunjom',
         // Africa
         'Djibouti', 'Eswatini', 'Lesotho', 'Comoros', 'Mauritius', 'Seychelles',
@@ -204,7 +205,10 @@
         'JSA': 'Panmunjom',
         'Kish': 'Kish Island',
         'Kish Island': 'Kish Island',
-        'Kaliningrad': 'Kaliningrad'
+        'Kaliningrad': 'Kaliningrad',
+        'Lhasa': 'Tibet',
+        'Kinmen': 'Kinmen',
+        'Meizhou': 'Meizhou Island'
     };
 
     // Region classification for grouping unvisited countries/places
@@ -242,7 +246,9 @@
         'Lebanon': 'asia', 'Oman': 'asia', 'Palestine': 'asia', 'Qatar': 'asia',
         'Saudi Arabia': 'asia', 'Socotra': 'special', 'Turkey': 'asia', 'UAE': 'asia', 'Yemen': 'asia',
         // Asian territories
-        'Andaman and Nicobar Islands': 'special', 'Christmas Island': 'special', 'Cocos Islands': 'special',
+        'Andaman and Nicobar Islands': 'special', 'Lakshadweep': 'special',
+        'Tibet': 'special', 'Kinmen': 'special', 'Meizhou Island': 'special',
+        'Christmas Island': 'special', 'Cocos Islands': 'special',
         'British Indian Ocean Territory': 'special',
         // Africa
         'Algeria': 'africa', 'Angola': 'africa', 'Benin': 'africa', 'Botswana': 'africa',
@@ -327,7 +333,8 @@
         'Kaliningrad': 'europe', 'Ceuta': 'europe', 'Melilla': 'europe',
         // Asia
         'Hong Kong SAR': 'asia', 'Macau SAR': 'asia', 'Socotra': 'asia',
-        'Andaman and Nicobar Islands': 'asia', 'Christmas Island': 'asia',
+        'Andaman and Nicobar Islands': 'asia', 'Lakshadweep': 'asia', 'Christmas Island': 'asia',
+        'Tibet': 'asia', 'Kinmen': 'asia', 'Meizhou Island': 'asia',
         'Cocos Islands': 'asia', 'British Indian Ocean Territory': 'asia',
         'Gorno-Badakhshan': 'asia', 'Baikonur': 'asia',
         'Kish Island': 'asia', 'Panmunjom': 'asia',
@@ -407,6 +414,13 @@
         const container = document.getElementById('unvisitedNeighbors');
         if (!container) return;
 
+        // Data-freshness stamp in the card header
+        const asOfEl = document.getElementById('visaAsOf');
+        if (asOfEl && window.VISA_SG_ASOF) {
+            const _tAsOf = window.i18n ? window.i18n.t : function (k) { return k; };
+            asOfEl.innerHTML = _tAsOf('visaAsOf') + ' <span class="asof-date">' + window.VISA_SG_ASOF + '</span>';
+        }
+
         const visited = getVisitedCountries();
         const unvisitedNeighborMap = {}; // country → [bordered by...]
 
@@ -455,9 +469,11 @@
         }).addTo(map);
 
         // Single shared tooltip for all map layers
+        // Same element and markup as the country-name row tooltips, so the map
+        // and the lists read identically (and pick up the same light-mode rules).
         const mapTip = document.createElement('div');
-        mapTip.className = 'widget-map-tooltip';
-        mapTip.style.cssText = 'position:fixed;pointer-events:none;display:none;z-index:9999;padding:6px 10px;border-radius:4px;';
+        mapTip.className = 'widget-row-tooltip';
+        mapTip.style.cssText = 'position:fixed;pointer-events:none;display:none;z-index:99999;';
         document.body.appendChild(mapTip);
         function showMapTip(html, e) {
             mapTip.innerHTML = html;
@@ -495,6 +511,18 @@
         const countryLayers = {}; // country name → [layers/dots]
         const visaData = window.VISA_SG || {};
         const VISA_MAP_COLORS = { free: '#4CAF50', arrival: '#8BC34A', evisa: '#FFB74D', required: '#ef5350' };
+        // Local permits are a SEPARATE axis from the national visa: a visa-free place can
+        // still need one (Tibet). Shown as a dashed violet outline, never as a fill.
+        const permitData = window.LOCAL_PERMIT || {};
+        const PERMIT_COLOR = '#B388FF';
+        const PERMIT_DASH = '4,3';
+        function needsPermit(c) { return !!permitData[c]; }
+        // Third axis: a national pre-travel authorisation. Visa-free entry still
+        // means paperwork for the UK, USA, Australia and friends, and folding it
+        // into the visa bucket would hide it exactly as the permits were hidden.
+        const authData = window.TRAVEL_AUTH || {};
+        const AUTH_COLOR = '#4DD0E1';
+        function needsAuth(c) { return !!authData[c]; }
 
         function applyHatch(layer, visa) {
             if (layer._path && visa) {
@@ -534,11 +562,13 @@
                     matchedCountries.add(appName);
 
                     if (visited.has(appName)) {
-                        return { fillColor: '#4CAF50', fillOpacity: 0.45, color: '#4CAF50', weight: 1, opacity: 0.6 };
+                        return { fillColor: '#4CAF50', fillOpacity: 0.45, color: '#4CAF50', weight: 1, opacity: 0.6,
+                                 dashArray: needsPermit(appName) ? PERMIT_DASH : null };
                     }
                     if (COUNTRY_REGION[appName]) {
                         const _isSpecial = COUNTRY_REGION[appName] === 'special';
-                        return { fillColor: '#1a1a2e', fillOpacity: 1, color: _isSpecial ? '#B76E79' : '#FFB74D', weight: _isSpecial ? 2 : 1, opacity: 0.8 };
+                        return { fillColor: '#1a1a2e', fillOpacity: 1, color: _isSpecial ? '#B76E79' : '#FFB74D', weight: _isSpecial ? 2 : 1, opacity: 0.8,
+                                 dashArray: needsPermit(appName) ? PERMIT_DASH : null };
                     }
                     return { fillColor: '#fff', fillOpacity: 0.02, color: '#444', weight: 0.3, opacity: 0.3 };
                 }
@@ -549,8 +579,22 @@
                     if (!v) return '';
                     var _t2 = window.i18n ? window.i18n.t : function(k){return k;};
                     var label = _t2(VISA_TIP_LABELS[v] || v);
-                    var color = VISA_MAP_COLORS[v] || '#888';
-                    return '<br><span style="color:' + color + '">' + label + '</span>';
+                    var flow = (v === 'free' || v === 'arrival') ? ' atc-visa-flow' : '';
+                    var style = flow ? '' : ' style="color:' + (VISA_MAP_COLORS[v] || '#888') + '"';
+                    return '<div class="tip-val' + flow + '"' + style + '>' + label + '</div>';
+                }
+                // NAME - STATUS on the grey label line, matching the row tooltips
+                function tipHead(name, status) {
+                    return '<div class="tip-label">' + name + (status ? ' \u00b7 ' + status : '') + '</div>';
+                }
+                // Second line, independent of the visa line above
+                function permitTipHtml(country) {
+                    if (!needsPermit(country)) return '';
+                    return '<div class="tip-permit">' + permitData[country] + '</div>';
+                }
+                function authTipHtml(country) {
+                    if (!needsAuth(country)) return '';
+                    return '<div class="tip-auth">' + authData[country] + '</div>';
                 }
 
                 function onFeature(feature, layer) {
@@ -565,7 +609,7 @@
                         const _vLabel = window.i18n ? window.i18n.t('visited') : 'Visited';
                         const _dn = window.translateCountry ? window.translateCountry(appName) : appName;
                         const _vReset = function () { hideMapTip(); this.setStyle({ weight: 1, fillOpacity: 0.45 }); };
-                        layer.on('mouseover', function (e) { clearHovered(); showMapTip(`<b>${_dn}</b><br>${_vLabel}`, e); this.setStyle({ weight: 2, fillOpacity: 0.7 }); this.bringToFront(); _hoveredLayer = this; _hoveredReset = _vReset; });
+                        layer.on('mouseover', function (e) { clearHovered(); showMapTip(`${tipHead(_dn, _vLabel)}${visaTipHtml(visaData[appName])}${authTipHtml(appName)}${permitTipHtml(appName)}`, e); this.setStyle({ weight: 2, fillOpacity: 0.7 }); this.bringToFront(); _hoveredLayer = this; _hoveredReset = _vReset; });
                         layer.on('mousemove', moveMapTip);
                         layer.on('mouseout', function () { _vReset.call(this); if (_hoveredLayer === this) _hoveredLayer = null; });
                     } else if (COUNTRY_REGION[appName]) {
@@ -576,7 +620,7 @@
                         const _uReset = function () { hideMapTip(); this.setStyle({ weight: _sp ? 2 : 1, fillOpacity: 1, fillColor: '#1a1a2e', color: _outlineColor }); applyHatch(this, visa); };
                         layer.on('mouseover', function (e) {
                             clearHovered();
-                            showMapTip(`<b>${_dn2}</b><br>${_uLabel}${visaTipHtml(visa)}`, e);
+                            showMapTip(`${tipHead(_dn2, _uLabel)}${visaTipHtml(visa)}${authTipHtml(appName)}${permitTipHtml(appName)}`, e);
                             this.setStyle({ weight: 2.5, fillOpacity: 1, fillColor: '#1a1a2e', color: '#fff' });
                             this.bringToFront();
                             applyHatch(this, visa);
@@ -709,7 +753,8 @@
                             fillOpacity: fillOp,
                             color: strokeColor,
                             weight: weight,
-                            opacity: opacity
+                            opacity: opacity,
+                            dashArray: needsPermit(country) ? PERMIT_DASH : null
                         }).addTo(map);
 
                         let tipHtml;
@@ -717,11 +762,11 @@
                         const _uLabel = window.i18n ? window.i18n.t('unvisitedLabel') : 'Unvisited';
                         const _tcn = window.translateCountry ? window.translateCountry(country) : country;
                         if (isVisited) {
-                            tipHtml = `<b>${_tcn}</b><br>${_vLabel}`;
+                            tipHtml = `${tipHead(_tcn, _vLabel)}${visaTipHtml(visaData[country])}${authTipHtml(country)}${permitTipHtml(country)}`;
                         } else if (isUnvisited) {
-                            tipHtml = `<b>${_tcn}</b><br>${_uLabel}${visaTipHtml(visaData[country])}`;
+                            tipHtml = `${tipHead(_tcn, _uLabel)}${visaTipHtml(visaData[country])}${authTipHtml(country)}${permitTipHtml(country)}`;
                         } else {
-                            tipHtml = `<b>${_tcn}</b>`;
+                            tipHtml = tipHead(_tcn, '');
                         }
 
                         if (!countryLayers[country]) countryLayers[country] = [];
@@ -750,7 +795,7 @@
 
         // Legend + tag list grouped by region
         const _t = window.i18n ? window.i18n.t : function(k){return k;};
-        function legendSvg(fill, stroke, hatchColor) {
+        function legendSvg(fill, stroke, hatchColor, dash) {
             const s = 14;
             let defs = '', fillAttr;
             if (hatchColor) {
@@ -760,7 +805,8 @@
             } else {
                 fillAttr = fill;
             }
-            return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg">${defs}<rect x="1" y="1" width="${s-2}" height="${s-2}" rx="2" fill="${fillAttr}" stroke="${stroke}" stroke-width="1.5" opacity="0.9"/></svg>`;
+            const dashAttr = dash ? ' stroke-dasharray="3,2"' : '';
+            return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg">${defs}<rect x="1" y="1" width="${s-2}" height="${s-2}" rx="2" fill="${fillAttr}" stroke="${stroke}" stroke-width="1.5"${dashAttr} opacity="0.9"/></svg>`;
         }
         // Collect unrecognised/disputed territories not yet visited
         const disputedTerritories = Object.keys(COUNTRY_REGION)
@@ -771,11 +817,18 @@
 
         // Count visa categories among ALL unvisited (countries + special + disputed)
         var visaCounts = { free: 0, arrival: 0, evisa: 0, required: 0 };
+        var permitCount = 0;
+        var authCount = 0;
         unvisited.concat(specialTerritories, disputedTerritories).forEach(function (c) {
             var v = visaData[c];
             if (v && visaCounts.hasOwnProperty(v)) visaCounts[v]++;
+            if (needsPermit(c)) permitCount++;   // orthogonal to the visa bucket above
+            if (needsAuth(c)) authCount++;
         });
 
+        // ONE row, no wrapping, full-length labels. Nine of them only fit the
+        // 771px strip at a small font - see the sizing note in atc-skin.css
+        // before raising it.
         let legend = `<div class="neighbors-legend">
             <span class="neighbors-legend-item" data-legend="visited">${legendSvg('rgba(76,175,80,0.5)', '#4CAF50', '')} ${_t('visited')} (${visited.size})</span>
             <span class="neighbors-legend-visa">
@@ -788,6 +841,10 @@
                 <span class="neighbors-legend-item" data-legend="evisa">${legendSvg('none', 'transparent', '#FFB74D')} ${_t('eVisa')} (${visaCounts.evisa})</span>
                 <span class="neighbors-legend-item" data-legend="required">${legendSvg('none', 'transparent', '#ef5350')} ${_t('visaRequired')} (${visaCounts.required})</span>
             </span>
+        </div>
+        <div class="neighbors-legend-aux">
+            <span class="neighbors-legend-item" data-legend="auth">${legendSvg('rgba(77,208,225,0.10)', '#4DD0E1', '', true)} ${_t('travelAuth')} (${authCount})</span>
+            <span class="neighbors-legend-item" data-legend="permit">${legendSvg('rgba(179,136,255,0.10)', '#B388FF', '', true)} ${_t('localPermit')} (${permitCount})</span>
         </div>`;
         const _flag = window.countryTrophy ? window.countryTrophy.flagImg : function(){return '';};
 
@@ -824,6 +881,16 @@
 
         // Visa info helper
         const VISA_LABELS = { free: 'visaFree', arrival: 'visaOnArrival', evisa: 'eVisa', required: 'visaRequired' };
+        // Permit shows alongside the visa label, never instead of it
+        function authAttr(c) {
+            if (!needsAuth(c)) return '';
+            return String(authData[c]).split('&').join('&amp;').split('"').join('&quot;').split('<').join('&lt;');
+        }
+        // Escaped for an HTML attribute - permit names carry apostrophes
+        function permitAttr(c) {
+            if (!needsPermit(c)) return '';
+            return String(permitData[c]).split('&').join('&amp;').split('"').join('&quot;').split('<').join('&lt;');
+        }
 
         legend += '<div class="neighbors-regions">';
         function renderRegion(countries, label, extraCountries, extraLabel) {
@@ -837,7 +904,7 @@
                 const v = visaData[c] || '';
                 const visaLabel = v ? _t(VISA_LABELS[v] || v) : '—';
                 const visaColor = VISA_MAP_COLORS[v] || '#888';
-                legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-visa-color="${visaColor}" data-visa="${v}" data-type="unvisited">
+                legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-tip-permit="${permitAttr(c)}" data-tip-auth="${authAttr(c)}" data-auth="${needsAuth(c) ? '1' : ''}" data-visa-color="${visaColor}" data-visa="${v}" data-type="unvisited" data-permit="${needsPermit(c) ? '1' : ''}">
                     <div class="un-name">${_flag(c, 16)} ${_cn}</div>
                 </div>`;
             });
@@ -868,7 +935,7 @@
                         const v = visaData[c] || '';
                         const visaLabel = v ? _t(VISA_LABELS[v] || v) : '—';
                         const visaColor = VISA_MAP_COLORS[v] || '#888';
-                        legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-visa-color="${visaColor}">
+                        legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-tip-permit="${permitAttr(c)}" data-tip-auth="${authAttr(c)}" data-auth="${needsAuth(c) ? '1' : ''}" data-visa-color="${visaColor}" data-visa="${v}" data-type="special" data-permit="${needsPermit(c) ? '1' : ''}">
                             <div class="un-name">${_flag(c, 16)} ${_cn}</div>
                         </div>`;
                     });
@@ -890,7 +957,7 @@
                     const v = visaData[c] || '';
                     const visaLabel = v ? _t(VISA_LABELS[v] || v) : '—';
                     const visaColor = VISA_MAP_COLORS[v] || '#888';
-                    legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-visa-color="${visaColor}" data-visa="${v}" data-type="unvisited">
+                    legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-tip-permit="${permitAttr(c)}" data-tip-auth="${authAttr(c)}" data-auth="${needsAuth(c) ? '1' : ''}" data-visa-color="${visaColor}" data-visa="${v}" data-type="unvisited" data-permit="${needsPermit(c) ? '1' : ''}">
                         <div class="un-name">${_flag(c, 16)} ${_cn}</div>
                     </div>`;
                 });
@@ -921,7 +988,7 @@
                     const v = visaData[c] || '';
                     const visaLabel = v ? _t(VISA_LABELS[v] || v) : '—';
                     const visaColor = VISA_MAP_COLORS[v] || '#888';
-                    legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-visa-color="${visaColor}" data-visa="${v}" data-type="special">
+                    legend += `<div class="un-row" data-country="${c}" data-tip-label="${_cn}" data-tip-val="${visaLabel}" data-tip-permit="${permitAttr(c)}" data-tip-auth="${authAttr(c)}" data-auth="${needsAuth(c) ? '1' : ''}" data-visa-color="${visaColor}" data-visa="${v}" data-type="special" data-permit="${needsPermit(c) ? '1' : ''}">
                         <div class="un-name">${_flag(c, 16)} ${_cn}</div>
                     </div>`;
                 });
@@ -936,19 +1003,26 @@
 
         // Legend click — toggle filters, supports multiple active at once
         const legendEl = container.querySelector('.neighbors-legend');
+        // The auth/permit pair lives in its own island bar above the main one
+        const legendBars = Array.prototype.slice.call(
+            container.querySelectorAll('.neighbors-legend, .neighbors-legend-aux'));
         const allRows = container.querySelectorAll('.un-row');
         const activeFilters = new Set();
         const TYPE_FILTERS = new Set(['visited', 'unvisited', 'special']);
         const VISA_FILTERS = new Set(['free', 'arrival', 'evisa', 'required']);
+        const PERMIT_FILTERS = new Set(['permit']);
+        const AUTH_FILTERS = new Set(['auth']);
 
-        // Split active filters into type group and visa group
+        // Split active filters into type, visa and permit groups
         function getFilterGroups() {
-            var types = [], visas = [];
+            var types = [], visas = [], permitOnly = false, authOnly = false;
             activeFilters.forEach(function (f) {
                 if (TYPE_FILTERS.has(f)) types.push(f);
                 else if (VISA_FILTERS.has(f)) visas.push(f);
+                else if (PERMIT_FILTERS.has(f)) permitOnly = true;
+                else if (AUTH_FILTERS.has(f)) authOnly = true;
             });
-            return { types: types, visas: visas };
+            return { types: types, visas: visas, permitOnly: permitOnly, authOnly: authOnly };
         }
 
         function rowMatchesGroups(row, groups) {
@@ -958,7 +1032,11 @@
                 return row.dataset.type === f;
             });
             var visaOk = groups.visas.length === 0 || groups.visas.indexOf(row.dataset.visa) !== -1;
-            return typeOk && visaOk;
+            // Intersects the visa group, so "Visa Free" + "Local Permit" answers
+            // "where do I still need a permit despite visa-free entry?"
+            var permitOk = !groups.permitOnly || row.dataset.permit === '1';
+            var authOk = !groups.authOnly || row.dataset.auth === '1';
+            return typeOk && visaOk && permitOk && authOk;
         }
 
         function countryMatchesGroups(country, groups) {
@@ -967,7 +1045,9 @@
             var type = isVisited ? 'visited' : (COUNTRY_REGION[country] === 'special' ? 'special' : 'unvisited');
             var typeOk = groups.types.length === 0 || groups.types.indexOf(type) !== -1;
             var visaOk = groups.visas.length === 0 || groups.visas.indexOf(visa) !== -1;
-            return typeOk && visaOk;
+            var permitOk = !groups.permitOnly || needsPermit(country);
+            var authOk = !groups.authOnly || needsAuth(country);
+            return typeOk && visaOk && permitOk && authOk;
         }
 
         function applyLegendFilters() {
@@ -979,12 +1059,12 @@
                 row.style.opacity = rowMatchesGroups(row, groups) ? '1' : '0.15';
             });
             // Legend items
-            legendEl.querySelectorAll('.neighbors-legend-item').forEach(function (item) {
+            legendBars.forEach(function (bar) { bar.querySelectorAll('.neighbors-legend-item').forEach(function (item) {
                 if (!hasFilters) { item.style.opacity = '1'; item.classList.remove('legend-active'); return; }
                 var isActive = activeFilters.has(item.dataset.legend);
                 item.style.opacity = isActive ? '1' : '0.35';
                 item.classList.toggle('legend-active', isActive);
-            });
+            }); });
             // Map layers
             Object.keys(countryLayers).forEach(function (country) {
                 countryLayers[country].forEach(function (entry) {
@@ -1004,14 +1084,14 @@
             });
         }
 
-        legendEl.addEventListener('click', function (e) {
+        legendBars.forEach(function (bar) { bar.addEventListener('click', function (e) {
             var item = e.target.closest('.neighbors-legend-item[data-legend]');
             if (!item) return;
             var filter = item.dataset.legend;
             if (activeFilters.has(filter)) activeFilters.delete(filter);
             else activeFilters.add(filter);
             applyLegendFilters();
-        });
+        }); });
 
         const tip = document.createElement('div');
         tip.className = 'widget-row-tooltip';
@@ -1313,7 +1393,11 @@
             const _visa = row.dataset.visa || '';
             const _flowClass = (_visa === 'free' || _visa === 'arrival') ? ' atc-visa-flow' : '';
             const _valStyle = _flowClass ? '' : `style="color:${row.dataset.visaColor || '#888'}"`;
-            tip.innerHTML = `<div class="tip-label">${row.dataset.tipLabel}</div><div class="tip-val${_flowClass}" ${_valStyle}>${row.dataset.tipVal}</div>`;
+            const _permit = row.dataset.tipPermit || '';
+            const _auth = row.dataset.tipAuth || '';
+            const _permitHtml = (_auth ? `<div class="tip-auth">${_auth}</div>` : '') +
+                                (_permit ? `<div class="tip-permit">${_permit}</div>` : '');
+            tip.innerHTML = `<div class="tip-label">${row.dataset.tipLabel}</div><div class="tip-val${_flowClass}" ${_valStyle}>${row.dataset.tipVal}</div>${_permitHtml}`;
             tip.style.display = 'block';
             tip.style.left = (e.clientX + 16) + 'px';
             tip.style.top = (e.clientY - 12) + 'px';
@@ -1390,6 +1474,8 @@
                         rowData = {
                             tipLabel: row.dataset.tipLabel,
                             tipVal:   row.dataset.tipVal,
+                            tipPermit: row.dataset.tipPermit || '',
+                            tipAuth: row.dataset.tipAuth || '',
                             visaColor: row.dataset.visaColor || '#888'
                         };
                     }
@@ -1424,7 +1510,9 @@
                         const html =
                             '<div class="tip-label">' + rowData.tipLabel + '</div>' +
                             '<div class="tip-val" style="color:' + rowData.visaColor + '">' +
-                            rowData.tipVal + '</div>';
+                            rowData.tipVal + '</div>' +
+                            (rowData.tipAuth ? '<div class="tip-auth">' + rowData.tipAuth + '</div>' : '') +
+                            (rowData.tipPermit ? '<div class="tip-permit">' + rowData.tipPermit + '</div>' : '');
                         if (cycleTooltipLayer) {
                             cycleTooltipLayer.setContent(html).setLatLng(centerLatLng);
                         } else {

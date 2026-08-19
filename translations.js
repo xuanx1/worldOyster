@@ -129,6 +129,9 @@
             visaFree: 'Visa Free',
             visaOnArrival: 'Visa on Arrival',
             eVisa: 'e-Visa',
+            travelAuth: 'Travel Authorisation',
+            localPermit: 'Local Permit',
+            visaAsOf: 'Visa Policy Accurate as at',
             visaRequired: 'Visa Required',
 
             // Journey timeline continent names
@@ -147,6 +150,8 @@
 
             // Country trophy / achievements
             achievementsTitle: 'Achievements',
+            fxSgdUsd: 'SGD / USD',
+            sovereignStates: 'Sovereign States',
             worldExplored: 'World Explored',
             platinum: 'Platinum',
             gold: 'Gold',
@@ -241,6 +246,10 @@
             achMachuPicchuDesc: 'Visit Machu Picchu',
             achSaltFlatsName: 'Mirror of the Sky',
             achSaltFlatsDesc: 'Visit the Bolivia Salt Flats',
+            achMatsuName: 'Birthplace of Matsu',
+            achMatsuDesc: 'Visit Meizhou Island, the Ancestral Home of Matsu',
+            achKinmenName: 'Cold War Frontline',
+            achKinmenDesc: 'Visit Kinmen, Within Sight of the Mainland',
             achPanmunjomName: 'The 38th Parallel',
             achPanmunjomDesc: 'Visit the DMZ at Panmunjom',
 
@@ -406,6 +415,9 @@
             visaFree: 'بدون تأشيرة',
             visaOnArrival: 'تأشيرة عند الوصول',
             eVisa: 'تأشيرة إلكترونية',
+            travelAuth: 'تصريح سفر',
+            localPermit: 'تصريح محلي',
+            visaAsOf: 'سياسة التأشيرات دقيقة حتى',
             visaRequired: 'تأشيرة مطلوبة',
 
             asia: 'آسيا',
@@ -422,6 +434,8 @@
             middleEast: 'الشرق الأوسط',
 
             achievementsTitle: 'الإنجازات',
+            fxSgdUsd: 'سنغافوري / أمريكي',
+            sovereignStates: 'الدول ذات السيادة',
             worldExplored: 'العالم المُستكشَف',
             platinum: 'بلاتيني',
             gold: 'ذهبي',
@@ -511,6 +525,10 @@
             achMachuPicchuDesc: 'زيارة ماتشو بيتشو',
             achSaltFlatsName: 'مرآة السماء',
             achSaltFlatsDesc: 'زيارة مسطحات الملح البوليفية',
+            achMatsuName: 'مسقط رأس ماتسو',
+            achMatsuDesc: 'زيارة جزيرة ميتشو، الموطن الأصلي لماتسو',
+            achKinmenName: 'خط المواجهة في الحرب الباردة',
+            achKinmenDesc: 'زيارة كينمن، على مرمى البصر من البر الرئيسي',
             achPanmunjomName: 'خط العرض 38',
             achPanmunjomDesc: 'زيارة المنطقة المنزوعة السلاح في بانمونجوم',
 
@@ -669,6 +687,9 @@
             visaFree: '免签',
             visaOnArrival: '落地签',
             eVisa: '电子签',
+            travelAuth: '旅行授权',
+            localPermit: '当地通行证',
+            visaAsOf: '签证政策截至',
             visaRequired: '需要签证',
 
             asia: '亚洲',
@@ -685,6 +706,8 @@
             middleEast: '中东',
 
             achievementsTitle: '成就',
+            fxSgdUsd: '新币 / 美元',
+            sovereignStates: '主权国家',
             worldExplored: '已探索世界',
             platinum: '白金',
             gold: '黄金',
@@ -774,6 +797,10 @@
             achMachuPicchuDesc: '参观马丘比丘',
             achSaltFlatsName: '天空之镜',
             achSaltFlatsDesc: '参观玻利维亚盐沼',
+            achMatsuName: '媽祖故里',
+            achMatsuDesc: '造访湄洲岛，媽祖祖庙所在',
+            achKinmenName: '冷战前线',
+            achKinmenDesc: '造访金門，遥望大陸',
             achPanmunjomName: '三八线',
             achPanmunjomDesc: '参观板门店非军事区',
 
@@ -932,6 +959,9 @@
             visaFree: 'Sans visa',
             visaOnArrival: 'Visa à l\'arrivée',
             eVisa: 'e-Visa',
+            travelAuth: 'Autorisation de voyage',
+            localPermit: 'Permis local',
+            visaAsOf: 'Politique de visa à jour au',
             visaRequired: 'Visa requis',
 
             asia: 'Asie',
@@ -948,6 +978,8 @@
             middleEast: 'Moyen-Orient',
 
             achievementsTitle: 'Accomplissements',
+            fxSgdUsd: 'SGD / USD',
+            sovereignStates: 'États souverains',
             worldExplored: 'Monde exploré',
             platinum: 'Platine',
             gold: 'Or',
@@ -1037,6 +1069,10 @@
             achMachuPicchuDesc: 'Visiter le Machu Picchu',
             achSaltFlatsName: 'Miroir du ciel',
             achSaltFlatsDesc: 'Visiter le Salar de Uyuni',
+            achMatsuName: 'Berceau de Matsu',
+            achMatsuDesc: 'Visiter l\'île de Meizhou, berceau de Matsu',
+            achKinmenName: 'Ligne de front de la guerre froide',
+            achKinmenDesc: 'Visiter Kinmen, à vue du continent',
             achPanmunjomName: 'Le 38e parallèle',
             achPanmunjomDesc: 'Visiter la DMZ à Panmunjom',
 
@@ -1195,6 +1231,9 @@
             visaFree: 'Без визы',
             visaOnArrival: 'Виза по прибытии',
             eVisa: 'Электронная виза',
+            travelAuth: 'Разрешение на поездку',
+            localPermit: 'Местное разрешение',
+            visaAsOf: 'Визовая политика актуальна на',
             visaRequired: 'Виза обязательна',
 
             asia: 'Азия',
@@ -1211,6 +1250,8 @@
             middleEast: 'Ближний Восток',
 
             achievementsTitle: 'Достижения',
+            fxSgdUsd: 'SGD / USD',
+            sovereignStates: 'Суверенные государства',
             worldExplored: 'Мир исследован',
             platinum: 'Платина',
             gold: 'Золото',
@@ -1300,6 +1341,10 @@
             achMachuPicchuDesc: 'Посетить Мачу-Пикчу',
             achSaltFlatsName: 'Зеркало неба',
             achSaltFlatsDesc: 'Посетить солончак Уюни',
+            achMatsuName: 'Родина Мацзу',
+            achMatsuDesc: 'Посетить остров Мэйчжоу, родину Мацзу',
+            achKinmenName: 'Фронт холодной войны',
+            achKinmenDesc: 'Посетить Кинмэн в прямой видимости материка',
             achPanmunjomName: '38-я параллель',
             achPanmunjomDesc: 'Посетить демилитаризованную зону в Пханмунджоме',
 
@@ -1458,6 +1503,9 @@
             visaFree: 'Sin visa',
             visaOnArrival: 'Visa a la llegada',
             eVisa: 'e-Visa',
+            travelAuth: 'Autorización de viaje',
+            localPermit: 'Permiso local',
+            visaAsOf: 'Política de visados actualizada a',
             visaRequired: 'Visa requerida',
 
             asia: 'Asia',
@@ -1474,6 +1522,8 @@
             middleEast: 'Oriente Medio',
 
             achievementsTitle: 'Logros',
+            fxSgdUsd: 'SGD / USD',
+            sovereignStates: 'Estados soberanos',
             worldExplored: 'Mundo explorado',
             platinum: 'Platino',
             gold: 'Oro',
@@ -1563,6 +1613,10 @@
             achMachuPicchuDesc: 'Visitar Machu Picchu',
             achSaltFlatsName: 'Espejo del cielo',
             achSaltFlatsDesc: 'Visitar el Salar de Uyuni',
+            achMatsuName: 'Cuna de Matsu',
+            achMatsuDesc: 'Visitar la isla de Meizhou, hogar ancestral de Matsu',
+            achKinmenName: 'Frente de la Guerra Fría',
+            achKinmenDesc: 'Visitar Kinmen, a la vista del continente',
             achPanmunjomName: 'El paralelo 38',
             achPanmunjomDesc: 'Visitar la DMZ en Panmunjom',
 

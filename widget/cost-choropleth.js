@@ -158,9 +158,11 @@
         }).addTo(map);
 
         // Single shared tooltip for all map layers (avoids bringToFront swallowing Leaflet tooltip events)
+        // Same element and markup as the country-name row tooltips, so the map
+        // and the lists read identically (and pick up the same light-mode rules).
         const mapTip = document.createElement('div');
-        mapTip.className = 'widget-map-tooltip';
-        mapTip.style.cssText = 'position:fixed;pointer-events:none;display:none;z-index:9999;padding:6px 10px;border-radius:4px;';
+        mapTip.className = 'widget-row-tooltip';
+        mapTip.style.cssText = 'position:fixed;pointer-events:none;display:none;z-index:99999;';
         document.body.appendChild(mapTip);
         function showMapTip(html, e) {
             mapTip.innerHTML = html;
@@ -241,7 +243,7 @@
 
                         const valFmt = s >= 1000 ? 'S$' + (s / 1000).toFixed(1) + 'k' : 'S$' + s.toFixed(0);
                         const _dn = window.translateCountry ? window.translateCountry(appName) : appName;
-                        const tipHtml = `<b>${_dn}</b><br>${valFmt}`;
+                        const tipHtml = `<div class="tip-label">${_dn}</div><div class="tip-val">${valFmt}</div>`;
 
                         const resetStyle = function () {
                             hideMapTip();
@@ -338,7 +340,7 @@
                             opacity: 1
                         }).addTo(map);
 
-                        const tipHtml = `<b>${_dn}</b><br>${valFmt}`;
+                        const tipHtml = `<div class="tip-label">${_dn}</div><div class="tip-val">${valFmt}</div>`;
                         dot.getElement().style.pointerEvents = 'auto';
                         dot.on('mouseover', function (e) { showMapTip(tipHtml, e); this.setStyle({ radius: 8, fillOpacity: 1 }); });
                         dot.on('mousemove', moveMapTip);
