@@ -155,6 +155,7 @@ window.AIRPORT_COORDINATES = {
     'HET': [40.8514, 111.8244], // Hohhot Baita
     'CSX': [28.1892, 113.2201], // Changsha Huanghua
     'TAO': [36.2661, 120.3744], // Qingdao Liuting
+    'XMN': [24.5440, 118.1277], // Xiamen Gaoqi
     'SIN': [1.3644, 103.9915],  // Singapore
     'RGN': [16.9073, 96.1333],   // Yangon / Mingaladon
     'MDL': [21.7028, 95.9778],   // Mandalay / Mandalay Intl
@@ -305,6 +306,9 @@ window.AIRPORT_TO_CITY = {
 
     // Hohhot area airports -> Hohhot
     'HET': 'Hohhot',
+
+    // Xiamen area airports -> Xiamen
+    'XMN': 'Xiamen',
 
     // Changsha area airports -> Changsha
     'CSX': 'Changsha',

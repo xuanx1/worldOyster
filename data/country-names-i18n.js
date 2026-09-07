@@ -139,6 +139,7 @@
         'Niger': { ar: 'النيجر', zh: '尼日尔', fr: 'Niger', ru: 'Нигер', es: 'Níger' },
         'Nigeria': { ar: 'نيجيريا', zh: '尼日利亚', fr: 'Nigeria', ru: 'Нигерия', es: 'Nigeria' },
         'DPR Korea': { ar: 'كوريا الشمالية', zh: '朝鲜', fr: 'Corée du Nord', ru: 'Северная Корея', es: 'Corea del Norte' },
+        'DPRK-ROK Joint Security Area': { ar: 'المنطقة الأمنية المشتركة بين الكوريتين', zh: '朝韩共同警备区', fr: 'Zone de sécurité commune (RPDC-Corée du Sud)', ru: 'Совместная зона безопасности КНДР — Республика Корея', es: 'Zona de Seguridad Conjunta RPDC-Corea del Sur' },
         'North Macedonia': { ar: 'مقدونيا الشمالية', zh: '北马其顿', fr: 'Macédoine du Nord', ru: 'Северная Македония', es: 'Macedonia del Norte' },
         'Norway': { ar: 'النرويج', zh: '挪威', fr: 'Norvège', ru: 'Норвегия', es: 'Noruega' },
         'Oman': { ar: 'عُمان', zh: '阿曼', fr: 'Oman', ru: 'Оман', es: 'Omán' },

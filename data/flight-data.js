@@ -272,6 +272,52 @@ class FlightDataManager {
     }
 
     // Process and standardize land journey data
+    // Normalize city names: treat 'Danang' as 'Da Nang', 'Pusan' as 'Busan', etc.
+    // Shared with the land-route cache so its keys line up with the names the
+    // renderer actually sees.
+    normalizeCityName(name) {
+        if (!name) return name;
+        const lower = name.trim().toLowerCase();
+        if (lower === 'danang') return 'Da Nang';
+        if (lower === 'pusan') return 'Busan';
+        if (lower === 'calcutta') return 'Kolkata';
+        if (lower === 'phnompenh' || lower === 'phnom penh') return 'Phnom Penh';
+        if (lower === 'hue') return 'Hue';
+        if (lower === 'perth') return 'Perth';
+        if (lower === 'malta') return 'Valletta';
+        return name;
+    }
+
+    // Real-world geometry for land legs, built offline by
+    // tools/build-land-routes.py. Missing entries are not an error: the map
+    // falls back to a great-circle arc for anything not in here.
+    async loadLandRoutes() {
+        try {
+            const response = await fetch('./data/land-routes.json');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const raw = await response.json();
+
+            // Re-key on normalized city names so lookups match the processed
+            // journeys; the cache itself is keyed on the raw CSV spellings.
+            const routes = {};
+            for (const [key, value] of Object.entries(raw)) {
+                const parts = key.split('|');
+                if (parts.length !== 3) continue;
+                const o = this.normalizeCityName(parts[0]);
+                const d = this.normalizeCityName(parts[1]);
+                routes[`${o}|${d}|${parts[2].toLowerCase()}`] = value;
+            }
+
+            window.LAND_ROUTES = routes;
+            console.log(`Loaded ${Object.keys(routes).length} land routes`);
+            return routes;
+        } catch (error) {
+            console.warn('Land routes unavailable, falling back to great-circle arcs:', error.message);
+            window.LAND_ROUTES = window.LAND_ROUTES || {};
+            return window.LAND_ROUTES;
+        }
+    }
+
     processLandJourneyData(journey) {
         try {
             // Convert DD/MM/YYYY format to standard date format
@@ -287,23 +333,8 @@ class FlightDataManager {
                 }
             }
 
-            // Normalize city names: treat 'Danang' as 'Da Nang', 'Pusan' as 'Busan', etc.
-            function normalizeCityName(name) {
-                if (!name) return name;
-                const trimmed = name.trim();
-                const lower = trimmed.toLowerCase();
-                if (lower === 'danang') return 'Da Nang';
-                if (lower === 'pusan') return 'Busan';
-                if (lower === 'calcutta') return 'Kolkata';
-                if (lower === 'phnompenh' || lower === 'phnom penh') return 'Phnom Penh';
-                if (lower === 'hue') return 'Hue';
-                if (lower === 'perth') return 'Perth';
-                if (lower === 'malta') return 'Valletta';
-                return name;
-            }
-
-            const normalizedOrigin = normalizeCityName(journey.origin);
-            const normalizedDestination = normalizeCityName(journey.destination);
+            const normalizedOrigin = this.normalizeCityName(journey.origin);
+            const normalizedDestination = this.normalizeCityName(journey.destination);
             
             // Extract actual cost from CSV (cost_sgd field)
             const actualCostSGD = journey['cost_sgd'] || journey.cost_sgd;
@@ -518,6 +549,7 @@ class FlightDataManager {
         try {
             const flightDataResult = await this.loadCSVData();
             const landJourneyResult = await this.loadLandJourneyData();
+            await this.loadLandRoutes();
             
             // First, filter out journeys with same origin and destination, then do a simple date sort
             const dateSorted = [...this.csvData, ...this.landJourneyData]

@@ -227,6 +227,7 @@
     "Saigon": "Sài Gòn",
     "Hochiminh": "Sài Gòn",
     "Hanoi": "Hà Nội",
+    "Hai Phong": "Hải Phòng",
     "Lao Cai": "Lào Cai",
     "Sapa": "Sa Pa",
     "Hekou": "河口",

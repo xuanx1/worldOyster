@@ -1388,6 +1388,11 @@ class AnimatedFlightMap {
             this.updateCityList();
             this.updateStatistics();
             this.currentCityIndex++;
+            // The next leg becomes active here, but its animation only starts
+            // after the inter-leg pause below. Clear the progress now or the
+            // globe spends that gap reading the finished leg's value of 1 and
+            // draws the whole new route before the arrow has moved.
+            this._legProgress = 0;
 
             // Journey complete — finish immediately so the button flips to REPLAY
             // instead of lingering on PAUSE for the post-flight cool-down.
@@ -1419,7 +1424,7 @@ class AnimatedFlightMap {
 
         // Create great circle path for all journeys (same visual treatment)
         // Unwrap date-line crossings so the path is continuous (no split)
-        const rawPath = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng]);
+        const rawPath = this.pathBetween(fromCity, toCity);
         const isDateLineCrossing = Math.abs(toCity.lng - fromCity.lng) > 180;
         const path = isDateLineCrossing ? this._unwrapPathLongitudes(rawPath) : rawPath;
         const journey = toCity.originalFlight;
@@ -1504,6 +1509,11 @@ class AnimatedFlightMap {
 
         // Path is already unwrapped (continuous) so always a single segment
         const pathLines = [{ points: path }];
+        const pathCum = this._cumulativeLengths(path);
+        // Fraction of THIS leg already flown, published for the globe.
+        // It cannot infer this from straight-line distance once a leg
+        // follows a real road, so it reads the animation's own progress.
+        this._legProgress = 0;
         
         // Store references for pause functionality
         this.currentAnimationPath = path;
@@ -1558,8 +1568,11 @@ class AnimatedFlightMap {
             const progress = Math.min(elapsed / animationDuration, 1);
             const easedProgress = easeInOut(progress);
 
-            // Calculate current step based on eased progress
-            const currentStep = Math.floor(easedProgress * (path.length - 1));
+            // Sample by distance travelled, not array index: routed geometry
+            // has uneven point spacing and index-stepping makes the dot lurch.
+            const sample = this._sampleAlongPath(path, pathCum, easedProgress);
+            const currentStep = sample.index;
+            this._legProgress = easedProgress;
 
             if (progress >= 1) {
                 // Final gen check before completing — scrub could have happened during this frame
@@ -1569,6 +1582,7 @@ class AnimatedFlightMap {
                     return;
                 }
                 // Animation complete - add full segment to continuous path
+                this._legProgress = 1;
                 this._setFlightDotLatLng(path[path.length - 1]);
 
                 if (isDateLineCrossing) {
@@ -1635,15 +1649,16 @@ class AnimatedFlightMap {
 
             // Update dot position with eased timing
             if (currentStep < path.length) {
-                this._setFlightDotLatLng(path[currentStep]);
+                this._setFlightDotLatLng(sample.point);
 
                 // Follow the dot if enabled
                 if (this.followDot) {
-                    this.panToVisible(path[currentStep], false);
+                    this.panToVisible(sample.point, false);
                 }
 
-                // Update continuous path progressively
-                const currentSegment = path.slice(0, currentStep + 1);
+                // Update continuous path progressively, ending exactly at the
+                // dot so the line does not lag behind it between vertices.
+                const currentSegment = [...path.slice(0, currentStep + 1), sample.point];
                 const updatedPath = [...this.allPathCoordinates, ...currentSegment];
                 if (this.continuousPath && this.linesVisible) {
                     this.continuousPath.setLatLngs(updatedPath);
@@ -1657,6 +1672,96 @@ class AnimatedFlightMap {
 
         const frameId = requestAnimationFrame(animate);
         if (this._activeAnimationFrames) this._activeAnimationFrames.push(frameId);
+    }
+
+    // Running distance along a path, so it can be sampled by length.
+    // Longitude is cosine-corrected; this only has to be self-consistent
+    // within one leg, not a true geodesic.
+    _cumulativeLengths(path) {
+        const cum = [0];
+        for (let i = 1; i < path.length; i++) {
+            const dLat = path[i][0] - path[i - 1][0];
+            const midLat = (path[i][0] + path[i - 1][0]) * Math.PI / 360;
+            const dLng = (path[i][1] - path[i - 1][1]) * Math.cos(midLat);
+            cum.push(cum[i - 1] + Math.hypot(dLat, dLng));
+        }
+        return cum;
+    }
+
+    // Point at fraction t along a path, measured by distance rather than by
+    // array index. Great-circle paths are evenly spaced so index-stepping
+    // looked smooth, but routed geometry bunches points into curves and
+    // stretches them along straights — stepping by index there makes the dot
+    // lurch. Returns the interpolated point and the last index behind it.
+    _sampleAlongPath(path, cum, t) {
+        const last = path.length - 1;
+        const total = cum[last];
+        if (!(total > 0)) return { point: path[last], index: last };
+
+        const target = Math.max(0, Math.min(1, t)) * total;
+        let lo = 1, hi = last;
+        while (lo < hi) {
+            const mid = (lo + hi) >> 1;
+            if (cum[mid] < target) lo = mid + 1; else hi = mid;
+        }
+        const seg = cum[lo] - cum[lo - 1];
+        const f = seg > 0 ? (target - cum[lo - 1]) / seg : 0;
+        return {
+            point: [path[lo - 1][0] + (path[lo][0] - path[lo - 1][0]) * f,
+                    path[lo - 1][1] + (path[lo][1] - path[lo - 1][1]) * f],
+            index: lo - 1
+        };
+    }
+
+    // Real-world geometry for a land leg, if tools/build-land-routes.py has
+    // cached one. Trains follow track and buses follow roads; only flights
+    // actually travel a great circle.
+    landRoutePoints(fromCity, toCity) {
+        const routes = window.LAND_ROUTES;
+        if (!routes || !fromCity || !toCity) return null;
+
+        const journey = toCity.originalFlight;
+        if (!journey || journey.type !== 'land' || !journey.mode) return null;
+
+        const mode = String(journey.mode).trim().toLowerCase();
+        const hit = routes[`${journey.origin}|${journey.destination}|${mode}`];
+        if (!hit || !Array.isArray(hit.pts) || hit.pts.length < 2) return null;
+
+        // The cache is keyed origin->destination; a leg animated in the
+        // opposite direction needs the points reversed or it would draw
+        // backwards.
+        const forward = this.normalizeCityDisplayName(journey.origin || '') ===
+                        this.normalizeCityDisplayName(fromCity.name || '');
+        const pts = forward ? hit.pts : hit.pts.slice().reverse();
+
+        // Rail and ferry legs route station-to-station, which can sit a couple
+        // of kilometres off the city marker, so tie the ends back to the dots.
+        //
+        // Only when it does not double back, though: a station is often behind
+        // the city centre relative to the direction of travel, and joining
+        // straight to it sends the animated dot backwards before it sets off.
+        // Geometrically honest, visually a glitch — skip the connector there
+        // and start from the track itself.
+        const body = pts.map(p => [p[0], p[1]]);
+        const advances = (from, a, b) => {
+            const v1 = [a[0] - from[0], a[1] - from[1]];
+            const v2 = [b[0] - a[0], b[1] - a[1]];
+            return (v1[0] * v2[0] + v1[1] * v2[1]) >= 0;
+        };
+
+        const head = [fromCity.lat, fromCity.lng];
+        const tail = [toCity.lat, toCity.lng];
+        const out = body.slice();
+        if (advances(head, out[0], out[1])) out.unshift(head);
+        if (advances(tail, out[out.length - 1], out[out.length - 2])) out.push(tail);
+        return out;
+    }
+
+    // Path for one hop: the real route when we have it, a great circle otherwise.
+    pathBetween(fromCity, toCity, numPoints = 100) {
+        return this.landRoutePoints(fromCity, toCity) ||
+               this.createGreatCirclePath([fromCity.lat, fromCity.lng],
+                                          [toCity.lat, toCity.lng], numPoints);
     }
 
     createGreatCirclePath(start, end, numPoints = 100) {
@@ -2433,6 +2538,7 @@ class AnimatedFlightMap {
         this.clearMap();
         this.drawVisitedPaths(); // also calls addCityMarkers internally
         this.positionDotAtCurrentCity();
+        this._legProgress = 0;
         this.updateCityList();
         this.updateStatistics();
     }
@@ -2667,7 +2773,7 @@ class AnimatedFlightMap {
                 const isDateLineCrossing = Math.abs(toCity.lng - fromCity.lng) > 180;
                 
                 // Use the same great circle path logic as animation
-                const pathPoints = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng]);
+                const pathPoints = this.pathBetween(fromCity, toCity);
                 
                 if (isDateLineCrossing) {
                     // Unwrap longitudes so the path is one continuous line across ±180°
@@ -2760,7 +2866,7 @@ class AnimatedFlightMap {
 
             // Build a simplified great circle for the hop
             // Unwrap date-line crossings so the hit area is one continuous polyline
-            const rawHopPath = this.createGreatCirclePath([fromCity.lat, fromCity.lng], [toCity.lat, toCity.lng], 60);
+            const rawHopPath = this.pathBetween(fromCity, toCity, 60);
             const hopCrossesDateLine = Math.abs(toCity.lng - fromCity.lng) > 180;
             const segments = hopCrossesDateLine
                 ? [this._unwrapPathLongitudes(rawHopPath)]
@@ -3614,7 +3720,7 @@ class AnimatedFlightMap {
                     this._chartHighlightIdx = idx;
 
                     // Route highlight polyline
-                    const path = this.createGreatCirclePath([from.lat, from.lng], [to.lat, to.lng], 60);
+                    const path = this.pathBetween(from, to, 60);
                     const segments = this.splitPathAtDateLine(path);
                     this._chartHighlightLines = segments.map(seg =>
                         L.polyline(seg, { color: '#ffee00', weight: 3, opacity: 0.95, interactive: false, className: 'route-highlight' }).addTo(this.map)

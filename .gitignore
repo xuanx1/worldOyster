@@ -1,2 +1,8 @@
 # Natural Earth download cache for tools/build-geo-lod.py
 tools/.ne-cache/
+
+# Overpass station-snapping cache for tools/build-land-routes.py
+# (data/land-routes.json is the real artifact and IS tracked)
+data/land-routes.snap.json
+data/land-routes.json.tmp
+data/land-routes.snap.json.tmp

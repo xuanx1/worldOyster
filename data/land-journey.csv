@@ -14,6 +14,8 @@ Nara,Osaka,train,9,29/12/2018
 Moscow,St. Petersburg,train,85,3/6/2019
 St. Petersburg,Helsinki,train,70,7/6/2019
 Pyongyang,Kaesong,bus,18,30/12/2019
+Kaesong,Panmunjom,car,5,30/12/2019
+Panmunjom,Kaesong,car,5,30/12/2019
 Kaesong,Nampo,bus,13,30/12/2019
 Nampo,Sariwon,bus,15,31/12/2019
 Sariwon,Pyongyang,bus,18,31/12/2019
@@ -398,9 +400,8 @@ Guangzhou,Foshan,train,1.30,9/8/2026
 Foshan,Guangzhou,train,1.30,9/8/2026
 Miri,Bandar Seri Begawan,car,40,22/8/2026
 Bandar Seri Begawan,Miri,car,40,23/8/2026
-Hohhot,Ordos City,train,16.72,29/8/2026
-Ordos City,Baotou,taxi,22.62,29/8/2026
-Baotou,Hohhot,train,7.82,29/8/2026
+Hanoi,Hai Phong,bus,6.8,5/9/2026
+Hai Phong,Hanoi,train,7.48,5/9/2026
 Hanoi,Nanning,train,54.09,5/9/2026
 Chennai,Puducherry,train,14.84,19/9/2026
 Puducherry,Chennai,bus,10.23,19/9/2026
@@ -423,6 +424,9 @@ Ashgabat,Darvaza,car,22,10/10/2026
 Darvaza,Dashoguz,car,21,11/10/2026
 Dashoguz,Khiva,car,9,11/10/2026
 Khiva,Tashkent,train,68.38,11/10/2026
+Hohhot,Ordos City,train,16.72,24/10/2026
+Ordos City,Baotou,taxi,22.62,24/10/2026
+Baotou,Hohhot,train,7.82,24/10/2026
 Riyadh,Dammam,train,35.79,31/10/2026
 Dammam,Al Khobar,taxi,22.86,31/10/2026
 Al Khobar,Dammam,taxi,21.12,31/10/2026

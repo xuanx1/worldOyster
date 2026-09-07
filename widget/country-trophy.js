@@ -1552,6 +1552,9 @@
     // ── Trophy overrides: city name → trophy country (for territories shown as parent country in city list) ──
     const CITY_TROPHY_OVERRIDE = {
         'hong kong': 'Hong Kong SAR',
+        // Panmunjom's display label is the JSA, not a country; keep its trophy
+        // credit on ROK Korea as before.
+        'panmunjom': 'ROK Korea',
         'macau': 'Macau SAR',
         'gibraltar': 'Gibraltar'
     };

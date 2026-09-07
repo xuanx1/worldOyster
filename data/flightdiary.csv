@@ -238,10 +238,6 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2026-08-22,AK6186,"Kuching / Kuching (KCH/WBGG)","Miri / Miri (MYY/WBGR)",13:00:00,14:05:00,01:05:00,"Air Asia (AK/AXM)","Airbus A320-200 (A320)",,,0,0,0,,1392,1995,103,2059,55
 2026-08-23,AK6187,"Miri / Miri (MYY/WBGR)","Kuching / Kuching (KCH/WBGG)",14:30:00,15:30:00,01:00:00,"Air Asia (AK/AXM)","Airbus A320-200 (A320)",,,0,0,0,,1995,1392,103,2059,55
 2026-08-23,AK1771,Kuching / Kuching (KCH/WBGG),Singapore / Changi (SIN/WSSS),18:00:00,19:35:00,01:35:00,Air Asia (AK/AXM),Airbus A320-200 (A320),,,0,0,0,,1392,2672,103,2059,80.745
-2026-08-28,CZ8088,"Singapore / Changi (SIN/WSSS)","Changsha / Huanghua (CSX/ZGHA)",02:45:00,07:35:00,04:50:00,"China Southern Airlines (CZ/CSN)"," ()",,,0,0,0,,2672,624,207,0,266.27
-2026-08-28,CZ5339,"Changsha / Huanghua (CSX/ZGHA)","Hohhot / Baita (HET/ZBHH)",10:50:00,13:15:00,02:25:00,"China Southern Airlines (CZ/CSN)","Boeing 737-800 (B738)",,,0,0,0,,624,3702,207,231,119.90
-2026-08-30,CZ3198,"Hohhot / Baita (HET/ZBHH)","Guangzhou / Canton-Baiyun (CAN/ZGGG)",11:45:00,15:05:00,03:20:00,"China Southern Airlines (CZ/CSN)","Boeing 737 MAX 8 (B38M)",,,0,0,0,,3702,478,207,2123,76.56
-2026-08-30,CZ8489,"Guangzhou / Canton-Baiyun (CAN/ZGGG)","Singapore / Changi (SIN/WSSS)",23:05:00,03:05:00,04:00:00,"China Southern Airlines (CZ/CSN)","Airbus A321LR (A21N)",,,0,0,0,,478,2672,207,2181,104.01
 2026-09-04,VN654,Singapore / Changi (SIN/WSSS),Hochiminh / Tan Son Nhat (SGN/VVTS),18:25:00,19:40:00,02:15:00,Vietnam Airlines (VN/HVN),Airbus A321 (A321),,,0,0,0,,2672,2650,366,28,89.76
 2026-09-04,VN224,Hochiminh / Tan Son Nhat (SGN/VVTS),Hanoi / Noibai (HAN/VVNB),22:00:00,00:10:00,02:10:00,Vietnam Airlines (VN/HVN),Airbus A321-200 (A321),,,0,0,0,,2650,1094,366,2076,95.30
 2026-09-07,TR115,Nanning / Wuxu (NNG/ZGNN),Singapore / Changi (SIN/WSSS),14:00:00,18:10:00,04:10:00,Scoot (TR/TGW),Airbus A321LR (A21N),,,0,0,0,,2080,2672,2695,2181,124.21
@@ -257,6 +253,10 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2026-10-13,AK715,"Kuala Lumpur / Kuala Lumpur International (KUL/WMKK)","Singapore / Changi (SIN/WSSS)",07:10:00,08:20:00,01:10:00,"Air Asia (AK/AXM)","Airbus A320-200 (A320)",,,0,0,0,,1527,2672,103,2059,23.28
 2026-10-16,TR346,"Singapore / Changi (SIN/WSSS)","Denpasar Bali / Ngurah Rai (DPS/WADD)",21:15:00,00:05:00,02:50:00,"Scoot (TR/TGW)","Airbus A321LR (A21N)",,,0,0,0,,2672,3582,2695,2181,121.82
 2026-10-18,KL836,"Denpasar Bali / Ngurah Rai (DPS/WADD)","Singapore / Changi (SIN/WSSS)",20:45:00,23:25:00,02:40:00,"KLM Royal Dutch Airlines (KL/KLM)","Boeing 777-300ER (B77W)",,,0,0,0,,3582,2672,440,2023,111.58
+2026-10-23,MF8676,"Singapore / Changi (SIN/WSSS)","Xiamen / Gaoqi (XMN/ZSAM)",02:40:00,06:55:00,04:15:00,"Xiamen Airlines (MF/CXA)","Boeing 737-800 (B738)",,,0,0,0,,2672,3285,215,231,92.18
+2026-10-23,MF8139,"Xiamen / Gaoqi (XMN/ZSAM)","Hohhot / Baita (HET/ZBHH)",08:25:00,12:00:00,03:35:00,"Xiamen Airlines (MF/CXA)"," ()",,,0,0,0,,3285,3702,215,0,58.71
+2026-10-25,MF8140,"Hohhot / Baita (HET/ZBHH)","Xiamen / Gaoqi (XMN/ZSAM)",13:00:00,15:55:00,02:55:00,"Xiamen Airlines (MF/CXA)"," ()",,,0,0,0,,3702,3285,215,0,58.71
+2026-10-25,MF8675,"Xiamen / Gaoqi (XMN/ZSAM)","Singapore / Changi (SIN/WSSS)",21:30:00,01:40:00,04:10:00,"Xiamen Airlines (MF/CXA)","Boeing 737-800 (B738)",,,0,0,0,,3285,2672,215,231,92.18
 2026-10-29,WY892,"Singapore / Changi (SIN/WSSS)","Muscat / Seeb (MCT/OOMS)",20:50:00,00:10:00,07:20:00,"Oman Air (WY/OMA)","Boeing 737 MAX 8 (B38M)",,,0,0,0,,2672,1770,579,2123,305.9
 2026-10-30,WY685,"Muscat / Seeb (MCT/OOMS)","Riyadh / King Khalid (RUH/OERK)",01:45:00,03:05:00,02:20:00,"Oman Air (WY/OMA)","Boeing 737 MAX 8 (B38M)",,,0,0,0,,1770,2570,579,2123,66.65
 2026-11-01,WY686,"Riyadh / King Khalid (RUH/OERK)","Muscat / Seeb (MCT/OOMS)",03:55:00,07:10:00,02:15:00,"Oman Air (WY/OMA)","Boeing 737-800 (B738)",,,0,0,0,,2570,1770,579,231,66.65

@@ -691,9 +691,39 @@
       const ctx = this.ctx;
       const active = rt.state === 'active';
       const surface = rt.type === 'land';
-      const pts = this._gcPoints(rt.from, rt.to, 64);
+      // Land legs carry their real routed geometry (roads, track) when the
+      // route cache has it; everything else is a great circle.
+      const pts = (rt.pts && rt.pts.length > 1)
+        ? rt.pts
+        : this._gcPoints(rt.from, rt.to, 64);
       const frac = active ? (rt.t == null ? 1 : rt.t) : 1;
-      const last = Math.max(1, Math.floor(pts.length * frac));
+      // Advance the drawn head by distance, not by index. Routed geometry
+      // bunches points through curves, so index-stepping makes the leading
+      // edge crawl and then jump. Great circles are evenly spaced, so this
+      // reduces to the old behaviour for them.
+      let last;
+      if (frac >= 1) {
+        last = pts.length;
+      } else {
+        // Cached on the point array itself — these arrays are memoised per
+        // leg, so the table is built once rather than on every frame.
+        let seg = pts.__cum;
+        if (!seg) {
+          seg = [0];
+          for (let j = 1; j < pts.length; j++) {
+            const dLat = pts[j][0] - pts[j - 1][0];
+            const dLng = (pts[j][1] - pts[j - 1][1]) *
+                         Math.cos((pts[j][0] + pts[j - 1][0]) * Math.PI / 360);
+            seg[j] = seg[j - 1] + Math.sqrt(dLat * dLat + dLng * dLng);
+          }
+          try { Object.defineProperty(pts, '__cum', { value: seg, enumerable: false }); }
+          catch (e) { /* frozen array — recompute next frame */ }
+        }
+        const target = seg[pts.length - 1] * frac;
+        last = 1;
+        while (last < pts.length && seg[last] < target) last++;
+        last = Math.max(1, Math.min(pts.length, last));
+      }
 
       const tracePath = () => {
         ctx.beginPath(); let started = false;

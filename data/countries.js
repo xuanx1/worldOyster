@@ -93,7 +93,7 @@ window.AIRPORT_TO_COUNTRY = {
     // Asia - China
     'PVG': 'PR China', 'PEK': 'PR China', 'CAN': 'PR China', 'PKX': 'PR China', 'XIY': 'PR China',
     'WUH': 'PR China', 'CKG': 'PR China', 'TFU': 'PR China', 'HAK': 'PR China', 'LHW': 'PR China',
-    'HET': 'PR China', 'CSX': 'PR China', 'TAO': 'PR China',
+    'HET': 'PR China', 'CSX': 'PR China', 'TAO': 'PR China', 'XMN': 'PR China',
 
     // Asia - North Korea
     'FNJ': 'DPR Korea',
@@ -265,7 +265,7 @@ window.CITY_TO_COUNTRY = {
 
     // Asia
     'Seoul': 'ROK Korea', 'Busan': 'ROK Korea', 'Pusan': 'ROK Korea', 'Daegu': 'ROK Korea', 'Daejeon': 'ROK Korea',
-    'Incheon': 'ROK Korea', 'Paju': 'ROK Korea', 'Panmunjom': 'ROK Korea',
+    'Incheon': 'ROK Korea', 'Paju': 'ROK Korea', 'Panmunjom': 'DPRK-ROK Joint Security Area',
     'Pyongyang': 'DPR Korea', 'Kaesong': 'DPR Korea', 'Nampo': 'DPR Korea', 'Sariwon': 'DPR Korea',
     'Dandong': 'PR China',
     'Beijing': 'PR China', 'Peking': 'PR China', 'Tianjin': 'PR China', 'Shanghai': 'PR China', 'Chengdu': 'PR China', 'Chongqing': 'PR China', 'Wuhan': 'PR China', 'Changsha': 'PR China',
@@ -279,7 +279,7 @@ window.CITY_TO_COUNTRY = {
     'Penang': 'Malaysia', 'Pengerang': 'Malaysia', 'Kota Kinabalu': 'Malaysia', 'Kuching': 'Malaysia', 'Miri': 'Malaysia', 'Bandar Seri Begawan': 'Brunei',
     'Moscow': 'Russia', 'St. Petersburg': 'Russia', 'Volgograd': 'Russia', 'Kaliningrad': 'Russia',
     'Tallinn': 'Estonia', 'Riga': 'Latvia', 'Vilnius': 'Lithuania', 'Vilnus': 'Lithuania', 'Minsk': 'Belarus',
-    'Da Nang': 'Vietnam', 'Danang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh City (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam', 'Hue': 'Vietnam', 'Hanoi': 'Vietnam', 'Lao Cai': 'Vietnam', 'Sapa': 'Vietnam',
+    'Da Nang': 'Vietnam', 'Danang': 'Vietnam', 'Hoi An': 'Vietnam', 'Ho Chi Minh City (Saigon)': 'Vietnam', 'Saigon': 'Vietnam', 'Hochiminh': 'Vietnam', 'Ho Chi Minh City': 'Vietnam', 'Hue': 'Vietnam', 'Hanoi': 'Vietnam', 'Hai Phong': 'Vietnam', 'Lao Cai': 'Vietnam', 'Sapa': 'Vietnam',
     'Vientiane': 'Laos', 'Luang Prabang': 'Laos',
     'Phnom Penh': 'Cambodia', 'Siem Reap': 'Cambodia',
     // Myanmar

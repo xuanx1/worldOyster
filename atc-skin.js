@@ -279,11 +279,69 @@
     return false;
   }
 
+  // Globe route detail cap. The scope canvas is small; beyond roughly this
+  // many points per leg the extra vertices are sub-pixel but still cost a
+  // projection each, on every frame, for every visible leg.
+  const GLOBE_MAX_PTS = 40;
+
+  // Douglas-Peucker: keep the vertices that carry the shape, drop the rest.
+  // Sampling every Nth point instead cuts corners at random and leaves the
+  // drawn line visibly off the true route, so the blip — which follows the
+  // full-resolution path on the Leaflet side — appears to wander off it.
+  function decimate(pts, tolerance, cap) {
+    if (!pts || pts.length <= 2) return pts;
+    const keep = new Uint8Array(pts.length);
+    keep[0] = keep[pts.length - 1] = 1;
+    const stack = [[0, pts.length - 1]];
+    while (stack.length) {
+      const [lo, hi] = stack.pop();
+      if (hi <= lo + 1) continue;
+      const ay = pts[lo][0], ax = pts[lo][1];
+      const by = pts[hi][0], bx = pts[hi][1];
+      const dy = by - ay, dx = bx - ax;
+      const den = Math.hypot(dy, dx);
+      let worst = -1, wi = -1;
+      for (let i = lo + 1; i < hi; i++) {
+        const py = pts[i][0], px = pts[i][1];
+        const d = den === 0 ? Math.hypot(py - ay, px - ax)
+                            : Math.abs(dx * (py - ay) - dy * (px - ax)) / den;
+        if (d > worst) { worst = d; wi = i; }
+      }
+      if (worst > tolerance && wi > 0) { keep[wi] = 1; stack.push([lo, wi], [wi, hi]); }
+    }
+    const out = [];
+    for (let i = 0; i < pts.length; i++) if (keep[i]) out.push(pts[i]);
+    if (out.length <= cap) return out;
+    // Still too dense for the scope — coarsen until it fits.
+    return decimate(pts, tolerance * 2, cap);
+  }
+
+  // The route list is rebuilt only when the journey actually changes. It used
+  // to be reallocated on every frame — roughly 1,600 objects and arrays at
+  // 60 fps, whose garbage collection is what made the blip hitch periodically
+  // even after the geometry itself was smooth.
+  let _routeCache = null;
+  let _routeCacheKey = '';
+
   function buildRoutesFromCities() {
     const fm = window.flightMap;
     if (!fm || !fm.cities || fm.cities.length < 2) return;
     const cities = fm.cities;
     const idx = fm.currentCityIndex || 0;
+
+    const key = cities.length + ':' + (window.LAND_ROUTES ? Object.keys(window.LAND_ROUTES).length : 0);
+    if (_routeCache && _routeCacheKey === key) {
+      // Same journey — only the play position moved. Update state in place.
+      const routes = _routeCache;
+      for (let n = 0; n < routes.length; n++) {
+        const i = routes[n].i;
+        const state = i < idx ? 'past' : (i === idx ? 'active' : 'future');
+        routes[n].state = state;
+        routes[n].t = state === 'past' ? 1 : 0;   // active starts empty, filled by syncBlipAndProgress
+      }
+      scope.routes = routes;
+      return;
+    }
 
     const routes = [];
     for (let i = 1; i < cities.length; i++) {
@@ -294,14 +352,40 @@
       else if (i === idx) state = 'active';
       else state = 'future';
       const isLand = legIsLand(b);
+      // Hand the globe the real routed geometry for land legs so it traces
+      // road and track like the Leaflet layer does, instead of arcing over
+      // them. Null for flights and for anything not in the route cache.
+      //
+      // Memoised on the city: this function runs on EVERY frame of the render
+      // loop, and rebuilding hundreds of multi-hundred-point arrays sixty
+      // times a second stalls the main thread badly enough to make the blip
+      // stutter. Only cache once the route data has actually loaded, or the
+      // first few frames would pin a null in place.
+      let real = null;
+      if (isLand && typeof fm.landRoutePoints === 'function') {
+        if (b.__landPts === undefined && window.LAND_ROUTES) {
+          const full = fm.landRoutePoints(a, b);
+          // Thin for the globe. A route can carry 700 points; at scope scale
+          // that is far below one pixel per point, and projecting them all
+          // for every land leg on every frame is what costs the frame rate.
+          b.__landPts = (full && full.length > GLOBE_MAX_PTS)
+            ? decimate(full, 0.01, GLOBE_MAX_PTS)   // ~1 km, shape-preserving
+            : full;
+        }
+        real = b.__landPts || null;
+      }
       routes.push({
+        i,
         from: [a.lat, a.lng],
         to: [b.lat, b.lng],
+        pts: (real && real.length > 2) ? real : null,
         state,
-        t: state === 'past' ? 1 : state === 'future' ? 0 : 0.5,
+        t: state === 'past' ? 1 : 0,   // active starts empty, filled by syncBlipAndProgress
         type: isLand ? 'land' : 'air'
       });
     }
+    _routeCache = routes;
+    _routeCacheKey = key;
     scope.routes = routes;
   }
 
@@ -357,9 +441,18 @@
     // distance so the route fill stays in lock-step with the moving
     // dot on the scope (the line is drawn as a great-circle arc,
     // not a Euclidean lat/lng line).
-    const totalKm = haversine(from.lat, from.lng, to.lat, to.lng);
-    const doneKm = haversine(from.lat, from.lng, ll.lat, ll.lng);
-    const t = totalKm > 0 ? Math.max(0, Math.min(1, doneKm / totalKm)) : 0;
+    // Land legs follow a real road or track, so straight-line distance from
+    // the origin is no measure of how far along the dot is — the fill would
+    // race ahead of it on a direct stretch and slide backwards on a route
+    // that curves away. Use the animation's own progress when it has it.
+    let t;
+    if (Number.isFinite(fm._legProgress)) {
+      t = Math.max(0, Math.min(1, fm._legProgress));
+    } else {
+      const totalKm = haversine(from.lat, from.lng, to.lat, to.lng);
+      const doneKm = haversine(from.lat, from.lng, ll.lat, ll.lng);
+      t = totalKm > 0 ? Math.max(0, Math.min(1, doneKm / totalKm)) : 0;
+    }
     if (scope.routes.length >= idx) {
       const r = scope.routes[idx - 1];
       if (r) r.t = t;
