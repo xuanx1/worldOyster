@@ -45,6 +45,14 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+# Optional: sea routing for crossings OSM has no ferry way for (cruises, long
+# open-water hops). pip install searoute — the script degrades to a straight
+# line without it.
+try:
+    import searoute as _searoute
+except ImportError:
+    _searoute = None
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CSV_PATH = os.path.join(ROOT, 'data', 'land-journey.csv')
 CITIES_JS = os.path.join(ROOT, 'data', 'cities.js')
@@ -105,6 +113,14 @@ VIA = {
         'via': [(1.4633, 103.7649)],     # JB Sentral — the shuttle terminates here
         'to': (3.1344, 101.6864),        # KL Sentral
     },
+    ('Como', 'Chiasso', 'rail'): {
+        'from': (45.8095, 9.0733),       # Como San Giovanni
+        'to': (45.8317, 9.0355),         # Chiasso
+    },
+    ('Chiasso', 'Como', 'rail'): {
+        'from': (45.8317, 9.0355),
+        'to': (45.8095, 9.0733),
+    },
     ('Kuala Lumpur', 'Singapore', 'rail'): {
         'from': (3.1344, 101.6864),
         'via': [(1.4633, 103.7649)],
@@ -119,6 +135,7 @@ MAX_RETRIES = 3
 SNAP_BATCH = 25          # cities per batched Overpass query
 SAVE_EVERY = 20          # legs between cache writes
 MAX_DETOUR = 6.0         # reject a route this many times the direct distance
+FERRY_SNAP = 65.0        # km a ferry way's end may sit from the city it serves
 
 # BRouter answers these itself — the request worked, the route does not exist.
 # Retrying the identical query only burns time, so fail out immediately.
@@ -413,6 +430,74 @@ def fetch_osrm(base, a, b):
     return pts, float(route.get('distance', 0)) / 1000.0
 
 
+def fetch_ferry(a, b):
+    """Ferry geometry straight from OSM route=ferry ways.
+
+    No routing engine will cross open sea — BRouter's river profile is for
+    navigable waterways and answers "target island detected" for a Baltic or
+    Malacca crossing. But OSM carries the sailings themselves as ways tagged
+    route=ferry, with real geometry and names like "Helsinki (FIN) - Tallinn
+    (EST)". Pick the way whose ends sit closest to the two cities.
+    """
+    south, north = min(a[0], b[0]) - 0.4, max(a[0], b[0]) + 0.4
+    west, east = min(a[1], b[1]) - 0.4, max(a[1], b[1]) + 0.4
+    query = (f'[out:json][timeout:120];'
+             f'way[route=ferry]({south:.3f},{west:.3f},{north:.3f},{east:.3f});out geom;')
+
+    elements = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            time.sleep(OVERPASS_DELAY * (1 + attempt * 2))
+            raw = http_get(OVERPASS, timeout=240,
+                           data=urllib.parse.urlencode({'data': query}).encode())
+            elements = json.loads(raw).get('elements', [])
+            break
+        except Exception:                              # noqa: BLE001 - retry
+            continue
+    if not elements:
+        return None, 'overpass returned nothing'
+
+    best, best_score = None, None
+    for el in elements:
+        geom = el.get('geometry') or []
+        if len(geom) < 2:
+            continue
+        pts = [[p['lat'], p['lon']] for p in geom]
+        for cand in (pts, pts[::-1]):
+            d0, d1 = haversine(cand[0], a), haversine(cand[-1], b)
+            if d0 > FERRY_SNAP or d1 > FERRY_SNAP:
+                continue
+            if best_score is None or d0 + d1 < best_score:
+                best, best_score = cand, d0 + d1
+
+    if not best:
+        return None, 'no ferry way links these ports'
+
+    km = sum(haversine(best[i - 1], best[i]) for i in range(1, len(best)))
+    return (best, km), None
+
+
+def fetch_searoute(a, b):
+    """Maritime path for an open-water crossing, via the searoute network.
+
+    OSM only has ferry ways where a scheduled sailing is mapped. A cruise leg
+    such as Phuket -> Singapore has none, but it still follows shipping lanes
+    round the peninsula rather than cutting overland, which is what a straight
+    line would imply.
+    """
+    if _searoute is None:
+        return None, 'searoute not installed (pip install searoute)'
+    try:
+        route = _searoute.searoute((a[1], a[0]), (b[1], b[0]), units='km')
+        coords = route['geometry']['coordinates']
+        if len(coords) < 2:
+            return None, 'searoute returned a degenerate path'
+        pts = [[round(c[1], 5), round(c[0], 5)] for c in coords]
+        return (pts, float(route['properties']['length'])), None
+    except Exception as exc:                           # noqa: BLE001
+        return None, f'searoute failed: {exc}'
+
+
 def fetch_route(a, b, profile, via=None):
     """Route geometry from whichever source can serve this profile.
 
@@ -503,6 +588,38 @@ def main():
             print(f'  - {key}: no coordinates for {missing}', flush=True)
             skipped += 1
             continue
+
+        # Ferries come from OSM's own sailing ways, not from a router.
+        if mode == 'ferry':
+            ferry, ferr = fetch_ferry(cities[origin], cities[dest])
+            if ferry:
+                pts, km = ferry
+                thin = simplify(pts, args.epsilon)
+                routes[key] = {'pts': thin, 'km': round(km, 2),
+                               'profile': 'osm-ferry', 'snap': ['port', 'port']}
+                done += 1
+                if done % SAVE_EVERY == 0:
+                    save_json(OUT_PATH, routes)
+                direct = haversine(cities[origin], cities[dest])
+                print(f'  + {key} [osm-ferry] {km:7.1f}km '
+                      f'{km / direct if direct else 0:.2f}x {len(pts)}->{len(thin)} pts',
+                      flush=True)
+                continue
+            sea, serr = fetch_searoute(cities[origin], cities[dest])
+            if sea:
+                pts, km = sea
+                thin = simplify(pts, args.epsilon)
+                routes[key] = {'pts': thin, 'km': round(km, 2),
+                               'profile': 'searoute', 'snap': ['sea', 'sea']}
+                done += 1
+                if done % SAVE_EVERY == 0:
+                    save_json(OUT_PATH, routes)
+                direct = haversine(cities[origin], cities[dest])
+                print(f'  + {key} [searoute] {km:7.1f}km '
+                      f'{km / direct if direct else 0:.2f}x {len(pts)}->{len(thin)} pts',
+                      flush=True)
+                continue
+            print(f'    . {key}: {ferr}; {serr}; trying the river profile', flush=True)
 
         hop = VIA.get((origin, dest, profile))
         if hop:

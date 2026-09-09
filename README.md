@@ -32,8 +32,8 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - **Progress bar**: Click anywhere on the bar to jump to that city
 
 ### 🌍 Dynamic Map Visualisation
-- **Animated dot**: A moving marker traces the route in real-time
-- **Continuous path lines**: Green gradient polylines draw the traveled route
+- **Animated dot**: A moving marker traces the route in real-time, sampled by distance travelled rather than by vertex — routed geometry bunches points through curves, and stepping per-vertex makes the marker lurch
+- **Continuous path lines**: Green gradient polylines draw the traveled route — flights as great-circle arcs, surface legs along real track and road (see [Real Land Routes](#-real-land-routes))
 - **Seamless world wrap**: Pan continuously across the antimeridian without seams
 - **Flight route toggle**: Show/hide all route lines with a single button — route-hover popups also disable when routes are hidden
 - **Follow-dot toggle**: Camera can lock onto or release from the moving marker
@@ -51,6 +51,28 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - **Ring-level frustum culling**: Every ring carries a bounding cap (centre vector + angular radius), so geometry off the visible hemisphere is rejected with one dot product instead of being projected. At 4× that discards ~94% of rings
 - **Three draw paths**: while the view moves, a vertex stride keeps frames at 4–6 ms; the frame after it settles pays once for full detail; every frame after that blits a cached raster at ~0.2 ms — cheaper than the old 110m redraw at 1.8 ms
 - **Finer tiers also fix small countries**: Bahrain, Malta, Monaco, San Marino and Singapore have no usable polygon at 110m and gain real outlines from 50m up
+
+### 🛤️ Real Land Routes
+Flights travel great circles. Nothing on the ground does — a train from Moscow to St Petersburg follows the October Railway, and a bus from Bangkok to Kanchanaburi follows Route 4. Every surface leg is therefore traced from real infrastructure rather than arced between its endpoints, cached in `data/land-routes.json` and drawn identically by the Leaflet map ([Dynamic Map Visualisation](#-dynamic-map-visualisation)) and the globe.
+
+**455 of 457 land legs** carry real geometry. Because no single service covers every mode, each comes from whichever source actually has it:
+
+| Source | Legs | Covers |
+|--------|-----:|--------|
+| BRouter `rail` | 203 | Railway track |
+| BRouter `car-fast` | 198 | Roads — car, taxi, bus |
+| OSM `route=ferry` ways | 10 | The mapped sailings themselves |
+| BRouter `trekking` / `hiking` | 10 | Footpaths |
+| `searoute` marine network | 3 | Open-sea crossings with no mapped ferry |
+| BRouter `river` | 3 | Inland waterways |
+| OSM route relation, clipped | 1 | Keikyu Main Line, Kawasaki → Yokohama |
+
+- **BRouter, because it has a rail profile**: OSRM and the OpenRouteService free tier do not, and 203 legs are trains. It runs locally against 3.75 GB of `.rd5` segment tiles — the public instance throttles by IP and stalls a full rebuild
+- **Endpoints are snapped to real infrastructure**: a city centre is often nowhere near track, so rail and ferry legs resolve to a station or terminal via Overpass first. Nearest-by-distance alone is not enough — Kyoto's closest station node is a minor stop on track the rail profile will not enter, so candidates whose *name* matches the city sort ahead of merely close ones, and the router walks the full cross product of candidate pairs before giving up
+- **Sea is not a routing problem**: routers refuse open water by design, but OSM already carries scheduled sailings as `route=ferry` ways, geometry and all. For crossings with no mapped sailing (cruise legs such as Phuket → Singapore) `searoute`'s shipping-lane network gives a path that rounds the peninsula instead of cutting across it
+- **Journeys that change trains at a border are routed as journeys**: Singapore → Kuala Lumpur is the KTM Shuttle from Woodlands to JB Sentral, then a second train to KL Sentral. Routed as one hop it fails for every station pair, since the causeway is not continuous track in OSM
+- **Implausible answers are rejected, not cached**: any route over 6× the direct distance is a border refusal or a missing link taking the long way round — Eilat → Taba came back as 457 km for a 9 km hop. Degenerate one-point results are dropped too. Both fall back to a straight line, which is closer to the truth than a fiction
+- **Only Kaesong ↔ Panmunjom stays straight**: OSM has no through road into the JSA, and nothing will route it
 
 ### 🏙️ City List
 - **Live city grid**: Visited, current, and upcoming cities shown in a scrollable grid
@@ -148,12 +170,42 @@ The site is static — open `animated-flight-map.html` and it runs. There is no 
 | `data/city-native-names.js`, `data/city-names-i18n.js` | Local-language name, and ar/zh/fr/ru/es translations |
 | `data/geo-lod.js` | Which world-map tier each renderer wants at a given zoom |
 | `asset/geo/world-*.geojson` | **Generated** — do not hand-edit |
+| `data/land-routes.json` | **Generated** — real geometry per surface leg, keyed `origin\|destination\|mode` (see [Real Land Routes](#-real-land-routes)). A leg missing from here falls back to a great-circle arc, so a partial file is safe |
+| `data/land-routes.snap.json` | Overpass station/terminal cache. Git-ignored; delete it to re-snap |
 
 Rebuilding the map tiers (only needed to change resolution, quantisation, or which Natural Earth properties survive):
 
 ```bash
 python3 tools/build-geo-lod.py     # from the repo root; downloads are cached in tools/.ne-cache/
 ```
+
+Rebuilding land routes. The script is resumable and skips legs already cached, so it can be interrupted and re-run:
+
+```bash
+python3 tools/build-land-routes.py                    # public BRouter — throttles, fine for a few legs
+pip install searoute                                  # optional; only needed for open-sea crossings
+```
+
+A full rebuild needs a local BRouter, since the public instance throttles by IP and will not carry 430 legs:
+
+```bash
+# 1. BRouter itself (needs Java 17+)
+curl -LO https://github.com/abrensch/brouter/releases/download/v1.7.10/brouter-1.7.10.zip && unzip brouter-1.7.10.zip
+
+# 2. Segment tiles covering the legs you are building — 5°×5°, ~35-125 MB each,
+#    named by SW corner (E10_N50.rd5). List them at http://brouter.de/brouter/segments4/
+#    Fetch in parallel: brouter.de throttles per connection, not per client,
+#    so 8 streams ran at 12 MB/s against 0.2 MB/s serially. Ocean-only tiles 404.
+mkdir -p segments4 && xargs -P 8 -I{} curl -sf -o segments4/{}.rd5 \
+  http://brouter.de/brouter/segments4/{}.rd5 < tiles.txt   # one tile name per line
+
+# 3. Serve them, then point the builder at it
+java -cp brouter-1.7.10/brouter-1.7.10-all.jar btools.server.RouteServer \
+     segments4 brouter-1.7.10/profiles2 brouter-1.7.10/profiles2 17777 4 127.0.0.1
+BROUTER_URL=http://127.0.0.1:17777/brouter python3 tools/build-land-routes.py
+```
+
+Useful flags: `--modes train,ferry` to rebuild one mode, `--refetch` to ignore the cache, `--epsilon` to trade file size against geometric detail (default `0.0005`, roughly 55 m).
 
 ---
 
