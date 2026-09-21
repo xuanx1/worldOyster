@@ -462,6 +462,7 @@
     "Wroclaw": "Wrocław",
     "Dresden": "Dresden",
     "Leipzig": "Leipzig",
+    "Potsdam": "Potsdam",
     "Luxembourg": "Lëtzebuerg",
     "Bath": "Bath",
     "Bristol": "Bristol",

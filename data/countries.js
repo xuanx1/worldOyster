@@ -371,6 +371,7 @@ window.CITY_TO_COUNTRY = {
     'Wroclaw': 'Poland',
     'Dresden': 'Germany',
     'Leipzig': 'Germany',
+    'Potsdam': 'Germany',
     'Luxembourg': 'Luxembourg',
     'Bath': 'UK',
     'Bristol': 'UK',

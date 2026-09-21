@@ -219,7 +219,10 @@ Milan,Venice,train,11.18,6/7/2023
 Venice,Milan,train,11.18,6/7/2023
 Paris,Versailles,train,9,9/7/2023
 Versailles,Paris,train,9,9/7/2023
-Berlin,Prague,train,28.35,13/7/2023
+Berlin,Potsdam,train,5.5,13/7/2023
+Potsdam,Leipzig,train,43.15,13/7/2023
+Leipzig,Dresden,train,25.23,13/7/2023
+Dresden,Prague,train,16.3,13/7/2023
 Prague,Krakow,train,36,13/7/2023
 Krakow,Prague,train,36,14/7/2023
 Singapore,Malacca,car,120,31/7/2023
@@ -436,6 +439,8 @@ Lao Cai,Sapa,car,5.5,5/11/2026
 Sapa,Lao Cai,car,5.5,6/11/2026
 Lao Cai,Hekou,walk,0,6/11/2026
 Hekou,Kunming,train,17.68,6/11/2026
+Haikou,Sanya,train,15.5,18/12/2026
+Sanya,Haikou,train,13.5,18/12/2026
 Kaliningrad,Vilnus,bus,58,24/12/2026
 Vilnus,Minsk,bus,57,25/12/2026
 Minsk,Vilnus,bus,56,27/12/2026

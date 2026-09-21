@@ -205,6 +205,18 @@ java -cp brouter-1.7.10/brouter-1.7.10-all.jar btools.server.RouteServer \
 BROUTER_URL=http://127.0.0.1:17777/brouter python3 tools/build-land-routes.py
 ```
 
+If brouter.de itself is unreachable — it has served a blanket 403 across the whole host, segment
+tiles included, which takes the local route above off the table too — the same engine is mirrored
+elsewhere on non-standard paths. Either is a drop-in needing no local install:
+
+```bash
+BROUTER_URL=https://bikerouter.de/brouter-engine/brouter python3 tools/build-land-routes.py --modes train
+BROUTER_URL=https://brouter.damsy.net/api/brouter       python3 tools/build-land-routes.py --modes train
+```
+
+Both returned geometry identical to brouter.de on every leg tested. They are other people’s
+servers, so the same politeness applies: fine for a handful of legs, not for a full rebuild.
+
 Useful flags: `--modes train,ferry` to rebuild one mode, `--refetch` to ignore the cache, `--epsilon` to trade file size against geometric detail (default `0.0005`, roughly 55 m).
 
 ---

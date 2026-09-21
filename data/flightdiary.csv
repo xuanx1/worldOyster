@@ -264,8 +264,8 @@ Date,Flight number,From,To,Dep time,Arr time,Duration,Airline,Aircraft,Registrat
 2026-11-04,VJ916,"Singapore / Changi (SIN/WSSS)","Hanoi / Noibai (HAN/VVNB)",14:55:00,17:25:00,03:30:00,"VietJet Air (VJ/VJC)","Airbus A321-200 (A321)",,,0,0,0,,2672,1094,1632,2076,155
 2026-11-09,TG613,"Kunming / Kunming Wujiaba International Airport (KMG/ZPPP)","Bangkok / Suvarnabhumi (BKK/VTBS)",15:20:00,16:30:00,02:10:00,"Thai Airways (TG/THA)","Airbus A320-200 (A320)",,,0,0,0,,9558,331,767,2059,183.58
 2026-11-09,TG401,"Bangkok / Suvarnabhumi (BKK/VTBS)","Singapore / Changi (SIN/WSSS)",19:10:00,22:30:00,02:20:00,"Thai Airways (TG/THA)","Airbus A320-200 (A320)",,,0,0,0,,331,2672,767,2059,201.72
-2026-12-18,MU566,"Singapore / Changi (SIN/WSSS)","Shanghai / Pudong (PVG/ZSPD)",23:10:00,04:40:00,05:30:00,"China Eastern Airlines (MU/CES)","Airbus A330-200 (A332)",,,0,0,0,,2672,3653,178,30,176.23
-2026-12-19,MU247,"Shanghai / Pudong (PVG/ZSPD)","Moscow / Sheremetyevo (SVO/UUEE)",09:25:00,14:25:00,10:00:00,"China Eastern Airlines (MU/CES)","Airbus A330-300 (A333)",,,0,0,0,,3653,2816,178,31,318.96
+2026-12-18,HU748,"Singapore / Changi (SIN/WSSS)","Haikou / Meilan (HAK/ZJHK)",12:05:00,15:40:00,03:35:00,"Hainan Airlines (HU/CHH)","Boeing 737-800 (B738)",,,0,0,0,,2672,3788,181,231,176.23
+2026-12-19,HU765,"Haikou / Meilan (HAK/ZJHK)","Moscow / Sheremetyevo (SVO/UUEE)",03:00:00,07:55:00,09:55:00,"Hainan Airlines (HU/CHH)","Airbus A330-300 (A333)",,,0,0,0,,3788,2816,181,31,318.96
 2026-12-21,S72143,"Moscow / Domodedovo (DME/UUDD)","Volgograd / Volgograd (VOG/URWW)",11:05:00,13:00:00,01:55:00,"Aeroflot (SU/AFL)"," ()",,,0,0,0,,3651,3217,33,0,112.85
 2026-12-22,SU1759,"Volgograd / Volgograd (VOG/URWW)","Moscow / Sheremetyevo (SVO/UUEE)",10:30:00,12:30:00,02:00:00,"Aeroflot (SU/AFL)"," ()",,,0,0,0,,3217,2816,33,0,112.85
 2026-12-22,SU6661,"Moscow / Sheremetyevo (SVO/UUEE)","Kaliningrad / Khrabrovo (KGD/UMKK)",16:15:00,17:50:00,02:35:00,"Aeroflot (SU/AFL)","Boeing 737-900 (B739)",,,0,0,0,,2816,1413,33,232,144.4
