@@ -424,6 +424,7 @@ window.CITY_COORDINATES = {
     'Alor Setar': [6.1210, 100.3670],     // Kedah, on Butterworth→Padang Besar line
     'Sanya': [18.2528, 109.5119],
     'Xiamen': [24.4798, 118.0894],
+    'Zhangzhou': [24.5130, 117.6470],
     'Quanzhou': [24.8741, 118.6757],
     'Fuzhou': [26.0745, 119.2965],
     'Putian': [25.4310, 119.0079],

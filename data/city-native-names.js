@@ -435,6 +435,7 @@
     "Taiping": "太平 / Taiping",
     "Sanya": "三亚",
     "Xiamen": "厦门",
+    "Zhangzhou": "漳州",
     "Quanzhou": "泉州",
     "Fuzhou": "福州",
     "Putian": "莆田",

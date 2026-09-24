@@ -340,6 +340,7 @@ window.CITY_TO_COUNTRY = {
     'Alor Setar': 'Malaysia',
     'Sanya': 'PR China',
     'Xiamen': 'PR China',
+    'Zhangzhou': 'PR China',
     'Quanzhou': 'PR China',
     'Fuzhou': 'PR China',
     'Putian': 'PR China',

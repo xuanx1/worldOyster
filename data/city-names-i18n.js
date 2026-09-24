@@ -413,6 +413,7 @@
         "Yokohama":      { ar:"يوكوهاما", zh:"横滨", ru:"Йокогама" },
         "Yogyakarta":    { ar:"يوغياكارتا", zh:"日惹", ru:"Джокьякарта" },
         "Zagreb":        { ar:"زغرب", zh:"萨格勒布", ru:"Загреб" },
+        "Zhangzhou":     { ar:"تشانغتشو", zh:"漳州", fr:"Zhangzhou", ru:"Чжанчжоу", es:"Zhangzhou" },
         "Zhuhai":        { ar:"تشوهاي", zh:"珠海", ru:"Чжухай" },
         "Zurich":        { ar:"زيوريخ", zh:"苏黎世", ru:"Цюрих" }
     };
