@@ -221,6 +221,7 @@
     "Dambulla": "දඹුල්ල / டம்புல்லா",
     "Anuradhapura": "අනුරාධපුරය / அனுராதபுரம்",
     "Kuala Lumpur": "Kuala Lumpur",
+    "Putrajaya": "Putrajaya",
     "Manila": "Maynila",
     "Ho Chi Minh City": "Thành phố Hồ Chí Minh",
     "Ho Chi Minh City (Saigon)": "Thành phố Hồ Chí Minh (Sài Gòn)",

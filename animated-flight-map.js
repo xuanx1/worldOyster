@@ -1299,6 +1299,14 @@ class AnimatedFlightMap {
             return;
         }
 
+        // This starts a NEW animation chain, so invalidate every older one.
+        // Without this, a second entry point (late autostart, replay, a
+        // resume racing an inter-leg setTimeout) leaves TWO chains alive on
+        // the same generation: every leg animates twice with offset clocks,
+        // the dot ping-pongs between them, and the doubling never heals.
+        this._animationGen++;
+        this._pausedAnimateState = null;
+
         this.isAnimating = true;
         this.updatePlayPauseButton(); // Update button state
         this.hideReplayButton(); // Hide replay button when starting
@@ -1488,10 +1496,29 @@ class AnimatedFlightMap {
         const _tripName = `${fromCity.name} → ${toCity.name}`;
         this.addChartPoint(_legYear, _costPerKm, _co2PerSGD, _legDate, _tripName, _cost);
         
-        // Faster animation - reduced timing (min 500ms, max 2000ms)
-        // Apply speed multiplier
-        const baseAnimationDuration = Math.max(500, Math.min(2000, distance * 100));
-        const animationDuration = baseAnimationDuration / this.speedMultiplier;
+        // Pacing knob for the 1x baseline. The animation was programmed at
+        // 500–2000ms per leg from day one, but timing bugs (fixed 30 Sep
+        // 2026) always padded that with stalls and per-leg dead time — the
+        // pace everyone actually WATCHED was about half the programmed one.
+        // PACE=2 restores that familiar rhythm honestly.
+        const PACE = 2;
+        const baseAnimationDuration = Math.max(500 * PACE, Math.min(2000 * PACE, distance * 100 * PACE));
+        // Speed ladder. Dividing by the raw multiplier sent 20x/100x legs
+        // sub-frame (10–200ms — the dot just snapped city to city). Each
+        // step instead uses a gentler divisor plus a floor that keeps every
+        // leg on screen for a handful of frames, so each step reads as
+        // "faster travel", never teleporting:
+        //   1x: 1000–4000ms   10x: ~300–1000ms
+        //  20x:  ~200–500ms  100x:  ~120–250ms
+        const SPEED_LADDER = {
+            1:   { div: 1,  floor: 0 },
+            10:  { div: 4,  floor: 300 },
+            20:  { div: 8,  floor: 200 },
+            100: { div: 16, floor: 120 }
+        };
+        const step = SPEED_LADDER[this.speedMultiplier] ||
+            { div: Math.max(1, 2 * Math.sqrt(this.speedMultiplier)), floor: 150 };
+        const animationDuration = Math.max(step.floor, baseAnimationDuration / step.div);
 
         // Initialize continuous path if it doesn't exist
         if (!this.continuousPath) {
@@ -1525,7 +1552,18 @@ class AnimatedFlightMap {
         };
 
         // Use requestAnimationFrame for smoother animation
-        let startTime = performance.now();
+        // Seeded from the FIRST RAF callback's own clock, never from
+        // performance.now() at schedule time: under a congested main thread
+        // the frame timestamp trails now() by up to a few hundred ms, and a
+        // later seed makes the first frames' elapsed negative — easeInOut's
+        // 2t² branch then walks the dot BACKWARDS to the origin before it
+        // sets off (on a short leg it even starts at the destination). The
+        // heavier the frame, the bigger that backward jerk.
+        let startTime = null;
+        // Loop-local on purpose: an instance-level mark left behind by a
+        // loop killed mid-freeze (scrub during hover) would shift the next
+        // leg's clock by a huge stale amount.
+        let hoverFreezeStart = null;
 
         const animate = (currentTime) => {
             // If a scrub/jump started a new generation, this animation is stale — die
@@ -1537,14 +1575,14 @@ class AnimatedFlightMap {
 
             // Hover freeze — skip frame without completing; track pause duration
             if (this._hoverFrozen) {
-                if (!this._hoverFreezeStart) this._hoverFreezeStart = currentTime;
+                if (hoverFreezeStart === null) hoverFreezeStart = currentTime;
                 requestAnimationFrame(animate);
                 return;
             }
             // Adjust start time for time spent frozen so animation resumes smoothly
-            if (this._hoverFreezeStart) {
-                startTime += (currentTime - this._hoverFreezeStart);
-                this._hoverFreezeStart = null;
+            if (hoverFreezeStart !== null) {
+                if (startTime !== null) startTime += (currentTime - hoverFreezeStart);
+                hoverFreezeStart = null;
             }
 
             if (!this.isAnimating) {
@@ -1554,7 +1592,7 @@ class AnimatedFlightMap {
                 this._pausedAnimateState = {
                     resume: () => {
                         // Shift startTime forward by the pause duration so progress picks up where it left off
-                        startTime += (performance.now() - pausedAt);
+                        if (startTime !== null) startTime += (performance.now() - pausedAt);
                         requestAnimationFrame(animate);
                     },
                     gen
@@ -1564,7 +1602,8 @@ class AnimatedFlightMap {
                 return;
             }
 
-            const elapsed = currentTime - startTime;
+            if (startTime === null) startTime = currentTime;
+            const elapsed = Math.max(0, currentTime - startTime);
             const progress = Math.min(elapsed / animationDuration, 1);
             const easedProgress = easeInOut(progress);
 
@@ -1584,6 +1623,9 @@ class AnimatedFlightMap {
                 // Animation complete - add full segment to continuous path
                 this._legProgress = 1;
                 this._setFlightDotLatLng(path[path.length - 1]);
+                // The leg is merged into the continuous path below; retire the
+                // per-leg polyline that was drawing it frame by frame.
+                this._clearActiveLegLine();
 
                 if (isDateLineCrossing) {
                     // Finalize current path segment if it has points
@@ -1656,12 +1698,22 @@ class AnimatedFlightMap {
                     this.panToVisible(sample.point, false);
                 }
 
-                // Update continuous path progressively, ending exactly at the
-                // dot so the line does not lag behind it between vertices.
-                const currentSegment = [...path.slice(0, currentStep + 1), sample.point];
-                const updatedPath = [...this.allPathCoordinates, ...currentSegment];
-                if (this.continuousPath && this.linesVisible) {
-                    this.continuousPath.setLatLngs(updatedPath);
+                // Update the growing leg on its own small polyline, ending
+                // exactly at the dot so the line does not lag behind it.
+                // Only THIS leg's points are touched per frame: rebuilding the
+                // whole continuous path here is O(entire journey) and by the
+                // later legs the frame time balloons — the follow-cam then
+                // slides the map under the dot between updates, which reads as
+                // the dot lurching forward, back, forward.
+                if (this.linesVisible) {
+                    const currentSegment = [...path.slice(0, currentStep + 1), sample.point];
+                    if (!this._activeLegLine) {
+                        this._activeLegLine = L.polyline(currentSegment, {
+                            color: '#4CAF50', weight: 1, opacity: 0.6, interactive: false
+                        }).addTo(this.map);
+                    } else {
+                        this._activeLegLine.setLatLngs(currentSegment);
+                    }
                 }
             }
 
@@ -1672,6 +1724,52 @@ class AnimatedFlightMap {
 
         const frameId = requestAnimationFrame(animate);
         if (this._activeAnimationFrames) this._activeAnimationFrames.push(frameId);
+    }
+
+    // Remove the polyline that draws the in-flight leg frame by frame.
+    // Safe to call when none exists; clearMap's nuclear sweep also strips
+    // the layer itself, so this mainly keeps the reference honest.
+    _clearActiveLegLine() {
+        if (this._activeLegLine) {
+            try {
+                if (this.map && this.map.hasLayer(this._activeLegLine)) {
+                    this.map.removeLayer(this._activeLegLine);
+                }
+            } catch (e) {}
+            this._activeLegLine = null;
+        }
+    }
+
+    // Drop interior vertices the path enters and leaves in near-opposite
+    // directions. The shortcut across such a vertex is at most the width of
+    // the spur it collapses, invisible at map scale, while keeping it sends
+    // the animated dot backwards along track it has already covered.
+    _pruneBacktrackSpurs(pts) {
+        if (!Array.isArray(pts) || pts.length < 3) return pts;
+        const out = pts.map(p => [p[0], p[1]]);
+        const cosLat = Math.cos((pts[0][0] + pts[pts.length - 1][0]) * Math.PI / 360);
+        const vec = (a, b) => [b[0] - a[0], (b[1] - a[1]) * cosLat];
+        // A splice can turn a neighbour into a new reversal (a spur cut at
+        // its tip exposes the retrace one vertex further out), so keep
+        // sweeping until a pass removes nothing.
+        for (let pass = 0; pass < pts.length; pass++) {
+            let removed = false;
+            for (let i = 1; i < out.length - 1; i++) {
+                const v1 = vec(out[i - 1], out[i]);
+                const v2 = vec(out[i], out[i + 1]);
+                const n1 = Math.hypot(v1[0], v1[1]);
+                const n2 = Math.hypot(v2[0], v2[1]);
+                const drop = (n1 < 1e-9 || n2 < 1e-9) ||
+                    (v1[0] * v2[0] + v1[1] * v2[1]) / (n1 * n2) < -0.97;
+                if (drop) {
+                    out.splice(i, 1);
+                    removed = true;
+                    i--;
+                }
+            }
+            if (!removed) break;
+        }
+        return out;
     }
 
     // Running distance along a path, so it can be sampled by length.
@@ -1727,12 +1825,18 @@ class AnimatedFlightMap {
         const hit = routes[`${journey.origin}|${journey.destination}|${mode}`];
         if (!hit || !Array.isArray(hit.pts) || hit.pts.length < 2) return null;
 
+        // Routed geometry can double back on itself — a station snapped onto
+        // a dead-end spur, an overshoot past a junction, a switchback apex
+        // flattened into an exact retrace by simplification. The dot then
+        // visibly runs backwards mid-leg. Prune those once per leg.
+        if (!hit._cleanPts) hit._cleanPts = this._pruneBacktrackSpurs(hit.pts);
+
         // The cache is keyed origin->destination; a leg animated in the
         // opposite direction needs the points reversed or it would draw
         // backwards.
         const forward = this.normalizeCityDisplayName(journey.origin || '') ===
                         this.normalizeCityDisplayName(fromCity.name || '');
-        const pts = forward ? hit.pts : hit.pts.slice().reverse();
+        const pts = forward ? hit._cleanPts : hit._cleanPts.slice().reverse();
 
         // Rail and ferry legs route station-to-station, which can sit a couple
         // of kilometres off the city marker, so tie the ends back to the dots.
@@ -2009,6 +2113,12 @@ class AnimatedFlightMap {
         // Only resume if we haven't completed the journey.
         // If complete, do nothing — user must press REPLAY explicitly.
         if (this.currentCityIndex < this.cities.length) {
+            // Starting a fresh chain (there is no paused mid-flight loop to
+            // continue). A pause pressed during the inter-leg setTimeout gap
+            // leaves that timeout pending with the current gen; without this
+            // bump, play would start a second chain and the pending timeout
+            // would still fire — two chains forever after.
+            this._animationGen++;
             this.isAnimating = true;
             this.updatePlayPauseButton();
             // Continue from current position
@@ -2076,6 +2186,11 @@ class AnimatedFlightMap {
             this.continuousPath.addTo(this.map);
         }
 
+        // Show the in-flight leg's progressive line
+        if (this._activeLegLine && !this.map.hasLayer(this._activeLegLine)) {
+            this._activeLegLine.addTo(this.map);
+        }
+
         // Show interactive route hit areas so hover works when lines are visible
         if (this.routeInteractivePolylines && this.routeInteractivePolylines.length) {
             this.routeInteractivePolylines.forEach(r => {
@@ -2114,6 +2229,11 @@ class AnimatedFlightMap {
         // Hide current continuous path
         if (this.continuousPath && this.map.hasLayer(this.continuousPath)) {
             this.map.removeLayer(this.continuousPath);
+        }
+
+        // Hide the in-flight leg's progressive line
+        if (this._activeLegLine && this.map.hasLayer(this._activeLegLine)) {
+            this.map.removeLayer(this._activeLegLine);
         }
 
         // Hide interactive route hit areas (prevent hover when lines are hidden)
@@ -2167,9 +2287,11 @@ class AnimatedFlightMap {
         if (animate) {
             this.map.setView(adjusted, this.map.getZoom(), { animate: true, duration: 0.5 });
         } else {
-            const speed = this.speedMultiplier || 1;
-            const dur = speed >= 100 ? 0.05 : speed >= 20 ? 0.08 : 0.15;
-            this.map.setView(adjusted, this.map.getZoom(), { animate: true, duration: dur, easeLinearity: 1 });
+            // Per-frame follow: move in lockstep with the dot. Starting an
+            // animated pan here launches a slide that keeps moving the map
+            // BETWEEN dot updates — under load the dot then visibly skids
+            // backwards relative to the viewport each frame.
+            this.map.setView(adjusted, this.map.getZoom(), { animate: false });
         }
     }
 
@@ -3160,6 +3282,7 @@ class AnimatedFlightMap {
         });
 
         // Reset all tracked references so drawVisitedPaths rebuilds from scratch
+        this._activeLegLine = null; // layer already stripped by the sweep above
         this.continuousPath = null;
         this.continuousPathSegments = [];
         this.visitedPaths = [];
@@ -4695,9 +4818,11 @@ class AnimatedFlightMap {
         const startTime = performance.now();
         
         element.classList.add('scrambling');
-        
+
         const animate = (currentTime) => {
-            const elapsed = currentTime - startTime;
+            // Clamped: under load the first RAF timestamp can trail the
+            // scheduling clock, and a negative progress here reads as junk.
+            const elapsed = Math.max(0, currentTime - startTime);
             const progress = Math.min(elapsed / duration, 1);
             
             if (progress < 1) {
@@ -4732,9 +4857,11 @@ class AnimatedFlightMap {
         const startTime = performance.now();
         
         element.classList.add('counting', 'updating');
-        
+
         const animate = (currentTime) => {
-            const elapsed = currentTime - startTime;
+            // Clamped: a first-frame timestamp behind the scheduling clock
+            // would swing the counter backwards before it counts up.
+            const elapsed = Math.max(0, currentTime - startTime);
             const progress = Math.min(elapsed / duration, 1);
             
             // Easing function for smooth animation

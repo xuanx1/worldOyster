@@ -274,7 +274,7 @@ window.CITY_TO_COUNTRY = {
     'Guangzhou': 'PR China', 'Shenzhen': 'PR China', 'Foshan': 'PR China', 'Nanning': 'PR China', 'Kunming': 'PR China', 'Hekou': 'PR China',
     'Hong Kong': 'PR China', 'Macau': 'PR China', 'Zhuhai': 'PR China',
     'Taipei': 'ROC Taiwan', 'Taichung': 'ROC Taiwan', 'Tainan': 'ROC Taiwan', 'Kaohsiung': 'ROC Taiwan',
-    'Kuala Lumpur': 'Malaysia',
+    'Kuala Lumpur': 'Malaysia', 'Putrajaya': 'Malaysia',
     'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
     'Penang': 'Malaysia', 'Pengerang': 'Malaysia', 'Kota Kinabalu': 'Malaysia', 'Kuching': 'Malaysia', 'Miri': 'Malaysia', 'Bandar Seri Begawan': 'Brunei',
     'Moscow': 'Russia', 'St. Petersburg': 'Russia', 'Volgograd': 'Russia', 'Kaliningrad': 'Russia',

@@ -215,6 +215,7 @@ window.CITY_COORDINATES = {
     'Anuradhapura': [8.3114, 80.4037],
     'Galle': [6.0535, 80.2210],
     'Kuala Lumpur': [3.1390, 101.6869],
+    'Putrajaya': [2.9264, 101.6964],
     'Manila': [14.5995, 120.9842],
     'Ho Chi Minh City': [10.8231, 106.6297],
     'Ho Chi Minh City (Saigon)': [10.8231, 106.6297],

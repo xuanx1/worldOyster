@@ -431,8 +431,14 @@
     // Smooth the bearing toward the geometric value — when a leg ends
     // and the next one starts in a different direction, the arrow
     // visibly rotates over ~150ms instead of snapping.
+    // The easing rate scales with playback speed: at a fixed 0.15/frame
+    // the arrow needed ~15 frames to settle, longer than a whole leg at
+    // 20x/100x, so it pointed the wrong way most of the time. sqrt keeps
+    // 1x cinematic (0.15) while 100x snaps instantly (1.0).
     if (displayBrg === null || !Number.isFinite(displayBrg)) displayBrg = brg;
-    displayBrg = lerpAngle(displayBrg, brg, 0.15);
+    const spd = (fm && fm.speedMultiplier) || 1;
+    const turnRate = Math.min(1, 0.15 * Math.sqrt(spd));
+    displayBrg = lerpAngle(displayBrg, brg, turnRate);
     const isLand = legIsLand(to);
 
     scope.blip = { lat: ll.lat, lng: ll.lng, brg: displayBrg, surface: !!isLand };

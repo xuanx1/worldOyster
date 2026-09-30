@@ -302,6 +302,7 @@
         "Punakha":       { ar:"بوناخا", zh:"普纳卡", ru:"Пунакха" },
         "Puducherry":    { ar:"بودوتشيري", zh:"本地治里", fr:"Pondichéry", ru:"Пудучерри", es:"Pondicherry" },
         "Puno":          { ar:"بونو", zh:"普诺", ru:"Пуно" },
+        "Putrajaya":     { ar:"بوتراجايا", zh:"布城", ru:"Путраджая" },
         "Pyongyang":     { ar:"بيونغ يانغ", zh:"平壤", ru:"Пхеньян" },
         "Qingdao":       { ar:"تشينغداو", zh:"青岛", ru:"Циндао" },
         "Quetta":        { ar:"كويتا", zh:"奎达", ru:"Кветта" },
