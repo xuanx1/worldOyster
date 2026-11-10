@@ -541,9 +541,17 @@
                     cycleTooltipLayer = null;
                 }
             }
+            // Only cycle while the map is on screen. Each cycle is two map
+            // fly-tos that redraw every country outline per frame; off-screen
+            // (most of the time on this wide page) that is pure waste.
+            let onScreen = true;
+            if ('IntersectionObserver' in window) {
+                new IntersectionObserver(es => { onScreen = es[es.length - 1].isIntersecting; },
+                    { rootMargin: '100px' }).observe(wrapper);
+            }
             function tick() {
                 if (_myGen !== window.__atcCostCycleGen) return; // superseded
-                if (userHovering || Date.now() < pauseUntil) {
+                if (userHovering || !onScreen || Date.now() < pauseUntil) {
                     timer = setTimeout(tick, 400);
                     return;
                 }

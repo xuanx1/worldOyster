@@ -245,7 +245,19 @@
     // instead of cutting. atc-theme.js drives lightTarget.
     let light = 0, lightTarget = 0;
 
+    // The field drifts slowly and is soft by design, so 30 fps is
+    // indistinguishable from 60 — but every redraw also forces the compositor
+    // to re-blur each backdrop-filter panel sitting on top of it. Halving the
+    // redraws halves that work. Parallax still eases on real elapsed time.
+    const FRAME_MS = 1000 / 30;
+    let lastDraw = 0;
+
     function frame(now) {
+      if (now - lastDraw < FRAME_MS - 2 && light === lightTarget) {
+        raf = requestAnimationFrame(frame);
+        return;
+      }
+      lastDraw = now;
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
       if (!still) {

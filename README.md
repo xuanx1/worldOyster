@@ -19,6 +19,22 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - **Sequential ramps invert, not just recolour**: GitHub-style greens encode "more" as *brighter*, which is correct on a near-black page and backwards on a white one. In light mode the Spending Heatmap ramp runs light-to-dark instead, so more spend always means more ink — the zero swatch stays a neutral grey so "no spend" never reads as "a little"
 - **Respects `prefers-reduced-motion`**: Background motion holds a still frame
 
+### 🎵 Soundtrack & Beat Sync
+- **Drop-in playlist**: Every audio file in `asset/audio/music/` plays, end to end in alphabetical order, looping if the journey outlasts it. Add or delete files and the playlist follows on the next load; there is no manifest to edit. Locally it reads the server's directory listing (Live Server, `python -m http.server`); on GitHub Pages, which has no listing, it reads the folder through the GitHub contents API
+- **Analysed in the browser**: Each track is decoded once with the Web Audio API for its tempo and its rhythmic activity (how dense and hard-hitting the note onsets are, over a ~4 s window). Results are cached in `localStorage` by file URL and size, so a track is only re-analysed when it changes
+- **The music is the clock** (♪ BEAT on the speed button, the default):
+  - **Speed** follows the rhythm section by section, from 1× in sparse passages to 100× in the busiest. It follows rhythm, not loudness, so a quiet but driving section is still fast (activity correlates 0.91 with hits per second)
+  - **Timeline-locked**: a timetable of when each leg starts in the song is precomputed from those speeds, and each leg is timed to land on its slot (measured drift ≈ 25 ms). Scrubbing, clicking the progress bar and REPLAY all seek the music to the matching point
+
+### 🎥 Region Camera
+- While FOLLOW is on, the radar frames the region the arrow is in: all of Europe when touring Europe, North America in the US, East Asia around Japan and China, and so on (12 regions)
+- On a long haul it pulls out to keep the destination in view, then settles on the destination's region as the arrow lands
+- It's a separate factor on top of your own zoom: wheel-zoom still works, and dragging the globe or turning FOLLOW off eases the camera back
+- Coastline detail follows the effective zoom, so a framed Europe uses the finer 50m coastline
+- **Manual speed**: the speed button cycles ♪ BEAT → 1× → 10× → 20× → 100× → ♪ BEAT. At a manual speed the music plays alongside the journey without driving it
+- **MUSIC toggle** in the playbar mutes it, and the choice is remembered. Hover it for the current track and its tempo
+- **Autoplay-safe**: Browsers block sound until you interact with the page, so the journey starts on its own at 1×; your first click or key press starts the music from the journey's current point
+
 ### ✨ Animated Backdrop
 - **Flowing colour field**: A WebGL shader samples 3D simplex noise across the viewport and maps it to a drifting hue, with a fine grain and a soft falloff
 - **Pointer parallax**: The field shifts with the cursor, eased rather than snapped

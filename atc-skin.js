@@ -389,10 +389,17 @@
     scope.routes = routes;
   }
 
+  // Rebuilt only when the play position or the journey changes — it was a
+  // fresh ~460-entry Map every frame. Repeat visits share one pin: the scope
+  // drew a separate shadow-blurred dot per visit, stacked on the same pixel.
+  let _airportsKey = '';
   function syncAirports() {
     const fm = window.flightMap;
     if (!fm || !fm.cities) return;
     const idx = fm.currentCityIndex || 0;
+    const key = idx + ':' + fm.cities.length;
+    if (key === _airportsKey && scope.airports) return;
+    _airportsKey = key;
     const m = new Map();
     fm.cities.forEach((c, i) => {
       // Only register cities the animation has actually reached.
@@ -401,7 +408,10 @@
       //            until the dot arrives (idx increments past it).
       // i  >  idx → future, never shown until reached.
       if (i >= idx) return;
-      const key = (c.airportCode || c.locationCode || c.name || ('c' + i)) + '@' + i;
+      if (c.lat == null || c.lng == null) return;
+      const key = (c.airportCode || c.locationCode || c.name || ('c' + i)) + '@' +
+                  (+c.lat).toFixed(4) + ',' + (+c.lng).toFixed(4);
+      if (m.has(key)) return;
       m.set(key, {
         lat: c.lat, lng: c.lng,
         code: c.airportCode || c.locationCode || '',
@@ -414,6 +424,7 @@
     scope.airports = m;
   }
 
+  let _tagFlightFor = null, _tagFlight = {};
   function syncBlipAndProgress() {
     const fm = window.flightMap;
     if (!fm || !fm.flightDot || !fm.flightDot.getLatLng) { scope.blip = null; scope.tag = null; return; }
@@ -464,11 +475,17 @@
       if (r) r.t = t;
     }
 
-    // build leader-tag content
-    const fl = (fm.flightData || []).find(j => {
-      const d = j.date || j.departureDate;
-      return d && to.flightDate && new Date(d).getTime() === new Date(to.flightDate).getTime();
-    }) || {};
+    // build leader-tag content. The flight lookup walks every journey and
+    // parses two Dates per row, so do it once per leg, not once per frame.
+    if (_tagFlightFor !== to) {
+      _tagFlightFor = to;
+      const toT = to.flightDate ? new Date(to.flightDate).getTime() : NaN;
+      _tagFlight = (fm.flightData || []).find(j => {
+        const d = j.date || j.departureDate;
+        return d && to.flightDate && new Date(d).getTime() === toT;
+      }) || {};
+    }
+    const fl = _tagFlight;
     const dist = Math.round(fl.distance || haversine(from.lat, from.lng, to.lat, to.lng));
     const dur = fl.duration
       ? (typeof fl.duration === 'number' ? (fl.duration.toFixed(1) + 'h') : String(fl.duration))
@@ -558,6 +575,20 @@
     const totalLegs = Math.max(0, cities.length - 1);
     const legIdx = Math.max(0, Math.min(totalLegs, fm.currentCityIndex || 0));
     const year = fm._currentYear || (cities[legIdx] && cities[legIdx].date ? String(cities[legIdx].date).slice(0, 4) : '----');
+    // Runs every frame, but its inputs change a few times per leg at most.
+    // Only touch the DOM when they do — rewriting the SVG and labels each
+    // frame dirtied style, and the layout read in positionYearOverlay right
+    // after then forced a synchronous reflow every frame.
+    const animating = !!fm.isAnimating;
+    const mul = fm.speedMultiplier || 1;
+    // BEAT mode: the soundtrack sets the speed (atc-music.js).
+    const dir = fm.legDirector;
+    const beatOn = !!(dir && dir.available() && fm.beatMode !== false);
+    const beatDriving = beatOn && dir.active();
+    const sig = legIdx + '|' + totalLegs + '|' + year + '|' + animating + '|' + mul + '|' + beatOn + beatDriving;
+    if (sig === _playbarSig) return;
+    _playbarSig = sig;
+
     const status = pb.querySelector('#atcPlaybarStatus');
     if (status) {
       status.textContent = `LEG ${String(legIdx).padStart(3, '0')}/${String(totalLegs).padStart(3, '0')} · ${year}`;
@@ -568,7 +599,6 @@
     if (ppBtn) {
       const lbl = ppBtn.querySelector('.atc-pb-lbl');
       const svg = ppBtn.querySelector('svg');
-      const animating = !!fm.isAnimating;
       if (lbl) lbl.textContent = animating ? 'PAUSE' : (legIdx >= totalLegs ? 'REPLAY' : 'PLAY');
       if (svg) {
         svg.innerHTML = animating
@@ -582,23 +612,36 @@
     const spBtn = pb.querySelector('[data-act="speed"]');
     if (spBtn) {
       const lbl = spBtn.querySelector('.atc-pb-lbl');
-      const mul = fm.speedMultiplier || 1;
-      if (lbl) lbl.textContent = `${mul}×`;
-      spBtn.classList.toggle('atc-pb-on', mul !== 1);
+      if (lbl) lbl.textContent = beatOn ? (beatDriving ? `♪ ${mul}×` : '♪ BEAT') : `${mul}×`;
+      spBtn.classList.toggle('atc-pb-on', beatOn || mul !== 1);
+      spBtn.title = beatOn
+        ? 'Beat sync: speed and camera follow the music. Click for manual speed'
+        : (dir && dir.available() ? 'Manual speed (click to cycle; after 100× comes beat sync)' : 'Cycle speed');
     }
   }
+  let _playbarSig = '';
+  let _sweepBase = 0;
   function syncSweepGeometry() {
     const sw = document.getElementById('atcSweep');
     if (!sw || !scope) return;
     const d = scope.radius * 2 + 28;
-    sw.style.width = sw.style.height = d + 'px';
-    sw.style.left = (scope.cx - d / 2) + 'px';
-    sw.style.top = (scope.cy - d / 2) + 'px';
+    // Size and place the beam with a transform only. Writing width/height/
+    // left/top every frame forced a layout per frame now that the follow
+    // camera eases the radius continuously. The box is re-based only when
+    // the size drifts >25% (the beam is a soft gradient, so scaling is
+    // invisible), and it sits on its own layer so rotating never repaints.
+    if (!_sweepBase || Math.abs(d / _sweepBase - 1) > 0.25) {
+      _sweepBase = d;
+      sw.style.width = sw.style.height = d + 'px';
+      sw.style.left = sw.style.top = '0px';
+      sw.style.willChange = 'transform';
+    }
     // Drive the rotation from JS so the canvas glow stays in lockstep
     // with the visible beam. 0deg = up (12 o'clock), sweep rotates
     // clockwise once per ATC_SWEEP_PERIOD_MS.
     const ang = ((performance.now() % ATC_SWEEP_PERIOD_MS) / ATC_SWEEP_PERIOD_MS) * 360;
-    sw.style.transform = 'rotate(' + ang + 'deg)';
+    sw.style.transform = 'translate(' + (scope.cx - _sweepBase / 2) + 'px,' + (scope.cy - _sweepBase / 2) + 'px) ' +
+                         'scale(' + (d / _sweepBase) + ') rotate(' + ang + 'deg)';
     scope.sweepAngleDeg = ang;
     scope.sweepPeriodMs = ATC_SWEEP_PERIOD_MS;
   }
@@ -615,6 +658,58 @@
     if (!isFinite(angDeg) || angDeg <= 0) return 2;
     const z = 60 / angDeg;
     return Math.max(0.7, Math.min(4.5, z));
+  }
+
+  /* ---------- region camera ----------
+     Boxes to tell which region a point is in (first match wins, so the
+     order resolves overlaps — Istanbul is Europe, Cairo the Middle East,
+     Hanoi Southeast Asia), and the arc radius around the arrow that shows
+     that region whole. */
+  const CAM_REGIONS = [
+    //  name               latMin latMax lngMin lngMax  frame°
+    ['Europe',              35,    72,   -25,    45,    20],
+    ['Middle East',         12,    42,    25,    63,    15],
+    ['Africa',             -36,    37,   -20,    52,    32],
+    ['Russia',              50,    78,    45,   180,    30],
+    ['Central Asia',        35,    56,    45,    90,    18],
+    ['South Asia',           5,    36,    60,    92,    16],
+    ['Southeast Asia',     -11,    23,    92,   141,    17],
+    ['East Asia',           20,    50,   100,   146,    17],
+    ['Oceania',            -50,   -11,   110,   180,    24],
+    ['North America',       15,    72,  -170,   -50,    30],
+    ['Central America',      5,    25,  -120,   -55,    16],
+    ['South America',      -56,    13,   -82,   -34,    30]
+  ];
+  const CAM_OPEN_SEA_DEG = 25;     // mid-ocean, outside every box
+  const CAM_EASE_S = 1.1;
+
+  function regionFrameDeg(lat, lng) {
+    for (const r of CAM_REGIONS) {
+      if (lat >= r[1] && lat <= r[2] && lng >= r[3] && lng <= r[4]) return r[5];
+    }
+    return CAM_OPEN_SEA_DEG;
+  }
+
+  let _camZ = 1, _camLast = 0;
+  function regionCameraZoom(fm, follow) {
+    const now = performance.now();
+    const dt = _camLast ? Math.min(0.1, Math.max(0, (now - _camLast) / 1000)) : 0.016;
+    _camLast = now;
+    let target = 1;
+    const ll = follow && fm.flightDot && fm.flightDot.getLatLng ? fm.flightDot.getLatLng() : null;
+    if (ll) {
+      // The region the arrow is in…
+      let deg = regionFrameDeg(ll.lat, ll.lng);
+      // …widened to keep the destination on screen: a long haul starts
+      // zoomed out and closes in on the destination's region as it lands.
+      const to = fm.cities && fm.cities[fm.currentCityIndex || 0];
+      if (to && to.lat != null) {
+        deg = Math.max(deg, regionFrameDeg(to.lat, to.lng), gcAngleDeg([ll.lat, ll.lng], [to.lat, to.lng]) * 1.15);
+      }
+      target = zoomToFitAngle(deg);
+    }
+    _camZ += (target - _camZ) * (1 - Math.exp(-dt / CAM_EASE_S));
+    return _camZ;
   }
 
   // Start a smooth "fly" of the scope to a target (lat, lng, zoom).
@@ -719,6 +814,15 @@
       if (!flying && fm && fm.followDot && !userHasPanned) {
         const ll = fm.flightDot && fm.flightDot.getLatLng ? fm.flightDot.getLatLng() : null;
         if (ll) scope.setCenter(ll.lat, ll.lng, true);
+      }
+
+      // Region camera: while following the arrow, frame the region it is in
+      // (all of Europe, all of North America…), pulling out on long hauls to
+      // keep the destination in view. Eases back to 1 when not following.
+      // A separate factor from the user's own zoom, which still applies.
+      if (scope.setCamZoom) {
+        const onArrow = !flying && !!(fm && fm.followDot && !userHasPanned && fm.isAnimating);
+        scope.setCamZoom(regionCameraZoom(fm, onArrow));
       }
 
       buildRoutesFromCities();
@@ -1153,9 +1257,27 @@
      geometric centre. We measure the live heights and write
      position styles directly on the overlay.
      ============================================================ */
+  // Measuring four boxes every frame forced layout on each one. The result
+  // only changes when one of those boxes resizes, so measure on resize (plus
+  // a slow fallback for anything a ResizeObserver can't see).
+  let _yearOverlayDirty = true, _yearOverlayAt = 0, _yearOverlayRO = null;
   function positionYearOverlay() {
+    const now = performance.now();
+    if (!_yearOverlayDirty && now - _yearOverlayAt < 1000) return;
     const ov = document.getElementById('yearOverlay');
     if (!ov) return;
+    if (!_yearOverlayRO && typeof ResizeObserver !== 'undefined') {
+      const card0 = document.querySelector('.card-container');
+      const map0 = document.querySelector('.map-container');
+      if (card0 && map0) {
+        _yearOverlayRO = new ResizeObserver(() => { _yearOverlayDirty = true; });
+        [card0, map0,
+         card0.querySelector(':scope > .header'),
+         card0.querySelector(':scope > .progress-bar')].forEach(el => el && _yearOverlayRO.observe(el));
+      }
+    }
+    _yearOverlayDirty = false;
+    _yearOverlayAt = now;
     const mapBox = document.querySelector('.map-container');
     const card = document.querySelector('.card-container');
     if (!mapBox || !card) return;
@@ -1876,6 +1998,7 @@
     }
   }
 
+  let _cityMeterLastH = '', _cityMeterLastIdx = -1;
   function updateCityProgressMeter() {
     if (!_cityMeterFill) return;
     const fm = window.flightMap;
@@ -1889,7 +2012,10 @@
     }
     const completed = Math.max(0, idx - 1) + legT;
     const pct = Math.max(0, Math.min(100, (completed / denom) * 100));
-    _cityMeterFill.style.setProperty('height', pct.toFixed(2) + '%', 'important');
+    const h = pct.toFixed(2) + '%';
+    if (h === _cityMeterLastH && idx === _cityMeterLastIdx) return;   // unchanged — skip the DOM writes
+    _cityMeterLastH = h; _cityMeterLastIdx = idx;
+    _cityMeterFill.style.setProperty('height', h, 'important');
     if (_cityMeterPctEl)   _cityMeterPctEl.textContent = pct.toFixed(0) + '%';
     if (_cityMeterCountEl) _cityMeterCountEl.textContent = idx + '/' + total;
   }

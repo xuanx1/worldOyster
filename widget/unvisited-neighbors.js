@@ -1534,9 +1534,15 @@
                     cycleTooltipLayer = null;
                 }
             }
+            // Only cycle while the map is on screen (see cost-choropleth.js).
+            let onScreen = true;
+            if ('IntersectionObserver' in window) {
+                new IntersectionObserver(es => { onScreen = es[es.length - 1].isIntersecting; },
+                    { rootMargin: '100px' }).observe(container);
+            }
             function tick() {
                 if (_myGen !== window.__atcUnvCycleGen) return; // superseded
-                if (userHovering || Date.now() < pauseUntil) {
+                if (userHovering || !onScreen || Date.now() < pauseUntil) {
                     timer = setTimeout(tick, 400);
                     return;
                 }

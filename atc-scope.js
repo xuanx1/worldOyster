@@ -62,6 +62,9 @@
       this.hoveredRouteIdx = null;     // set externally on canvas/chart hover
       this.hoveredCityName = null;     // set externally on canvas/city-list hover
       this.zoom = 1;        // 1 = default radius; >1 zooms in
+      // Camera factor on top of the user's zoom — the follow camera's region
+      // framing (atc-skin.js), so it never overwrites the wheel-zoom level.
+      this.camZoom = 1;
       this.minZoom = 0.6;
       this.maxZoom = 12;
       // Final Boss Level — Trans-Siberian overlay
@@ -232,7 +235,13 @@
       this._computeRadius();
     }
     _computeRadius() {
-      this.radius = Math.min(this.w, this.h) * 0.46 * this.zoom;
+      this.radius = Math.min(this.w, this.h) * 0.46 * this.zoom * (this.camZoom || 1);
+    }
+    setCamZoom(f) {
+      if (!(f > 0) || Math.abs(f - this.camZoom) < 1e-4) return;
+      this.camZoom = f;
+      this._computeRadius();
+      this._syncCoastLOD();
     }
 
     setZoom(z) {
@@ -316,7 +325,7 @@
     // it lands, provided the zoom still wants it by then.
     _syncCoastLOD() {
       if (!this.coastLOD || !window.GeoLOD) return;
-      const want = window.GeoLOD.scopeTier(this.zoom);
+      const want = window.GeoLOD.scopeTier(this.zoom * (this.camZoom || 1));
       if (want === this.coastTier) return;
 
       const ready = window.GeoLOD.peek(want);
@@ -329,7 +338,7 @@
         // The view may have zoomed back out while this was downloading — only
         // apply if it's still an upgrade on what's drawn.
         if (!this.coastLOD) return;
-        const now = window.GeoLOD.scopeTier(this.zoom);
+        const now = window.GeoLOD.scopeTier(this.zoom * (this.camZoom || 1));
         if (now === want || window.GeoLOD.isFinerThan(now, want)) this._ingestCoast(geo, want);
       }).catch(err => {
         this._coastPending = null;
@@ -516,7 +525,7 @@
       if (heavy && !this._coastFading()) {
         const q = 0.005;
         const key = Math.round(this.lat0 / q) + ',' + Math.round(this.lon0 / q) +
-                    ',' + Math.round(this.zoom * 1000) +
+                    ',' + Math.round(this.zoom * (this.camZoom || 1) * 1000) +
                     ',' + this.canvas.width + ',' + this.canvas.height +
                     ',' + this.coastTier + ',' + this.theme.land + ',' + this.theme.coast +
                     ',' + (this.fblActive ? 1 : 0) +
@@ -586,19 +595,13 @@
 
       // Trace one ring, taking every `step`-th vertex. The last vertex is
       // always included so a decimated ring still closes where it should.
-      const trace = (pts) => {
+      // Coast rings are [lng, lat]. traceInto appends to the current path;
+      // trace starts a fresh one (used where each ring gets its own style).
+      const traceInto = (pts) => {
         projected += pts.length;
-        ctx.beginPath();
-        let started = false, drew = false;
-        const last = pts.length - 1;
-        for (let i = 0; i <= last; i += step) {
-          const q = i + step > last ? last : i;      // snap the final step onto the end
-          const p = this.project(pts[q][1], pts[q][0]);
-          if (!p.vis) { started = false; continue; }
-          if (!started) { ctx.moveTo(p.x, p.y); started = true; } else { ctx.lineTo(p.x, p.y); drew = true; }
-        }
-        return drew;
+        return this._traceInto(ctx, pts, false, pts.length, step);
       };
+      const trace = (pts) => { ctx.beginPath(); return traceInto(pts); };
 
       // Ring-level frustum cull. `thr` is cos(maxVisibleAngle + ringRadius):
       // a ring whose centre sits further off than that cannot touch the
@@ -625,6 +628,27 @@
           const s = String(hex).replace('#', '').padEnd(6, '0');
           return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)];
         };
+        // Normal view: every country shares one fill and one stroke, so draw
+        // all visible rings as ONE path — two GPU draw calls instead of two
+        // per ring (several hundred), which was the biggest canvas cost on
+        // integrated GPUs. FBL styles countries individually, so it keeps
+        // the per-country path below.
+        if (!this.fblActive || !this.visitedCountries) {
+          ctx.fillStyle = T.land;
+          ctx.strokeStyle = T.coast;
+          ctx.beginPath();
+          let any = false;
+          for (const c of this.countries) {
+            for (const ring of c.rings) {
+              if (culled(ring.b)) continue;
+              if (traceInto(ring.pts)) any = true;
+            }
+          }
+          if (any) { ctx.fill(); ctx.stroke(); }
+          this._coastLastVisiblePts = projected;
+          return;
+        }
+
         const [lr, lg, lb] = hex2rgb(T.land);
         const [cr, cg, cb] = hex2rgb(T.coast);
         const [br, bg, bb] = hex2rgb(blackoutFill);
@@ -675,15 +699,92 @@
       return pts;
     }
 
+    // Per-vertex sin/cos table for a point array, cached on the array.
+    // latFirst: [lat, lng] (routes) vs [lng, lat] (coast rings).
+    _trig(pts, latFirst) {
+      const key = latFirst ? '__trigLL' : '__trig';
+      let t = pts[key];
+      if (t && t.length === pts.length * 4) return t;
+      t = new Float32Array(pts.length * 4);
+      for (let i = 0, j = 0; i < pts.length; i++, j += 4) {
+        const p = pts[i];
+        const la = (latFirst ? p[0] : p[1]) * D2R, lo = (latFirst ? p[1] : p[0]) * D2R;
+        t[j] = Math.cos(la); t[j + 1] = Math.sin(la);
+        t[j + 2] = Math.cos(lo); t[j + 3] = Math.sin(lo);
+      }
+      try { Object.defineProperty(pts, key, { value: t, configurable: true, writable: true }); } catch (e) { /* frozen — recompute next time */ }
+      return t;
+    }
+
+    // Append pts[0..count) to the current path, projected exactly like
+    // project() but from the cached trig table with angle-difference
+    // identities: a few multiply-adds per vertex, no trig, no allocation.
+    // `step` > 1 decimates, always keeping the final vertex. Returns true if
+    // at least one visible segment was added.
+    _traceInto(ctx, pts, latFirst, count, step) {
+      const n = Math.min(count, pts.length);
+      if (n < 1) return false;
+      const t = this._trig(pts, latFirst);
+      const R = this.radius, CX = this.cx, CY = this.cy;
+      const la0 = this.lat0 * D2R, lo0 = this.lon0 * D2R;
+      const sLa0 = Math.sin(la0), cLa0 = Math.cos(la0);
+      const sLo0 = Math.sin(lo0), cLo0 = Math.cos(lo0);
+      const st = Math.max(1, step | 0);
+      const last = n - 1;
+      let started = false, drew = false;
+      for (let i = 0; i <= last; i += st) {
+        const j = (i + st > last ? last : i) * 4;     // snap the final step onto the end
+        const cLa = t[j], sLa = t[j + 1], cLo = t[j + 2], sLo = t[j + 3];
+        const cosD = cLo * cLo0 + sLo * sLo0;         // cos(lng - lon0)
+        if (sLa0 * sLa + cLa0 * cLa * cosD < 0) { started = false; continue; }
+        const sinD = sLo * cLo0 - cLo * sLo0;         // sin(lng - lon0)
+        const x = CX + R * cLa * sinD;
+        const y = CY - R * (cLa0 * sLa - sLa0 * cLa * cosD);
+        if (!started) { ctx.moveTo(x, y); started = true; } else { ctx.lineTo(x, y); drew = true; }
+      }
+      return drew;
+    }
+
+    // Geometry for a route: real routed points for land legs, otherwise a
+    // great circle — memoised on the route, since from/to never change.
+    _routePts(rt) {
+      if (rt.pts && rt.pts.length > 1) return rt.pts;
+      if (!rt.__gc || rt.__gcFrom !== rt.from || rt.__gcTo !== rt.to) {
+        rt.__gc = this._gcPoints(rt.from, rt.to, 64);
+        rt.__gcFrom = rt.from; rt.__gcTo = rt.to;
+      }
+      return rt.__gc;
+    }
+
     _drawRoutes() {
       const ctx = this.ctx;
       let hoveredJob = null;     // draw hovered last, ON TOP of everything
+      const active = [];
+      // Completed legs share one of two styles, so each style is ONE path
+      // and one stroke — not one stroke per leg (hundreds of GPU draws).
+      const pastAir = [], pastLand = [];
       for (let i = 0; i < this.routes.length; i++) {
         const rt = this.routes[i];
         if (rt.state === 'future') continue;
         if (i === this.hoveredRouteIdx) { hoveredJob = { rt, i }; continue; }
-        this._drawRouteArc(rt, false);
+        if (rt.state === 'active') active.push(rt);
+        else (rt.type === 'land' ? pastLand : pastAir).push(rt);
       }
+      ctx.setLineDash([]);
+      ctx.shadowBlur = 0;
+      const strokeGroup = (list, colour, width, alpha) => {
+        if (!list.length) return;
+        ctx.beginPath();
+        for (const rt of list) { const pts = this._routePts(rt); this._traceInto(ctx, pts, true, pts.length, 1); }
+        ctx.strokeStyle = colour;
+        ctx.lineWidth = width;
+        ctx.globalAlpha = alpha;
+        ctx.stroke();
+      };
+      strokeGroup(pastAir,  this.theme.routePast, 1,   0.85);
+      strokeGroup(pastLand, this.theme.accent2,   1.4, 0.65);
+      ctx.globalAlpha = 1;
+      for (const rt of active) this._drawRouteArc(rt, false);
       if (hoveredJob) this._drawRouteArc(hoveredJob.rt, true);
     }
 
@@ -693,9 +794,7 @@
       const surface = rt.type === 'land';
       // Land legs carry their real routed geometry (roads, track) when the
       // route cache has it; everything else is a great circle.
-      const pts = (rt.pts && rt.pts.length > 1)
-        ? rt.pts
-        : this._gcPoints(rt.from, rt.to, 64);
+      const pts = this._routePts(rt);
       const frac = active ? (rt.t == null ? 1 : rt.t) : 1;
       // Advance the drawn head by distance, not by index. Routed geometry
       // bunches points through curves, so index-stepping makes the leading
@@ -726,12 +825,8 @@
       }
 
       const tracePath = () => {
-        ctx.beginPath(); let started = false;
-        for (let j = 0; j < last; j++) {
-          const p = this.project(pts[j][0], pts[j][1]);
-          if (!p.vis) { started = false; continue; }
-          if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y);
-        }
+        ctx.beginPath();
+        this._traceInto(ctx, pts, true, last, 1);
       };
 
       if (hovered) {
@@ -771,6 +866,36 @@
         ctx.stroke();
       }
       ctx.shadowBlur = 0; ctx.globalAlpha = 1; ctx.setLineDash([]);
+    }
+
+    // Visited-pin dot with its sweep glow, blitted from a sprite rendered once
+    // per (colour, glow level). Matches the old live draw: radius 2.2 + g·1.4,
+    // shadowBlur (6 + g·18)·glowScale. g is quantised to 1/16 steps, below
+    // what the eye can separate on a 2–4 px dot.
+    _drawGlowDot(x, y, g, colour, glowScale) {
+      const lvl = Math.max(0, Math.min(16, Math.round(g * 16)));
+      const key = colour + '|' + glowScale + '|' + lvl + '|' + this.dpr;
+      let spr = this._glowSprites && this._glowSprites.get(key);
+      if (!spr) {
+        if (!this._glowSprites || this._glowSprites.size > 256) this._glowSprites = new Map();
+        const gq = lvl / 16;
+        const r = 2.2 + gq * 1.4;
+        const blur = (6 + gq * 18) * glowScale;          // device px, like shadowBlur
+        const dpr = this.dpr || 1;
+        const half = r + (blur * 1.25) / dpr + 2;        // CSS px from centre to edge (blur tail incl.)
+        const size = Math.ceil(half * 2 * dpr);
+        const c = document.createElement('canvas');
+        c.width = c.height = size;
+        const o = c.getContext('2d');
+        o.setTransform(dpr, 0, 0, dpr, 0, 0);
+        o.beginPath(); o.arc(half, half, r, 0, 7);
+        o.fillStyle = colour;
+        if (blur > 0) { o.shadowColor = colour; o.shadowBlur = blur; }
+        o.fill();
+        spr = { c, half };
+        this._glowSprites.set(key, spr);
+      }
+      this.ctx.drawImage(spr.c, x - spr.half, y - spr.half, spr.half * 2, spr.half * 2);
     }
 
     _drawAirports() {
@@ -835,11 +960,10 @@
             ctx.fill();
             ctx.globalAlpha = 1;
           }
-          ctx.beginPath(); ctx.arc(p.x, p.y, 2.2 + g * 1.4, 0, 7);
-          ctx.fillStyle = T.accent;
-          ctx.shadowColor = T.accent; ctx.shadowBlur = (6 + g * 18) * T.glowScale;
-          ctx.fill();
-          ctx.shadowBlur = 0;
+          // One cached sprite per glow level instead of a live shadowBlur
+          // per pin — a blurred fill is an offscreen blur pass, and with a
+          // few hundred visited cities that was hundreds of passes a frame.
+          this._drawGlowDot(p.x, p.y, g, T.accent, T.glowScale);
         } else {
           // Unvisited: in FBL mode draw as a plain dim dot (no radar glow)
           // so cities-not-yet-reached don't flash green. In normal viz keep
@@ -1019,7 +1143,7 @@
       const q = 0.005;
       const keyLat = Math.round(this.lat0 / q);
       const keyLon = Math.round(this.lon0 / q);
-      const keyZoom = Math.round(this.zoom * 1000);
+      const keyZoom = Math.round(this.zoom * (this.camZoom || 1) * 1000);
       const key = keyLat + ',' + keyLon + ',' + keyZoom + ',' + this.canvas.width + ',' + this.canvas.height;
 
       if (!this._neRailCache || this._neRailCacheKey !== key) {

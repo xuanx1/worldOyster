@@ -47,10 +47,16 @@
    own controls and widget mini-maps (cost-choropleth,
    unvisited-neighbors) must keep their tiles visible. JS moves
    the main map's control container above the scope canvas. */
+/* display:none, not visibility:hidden — a hidden-but-rendered pane is still
+   laid out and walked by paint every frame, and by late in the journey these
+   hold ~7,000 nodes (markers, route lines, hover targets) — about 5 ms a
+   frame for nothing. Nothing measures these elements; the scope reads only
+   lat/lngs. Tooltip/popup panes stay visibility:hidden because Leaflet
+   measures tooltips to position them. */
 #map .leaflet-tile-pane,
 #map .leaflet-overlay-pane,
 #map .leaflet-marker-pane,
-#map .leaflet-shadow-pane,
+#map .leaflet-shadow-pane { display: none !important; }
 #map .leaflet-tooltip-pane,
 #map .leaflet-popup-pane { visibility: hidden !important; }
 #map .leaflet-control-attribution { display: none !important; }
@@ -2355,3 +2361,64 @@ html::after {
 
 /* Theme toggle sits in the playbar alongside RESET / speed. */
 .atc-playbar .atc-pb-theme svg { display: block; }
+
+/* Music toggle is icon-only. */
+.atc-playbar .atc-pb-music svg { display: block; }
+
+/* ── Performance: drop backdrop blurs that can't be seen ────────────────────
+   The WebGL backdrop (atc-bg.js) redraws every frame, so every element with a
+   backdrop-filter has to be re-blurred every frame too. These panels either
+   paint an opaque background over their own blur (city list, stats, chart
+   wells — opaque in both themes), or, for the widgets strip, blur only the
+   soft colour field, which is already a blur. Same look, no per-frame
+   full-width blur passes. Small translucent chrome (header, playbar, map
+   buttons) keeps its blur. */
+body > .widgets-section,
+.widgets-section,
+#chartContainer,
+#priceChartContainer,
+body > .stats-section,
+body > .city-list-container,
+.city-list-container {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ── Performance: give every endlessly-animated paint effect its own layer ──
+   These "flow" effects animate background-position (or a custom property
+   feeding a gradient), which can't run on the compositor — they repaint every
+   frame. With no layer of their own, each tiny repaint invalidated the layer
+   they sit in: the whole document and the whole 5-megapixel widget strip were
+   being repainted and re-rasterised every frame. A layer per effect confines
+   the repaint to the effect's own few pixels. will-change: opacity creates the
+   layer without changing containing blocks, so layout is untouched. */
+.progress-bar > .progress-fill,
+.widget-stack .atc-records-area .record-card,
+.stats-citylist-title,
+.atc-citylist-meter .fill,
+.stats-citylist-row > .stats-section,
+#atcScrollMeter .fill,
+.trophy-title.atc-tier-flow,
+.tip-val.atc-visa-flow,
+.main-title .title-flow-layer,
+.widget-title-asof .asof-date {
+  will-change: opacity;
+}
+
+/* Small widgets whose content changes every frame (the scroll hint's SVG dot
+   animation can't run on the compositor; the quote typewriter and city meter
+   rewrite text). Without a layer each change repaints the whole document. */
+.atc-scroll-hint,
+.atc-quote-widget,
+.atc-citylist-meter {
+  will-change: opacity;
+}
+
+/* Each widget card on its own layer. Without one, a card's whole subtree
+   (the spending heatmap alone is ~4,300 nodes) is re-recorded every time the
+   page paints — i.e. every frame. As a layer, its paint is cached and reused
+   until the card itself changes. Tooltips live at body level, so the new
+   stacking context doesn't clip or bury them. */
+#widgetsSection .widget-card {
+  will-change: opacity;
+}

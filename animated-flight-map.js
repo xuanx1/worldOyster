@@ -7,6 +7,10 @@ class AnimatedFlightMap {
         this._animationGen = 0; // generation counter — stale animation chains with old gen bail out
         this.animationSpeed = 2000; // milliseconds per flight
         this.speedMultiplier = 1; // 1x, 10x, or 20x speed
+        // Soundtrack beat-sync: atc-music.js installs legDirector once the
+        // playlist is analysed; beatMode is the BEAT step of the speed cycle.
+        this.legDirector = null;
+        this.beatMode = true;
         this.flightDot = null;
         this.flightPath = null;
         this.visitedPaths = [];
@@ -179,6 +183,31 @@ class AnimatedFlightMap {
     }
 
     static _stripAccents(s) { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+
+    // A leg's 1x motion time in ms, from its raw lat/lng span. The PACE=2
+    // baseline: the animation was programmed at 500\u20132000ms per leg, but
+    // timing bugs (fixed 30 Sep 2026) always padded that with stalls, so the
+    // pace everyone actually watched was about half \u2014 PACE restores it.
+    // Static so the soundtrack's timeline (atc-music.js) uses the same numbers.
+    static legBaseMs(fromCity, toCity) {
+        const PACE = 2;
+        const distance = Math.sqrt(
+            Math.pow(toCity.lat - fromCity.lat, 2) +
+            Math.pow(toCity.lng - fromCity.lng, 2)
+        );
+        return Math.max(500 * PACE, Math.min(2000 * PACE, distance * 100 * PACE));
+    }
+
+    // Pause between arriving and starting the next leg. With the soundtrack
+    // driving, it ends exactly when the next leg is due in the song.
+    _interLegPauseMs() {
+        const dir = this.legDirector;
+        if (dir && dir.active()) {
+            const ms = dir.pauseBeforeLeg(this.currentCityIndex);
+            if (ms >= 0) return ms;
+        }
+        return Math.max(50, 500 / this.speedMultiplier);
+    }
 
     _onDataReady() {
         this._dataReady = true;
@@ -1422,7 +1451,7 @@ class AnimatedFlightMap {
                 if (this.isAnimating) {
                     this.animateToNextCity();
                 }
-            }, Math.max(50, 500 / this.speedMultiplier));
+            }, this._interLegPauseMs());
         });
     }
 
@@ -1496,13 +1525,8 @@ class AnimatedFlightMap {
         const _tripName = `${fromCity.name} → ${toCity.name}`;
         this.addChartPoint(_legYear, _costPerKm, _co2PerSGD, _legDate, _tripName, _cost);
         
-        // Pacing knob for the 1x baseline. The animation was programmed at
-        // 500–2000ms per leg from day one, but timing bugs (fixed 30 Sep
-        // 2026) always padded that with stalls and per-leg dead time — the
-        // pace everyone actually WATCHED was about half the programmed one.
-        // PACE=2 restores that familiar rhythm honestly.
-        const PACE = 2;
-        const baseAnimationDuration = Math.max(500 * PACE, Math.min(2000 * PACE, distance * 100 * PACE));
+        // 1x baseline (see legBaseMs for the PACE rationale).
+        const baseAnimationDuration = AnimatedFlightMap.legBaseMs(fromCity, toCity);
         // Speed ladder. Dividing by the raw multiplier sent 20x/100x legs
         // sub-frame (10–200ms — the dot just snapped city to city). Each
         // step instead uses a gentler divisor plus a floor that keeps every
@@ -1518,7 +1542,18 @@ class AnimatedFlightMap {
         };
         const step = SPEED_LADDER[this.speedMultiplier] ||
             { div: Math.max(1, 2 * Math.sqrt(this.speedMultiplier)), floor: 150 };
-        const animationDuration = Math.max(step.floor, baseAnimationDuration / step.div);
+        let animationDuration = Math.max(step.floor, baseAnimationDuration / step.div);
+        // Soundtrack beat-sync (atc-music.js): when the music is the clock,
+        // it sets each leg's duration so the leg lands where the timeline
+        // says it should in the song — that is both the beat-driven speed and
+        // the drift correction that keeps journey and music locked.
+        // (legDuration starts the music itself if it is due, then returns 0
+        // when the music isn't driving — autoplay blocked, manual speed, …)
+        const dir = this.legDirector;
+        if (dir) {
+            const ms = dir.legDuration(this.currentCityIndex, baseAnimationDuration);
+            if (ms > 0) animationDuration = ms;
+        }
 
         // Initialize continuous path if it doesn't exist
         if (!this.continuousPath) {
@@ -1693,8 +1728,16 @@ class AnimatedFlightMap {
             if (currentStep < path.length) {
                 this._setFlightDotLatLng(sample.point);
 
+                // The ATC skin draws everything on its own scope canvas and
+                // hides Leaflet's panes. Panning or redrawing the hidden map
+                // each frame is pure cost: every setView fires a zoomend that
+                // reprojects every route polyline and churns tiles — about a
+                // second of main-thread time per 8s of playback. The scope
+                // only reads the dot's lat/lng, which is set above.
+                const leafletHidden = this._leafletHidden();
+
                 // Follow the dot if enabled
-                if (this.followDot) {
+                if (this.followDot && !leafletHidden) {
                     this.panToVisible(sample.point, false);
                 }
 
@@ -1705,7 +1748,7 @@ class AnimatedFlightMap {
                 // later legs the frame time balloons — the follow-cam then
                 // slides the map under the dot between updates, which reads as
                 // the dot lurching forward, back, forward.
-                if (this.linesVisible) {
+                if (this.linesVisible && !leafletHidden) {
                     const currentSegment = [...path.slice(0, currentStep + 1), sample.point];
                     if (!this._activeLegLine) {
                         this._activeLegLine = L.polyline(currentSegment, {
@@ -2034,6 +2077,24 @@ class AnimatedFlightMap {
     }
 
     cycleFastForward() {
+        // With a beat-analysed soundtrack the cycle gains a BEAT step, where
+        // the music drives the speed: BEAT -> 1x -> 10x -> 20x -> 100x -> BEAT.
+        // Without one it is the plain 1x -> 10x -> 20x -> 100x -> 1x.
+        const dir = this.legDirector;
+        if (dir && dir.available()) {
+            if (this.beatMode !== false) {
+                this.beatMode = false;
+                this.speedMultiplier = 1;
+            } else if (this.speedMultiplier === 100) {
+                this.beatMode = true;
+                dir.relock();
+            } else {
+                this.speedMultiplier = this.speedMultiplier === 1 ? 10
+                                     : this.speedMultiplier === 10 ? 20 : 100;
+            }
+            this.updateFastForwardButton();
+            return;
+        }
         // Cycle through speeds: 1x -> 10x -> 20x -> 100x -> 1x
         if (this.speedMultiplier === 1) {
             this.speedMultiplier = 10;
@@ -2266,6 +2327,23 @@ class AnimatedFlightMap {
         }
     }
 
+    // True when the ATC skin has hidden Leaflet's overlay pane (atc-skin.css,
+    // display:none — visibility:hidden also counts). Re-checked at most twice
+    // a second so it follows the CSS if that changes.
+    _leafletHidden() {
+        const now = performance.now();
+        if (this._leafletHiddenAt && now - this._leafletHiddenAt < 500) return this._leafletHiddenVal;
+        this._leafletHiddenAt = now;
+        let hidden = false;
+        try {
+            const pane = this.map && this.map.getPane && this.map.getPane('overlayPane');
+            const cs = pane ? getComputedStyle(pane) : null;
+            hidden = !!cs && (cs.display === 'none' || cs.visibility === 'hidden');
+        } catch (e) { hidden = false; }
+        this._leafletHiddenVal = hidden;
+        return hidden;
+    }
+
     panToVisible(latLng, animate) {
         // Cache DOM measurements — recompute at most every 500ms
         const now = performance.now();
@@ -2337,6 +2415,9 @@ class AnimatedFlightMap {
     resetAnimationState() {
         // Stop any current animation
         this.isAnimating = false;
+
+        // Back to the start of the journey = back to the start of the soundtrack.
+        if (this.legDirector) { try { this.legDirector.onJump(0); } catch (e) { /* music is optional */ } }
 
         // Reset trophy notifications
         if (window.countryTrophy) window.countryTrophy.reset();
@@ -2471,8 +2552,8 @@ class AnimatedFlightMap {
         
         // Position the scrubber relative to the progress bar width
         // Using percentage of the bar's width rather than viewport width
-        const barRect = this.progressBarElement.getBoundingClientRect();
-        const scrubberWidth = this.scrubberElement.offsetWidth || 8;
+        // (No layout reads here: it is all percentages. This runs on every
+        // arrival, and measuring the bar forced a full-page layout each time.)
         
         // Calculate the position ensuring the scrubber stays within bounds
         // The scrubber is centered on the progress point (due to transform: translateX(-50%))
@@ -2617,6 +2698,9 @@ class AnimatedFlightMap {
 
     jumpToCity(targetIndex) {
         if (targetIndex < 0 || targetIndex >= this.cities.length) return;
+
+        // The soundtrack is locked to the timeline: seek it to the same point.
+        if (this.legDirector) { try { this.legDirector.onJump(targetIndex); } catch (e) { /* music is optional */ } }
 
         // Cancel any in-flight animation so its callback doesn't fire and move the dot
         this._animationGen++; // invalidate all animation frames and pending setTimeout callbacks
@@ -2966,21 +3050,34 @@ class AnimatedFlightMap {
 
     // Build invisible, interactive polylines for every city→city hop so lines are hoverable
     _createRouteInteractivity() {
-        // Remove any previous interactive polylines and clear transient hover state
-        if (this.routeInteractivePolylines && this.routeInteractivePolylines.length) {
-            this.routeInteractivePolylines.forEach(r => {
-                try { if (r && r.poly && this.map.hasLayer(r.poly)) this.map.removeLayer(r.poly); } catch (err) {}
-                try { this._clearRouteHover(r); } catch (err) {}
-            });
+        // Incremental. This runs at the start of every leg, and it used to
+        // tear down and rebuild a hit-area for EVERY past leg each time —
+        // hundreds of SVG paths per leg (a ~190 ms hitch). Worse, the ±360
+        // world copies of the old hit-areas were never removed, so they piled
+        // up quadratically on the map and Leaflet reprojected all of them on
+        // every view change. Now only legs without a hit-area get one, and
+        // legs no longer reached (scrub back, reset) are removed with their
+        // copies.
+        if (!this.routeInteractivePolylines) this.routeInteractivePolylines = [];
+        if (!this.cities || this.cities.length < 2) {
+            this._removeRouteHits(this.routeInteractivePolylines);
+            this.routeInteractivePolylines = [];
+            return;
         }
-        this.routeInteractivePolylines = [];
 
-        if (!this.cities || this.cities.length < 2) return;
+        // Only hops that have already been shown get hover targets.
+        const upTo = Math.min(this.currentCityIndex, this.cities.length - 1);
+        const keep = [], drop = [];
+        for (const r of this.routeInteractivePolylines) {
+            const valid = r && r.fromIndex < upTo && this.cities[r.fromIndex] === r.fromCity;
+            (valid ? keep : drop).push(r);
+        }
+        this._removeRouteHits(drop);
+        this.routeInteractivePolylines = keep;
+        const have = new Set(keep.map(r => r.fromIndex));
 
-        for (let i = 0; i < this.cities.length - 1; i++) {
-            // Only create hover targets for hops that have already been shown.
-            // This prevents hover on future/unrevealed routes.
-            if (i >= this.currentCityIndex) continue;
+        for (let i = 0; i < upTo; i++) {
+            if (have.has(i)) continue;
 
             const fromCity = this.cities[i];
             const toCity = this.cities[i + 1];
@@ -3009,7 +3106,7 @@ class AnimatedFlightMap {
 
                 if (this.linesVisible) hit.addTo(this.map);
 
-                const meta = { poly: hit, fromIndex: i, toIndex: i + 1, fromCity, toCity };
+                const meta = { poly: hit, copies: [], fromIndex: i, toIndex: i + 1, fromCity, toCity };
 
                 // Hover — show tooltip (use same element/classes as city marker tooltip so appearance is identical)
                 const _showRouteHover = (ev) => {
@@ -3135,10 +3232,29 @@ class AnimatedFlightMap {
                     hitCopy.on('click', (e) => hit.fire('click', e));
                     hitCopy.on('touchstart', (e) => hit.fire('touchstart', e));
                     this._worldCopyLayers.push(hitCopy);
+                    meta.copies.push(hitCopy);
                 });
 
                 this.routeInteractivePolylines.push(meta);
             });
+        }
+    }
+
+    // Remove route hit-areas, their ±360 world copies, and any hover state.
+    _removeRouteHits(list) {
+        if (!list || !list.length) return;
+        const gone = new Set();
+        list.forEach(r => {
+            if (!r) return;
+            try { this._clearRouteHover(r); } catch (err) {}
+            try { if (r.poly && this.map.hasLayer(r.poly)) this.map.removeLayer(r.poly); } catch (err) {}
+            (r.copies || []).forEach(c => {
+                gone.add(c);
+                try { if (this.map.hasLayer(c)) this.map.removeLayer(c); } catch (err) {}
+            });
+        });
+        if (gone.size && this._worldCopyLayers) {
+            this._worldCopyLayers = this._worldCopyLayers.filter(l => !gone.has(l));
         }
     }
 
@@ -3478,7 +3594,25 @@ class AnimatedFlightMap {
         });
     }
 
+    // Run fn now — or, if it ran less than `ms` ago, once at the end of that
+    // window, coalescing every call in between. The first call is never
+    // delayed, so slow playback behaves exactly as before; at beat-driven
+    // speeds (several legs a second) per-leg UI work is capped.
+    _throttled(key, ms, fn) {
+        const all = this._throttleState || (this._throttleState = {});
+        const s = all[key] || (all[key] = { last: 0, timer: 0, fn: null });
+        s.fn = fn;
+        if (s.timer) return;                       // a trailing run is already queued
+        const wait = s.last + ms - performance.now();
+        if (wait <= 0) { s.last = performance.now(); fn(); return; }
+        s.timer = setTimeout(() => { s.timer = 0; s.last = performance.now(); s.fn(); }, wait);
+    }
+
     updateCityList() {
+        this._throttled('cityList', 250, () => this._updateCityListNow());
+    }
+
+    _updateCityListNow() {
         const cityListContainer = document.getElementById('cityList');
         const cityListMobileContainer = document.getElementById('cityListMobile');
 
@@ -3503,21 +3637,32 @@ class AnimatedFlightMap {
             return name;
         }
 
+        // This runs on every arrival. It used to rescan the whole journey once
+        // per city (findIndex here, .some() in the status pass below) — O(n²)
+        // over ~460 legs, the single biggest JS cost during playback. Each
+        // city's key is now computed once and every lookup is a Map/Set hit.
+        const keyOf = (c) => `${normalizeCityDisplayName((c.name || '').trim())}-${c.country ? c.country.trim() : ''}`;
+        const cityKeys = this.cities.map(keyOf);
+        const firstIndexOf = new Map();   // key|flightDate -> first index in this.cities
+        const visitedKeys = new Set();
+        this.cities.forEach((c, i) => {
+            const k = cityKeys[i] + '|' + c.flightDate;
+            if (!firstIndexOf.has(k)) firstIndexOf.set(k, i);
+            if (c.visited) visitedKeys.add(cityKeys[i]);
+        });
+
         // Build sorted unique city collection (same semantics as before)
-        const sortedCities = [...this.cities].sort((a, b) => new Date(a.flightDate) - new Date(b.flightDate));
+        const sortedCities = this.cities
+            .map((c, i) => ({ c, i, t: new Date(c.flightDate).getTime() }))
+            .sort((a, b) => a.t - b.t);
         const uniqueCities = new Map();
         let cityDisplayOrder = 1;
 
-        for (const city of sortedCities) {
+        for (const { c: city, i: cityIdx } of sortedCities) {
             const normalizedName = normalizeCityDisplayName((city.name || '').trim());
-            const normalizedCountry = city.country ? city.country.trim() : '';
-            const cityKey = `${normalizedName}-${normalizedCountry}`;
+            const cityKey = cityKeys[cityIdx];
             if (!uniqueCities.has(cityKey)) {
-                const originalIndex = this.cities.findIndex(c =>
-                    normalizeCityDisplayName((c.name || '').trim()) === normalizedName &&
-                    (c.country ? c.country.trim() : '') === normalizedCountry &&
-                    c.flightDate === city.flightDate
-                );
+                const originalIndex = firstIndexOf.get(cityKey + '|' + city.flightDate);
                 uniqueCities.set(cityKey, {
                     firstIndex: originalIndex,
                     city: { ...city, name: normalizedName },
@@ -3589,7 +3734,7 @@ class AnimatedFlightMap {
                         const _tc = window.translateCountry ? window.translateCountry(data.city.country || '') : (data.city.country || '');
                         if (countryEl.textContent !== _tc) countryEl.textContent = _tc;
                     }
-                    existingAtPos.setAttribute('data-city-index', data.firstIndex);
+                    if (existingAtPos.getAttribute('data-city-index') !== String(data.firstIndex)) existingAtPos.setAttribute('data-city-index', data.firstIndex);
                     continue;
                 }
 
@@ -3655,51 +3800,42 @@ class AnimatedFlightMap {
         patchContainer(cityListContainer);
         patchContainer(cityListMobileContainer);
 
-        // Update statuses (visited / current) for existing DOM nodes — minimal work
-        uniqueCities.forEach((cityData, cityKey) => {
-            const desktopElement = cityListContainer ? cityListContainer.querySelector(`[data-city-key="${cityKey}"]`) : null;
-            const mobileElement = cityListMobileContainer ? cityListMobileContainer.querySelector(`[data-city-key="${cityKey}"]`) : null;
-
-            [desktopElement, mobileElement].forEach(cityElement => {
-                if (!cityElement) return;
+        // Update statuses (visited / current). After patching, each container's
+        // children are exactly the unique cities in order, so walk them once
+        // instead of querySelector-ing every key. Classes are only written when
+        // they change — rewriting ~300 classNames per arrival forced a style
+        // recalc of the whole list even when one row moved.
+        const currentCity = this.cities[this.currentCityIndex];
+        const currentKey = currentCity ? keyOf(currentCity) : null;
+        const applyStatus = (container) => {
+            if (!container) return;
+            for (const cityElement of container.children) {
+                const cityKey = cityElement.getAttribute('data-city-key');
+                if (!uniqueCities.has(cityKey)) continue;
+                const state = cityKey === currentKey ? 'current'
+                            : (visitedKeys.has(cityKey) ? 'visited' : '');
+                const itemCls = state ? 'city-item ' + state : 'city-item';
+                if (cityElement.className !== itemCls) cityElement.className = itemCls;
                 const statusDiv = cityElement.querySelector('.city-status');
+                const statusCls = state ? 'city-status ' + state : 'city-status';
+                if (statusDiv && statusDiv.className !== statusCls) statusDiv.className = statusCls;
+                if (state === 'current' && cityElement.getAttribute('data-city-index') !== String(this.currentCityIndex)) cityElement.setAttribute('data-city-index', this.currentCityIndex);
+            }
+        };
+        applyStatus(cityListContainer);
+        applyStatus(cityListMobileContainer);
 
-                // Reset classes
-                cityElement.className = 'city-item';
-                if (statusDiv) statusDiv.className = 'city-status';
-
-                // Determine visited/current using same logic as before
-                const isVisited = this.cities.some(c => {
-                    const normalizedName = normalizeCityDisplayName((c.name || '').trim());
-                    const normalizedCountry = c.country ? c.country.trim() : '';
-                    const cityKeyToCheck = `${normalizedName}-${normalizedCountry}`;
-                    return cityKeyToCheck === cityKey && c.visited;
-                });
-
-                const currentCity = this.cities[this.currentCityIndex];
-                let isCurrent = false;
-                if (currentCity) {
-                    const normalizedCurrentName = normalizeCityDisplayName((currentCity.name || '').trim());
-                    const normalizedCurrentCountry = currentCity.country ? currentCity.country.trim() : '';
-                    const currentCityKey = `${normalizedCurrentName}-${normalizedCurrentCountry}`;
-                    isCurrent = currentCityKey === cityKey;
-                }
-
-                if (isCurrent) {
-                    cityElement.classList.add('current');
-                    if (statusDiv) statusDiv.classList.add('current');
-                    cityElement.setAttribute('data-city-index', this.currentCityIndex);
-                } else if (isVisited) {
-                    cityElement.classList.add('visited');
-                    if (statusDiv) statusDiv.classList.add('visited');
-                }
+        // Ensure current city is visible. Deferred to the next frame and
+        // coalesced: measuring here, straight after the DOM writes above,
+        // forced a synchronous layout of the whole page (twice per leg).
+        if (!this._scrollCityRaf) {
+            this._scrollCityRaf = requestAnimationFrame(() => {
+                this._scrollCityRaf = 0;
+                this.scrollToCurrentCity();
             });
-        });
-
-        // Ensure current city is visible
-        this.scrollToCurrentCity();
+        }
     }
-    
+
     scrollToCurrentCity() {
         const cityListContainer = document.getElementById('cityList');
         const cityListMobileContainer = document.getElementById('cityListMobile');
@@ -3929,6 +4065,11 @@ class AnimatedFlightMap {
                         data: [],
                         borderColor: '#4CAF50',
                         backgroundColor: gradFill('76, 175, 80'),
+                        // Static point fill. Points otherwise inherit the
+                        // scriptable gradient above, which makes Chart.js
+                        // resolve options (and build a gradient) per point on
+                        // every update — ~5,000 per leg late in the journey.
+                        pointBackgroundColor: 'rgba(76, 175, 80, 0.25)',
                         fill: 'origin',
                         yAxisID: 'y1',
                         tension: 0.35,
@@ -3941,6 +4082,7 @@ class AnimatedFlightMap {
                         data: [],
                         borderColor: '#FF4444',
                         backgroundColor: gradFill('255, 68, 68'),
+                        pointBackgroundColor: 'rgba(255, 68, 68, 0.25)',
                         fill: 'origin',
                         yAxisID: 'y2',
                         tension: 0.35,
@@ -3999,6 +4141,11 @@ class AnimatedFlightMap {
                         data: [],
                         borderColor: '#4CAF50',
                         backgroundColor: gradFill('76, 175, 80'),
+                        // Static point fill. Points otherwise inherit the
+                        // scriptable gradient above, which makes Chart.js
+                        // resolve options (and build a gradient) per point on
+                        // every update — ~5,000 per leg late in the journey.
+                        pointBackgroundColor: 'rgba(76, 175, 80, 0.25)',
                         fill: 'origin',
                         tension: 0.35,
                         pointRadius: 1.5,
@@ -4009,6 +4156,7 @@ class AnimatedFlightMap {
                         data: [],
                         borderColor: '#FF4444',
                         backgroundColor: gradFill('255, 68, 68'),
+                        pointBackgroundColor: 'rgba(255, 68, 68, 0.25)',
                         fill: 'origin',
                         tension: 0.35,
                         pointRadius: 1.5,
@@ -4464,12 +4612,50 @@ class AnimatedFlightMap {
             this._panMin = Math.max(0, newIdx - windowSize);
             this._setXWindowOpts();
         }
+        // The data is in; redrawing is throttled to ~3 times a second. At
+        // beat-driven speeds several legs land every second, and a full
+        // chart update per leg was the biggest per-leg cost. At 1x legs are
+        // seconds apart, so every one still redraws immediately.
+        this._throttled('charts', 300, () => this._refreshChartsAfterAppend());
+    }
+
+    _refreshChartsAfterAppend() {
         this._updateYAxisBounds();
         this._applyYBoundsToScales();
-        if (this.legChart) this.legChart.update(); // animated line extension
-        if (this.priceChart) this.priceChart.update();
+        // Animated line extension — but only when someone can see it. Each
+        // animated update tweens every point of both charts for 600 ms
+        // (~1,250 points late in the journey), so skip the tween when the
+        // charts are scrolled off screen or legs arrive faster than the
+        // tween itself (10x and up).
+        // Also stop tweening once a chart is long: Chart.js builds animation
+        // state for EVERY point on an animated update (~100+ ms per leg at
+        // 1,000+ points, plus 600 ms of heavy frames), while the new segment
+        // it reveals is under a pixel wide by then.
+        const pointCount = this._chartDates ? this._chartDates.length : 0;
+        const animateCharts = this.speedMultiplier === 1 && pointCount <= 200 && this._chartsOnScreen();
+        if (this.legChart) this.legChart.update(animateCharts ? undefined : 'none');
+        if (this.priceChart) this.priceChart.update(animateCharts ? undefined : 'none');
         this._updateScrollbar();
         this._updateFilterButtons();
+    }
+
+    // Tracked with an IntersectionObserver (no layout reads per call).
+    _chartsOnScreen() {
+        if (this._chartVis === undefined) {
+            this._chartVis = true;
+            if ('IntersectionObserver' in window) {
+                const seen = new Map();
+                const io = new IntersectionObserver(es => {
+                    es.forEach(e => seen.set(e.target, e.isIntersecting));
+                    this._chartVis = [...seen.values()].some(Boolean);
+                });
+                ['chartContainer', 'priceChartContainer'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) io.observe(el);
+                });
+            }
+        }
+        return this._chartVis;
     }
 
     rebuildChart() {
