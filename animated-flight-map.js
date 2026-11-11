@@ -696,14 +696,18 @@ class AnimatedFlightMap {
                 button.innerHTML = ICON.reset + '<span class="atc-lb">RESET</span>';
                 button.title = window.i18n ? window.i18n.t('resetView') : 'Reset View';
                 
-                button.onclick = () => {
+                L.DomEvent.disableClickPropagation(button);
+                button.onclick = (e) => {
+                    L.DomEvent.stop(e);
+                    // The ATC skin resets both the map and the radar (and
+                    // re-centres it on the arrow); plain Leaflet otherwise.
+                    if (typeof window._atcResetView === 'function') { window._atcResetView(); return; }
                     map.setView([20, 100], 1.45);
-                    // Update panning state after reset
-                    try { this.updatePanningState(); } catch (e) { /* defensive */ }
+                    try { this.updatePanningState(); } catch (err) { /* defensive */ }
                 };
                 
                 return button;
-            }
+            }.bind(this)
         });
         
         // Create play/pause animation control
@@ -787,17 +791,21 @@ class AnimatedFlightMap {
             }.bind(this)
         });
         
-        // Reset / Play-Pause / Replay / FastForward live in the
-        // bottom-left .atc-playbar (atc-skin.js). Only state-toggle
-        // map controls go in the top-right column to avoid duplicate
-        // buttons.
-        new ToggleLinesControl({ position: 'topright' }).addTo(this.map);
+        // Controls are grouped by purpose. Time — play/pause, speed, music,
+        // theme — lives in the bottom-left .atc-playbar (atc-skin.js). The
+        // top-right column is the VIEW: camera first (FOLLOW, RESET), then
+        // layers (ROUTES); after a gap, the panels (TROPHY, and J2L III which
+        // final-boss.js adds last). Leaflet stacks top-right controls in the
+        // order they are added.
         new FollowDotControl({ position: 'topright' }).addTo(this.map);
+        new ResetViewControl({ position: 'topright' }).addTo(this.map);
+        new ToggleLinesControl({ position: 'topright' }).addTo(this.map);
 
         // Achievements panel button
         const AchievementsControl = L.Control.extend({
             onAdd: function() {
-                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb');
+                // atc-mb-group: starts the panels group (gap above it)
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb atc-mb-group');
                 button.innerHTML = ICON.trophy + '<span class="atc-lb">TROPHY</span>';
                 button.title = window.i18n ? window.i18n.t('achievements') : 'Achievements';
                 button.onclick = (e) => {
@@ -2575,6 +2583,7 @@ class AnimatedFlightMap {
         this.isDragging = true;
         this._lastDragTarget = -1;
         this._dragRAF = null;
+        this._dragBarRect = this.progressBarElement ? this.progressBarElement.getBoundingClientRect() : null;
         this.scrubberElement.classList.add('dragging');
         const fill = document.getElementById('progressFill');
         if (fill) fill.classList.add('no-transition');
@@ -2591,7 +2600,9 @@ class AnimatedFlightMap {
     handleDrag(e) {
         if (!this.isDragging || !this.progressBarElement) return;
 
-        const rect = this.progressBarElement.getBoundingClientRect();
+        // Bar geometry is measured once per drag (startDrag) — reading it on
+        // every mousemove forced a layout per move.
+        const rect = this._dragBarRect || this.progressBarElement.getBoundingClientRect();
         const x = e.clientX - rect.left;
 
         // Calculate progress as a percentage of the progress bar's actual width
@@ -2610,24 +2621,45 @@ class AnimatedFlightMap {
         if (targetCityIndex === this._lastDragTarget) return;
         this._lastDragTarget = targetCityIndex;
 
-        // Debounce the heavy visual rebuild — only the last pending call runs
+        // While dragging, only preview: the arrow, radar and year follow the
+        // pin. The full rebuild (stats, charts, trophies, city list, music)
+        // runs once, on release — doing it per step made scrubbing crawl.
         if (this._dragRAF) cancelAnimationFrame(this._dragRAF);
         this._dragRAF = requestAnimationFrame(() => {
             this._dragRAF = null;
-            this.jumpToCity(targetCityIndex);
+            this._scrubPreview(targetCityIndex);
         });
+    }
+
+    // Cheap scrub preview: what the radar draws comes from currentCityIndex
+    // and the arrow's position, so moving those moves routes, pins, camera
+    // and arrow; the year label follows too. Everything else waits for the
+    // jumpToCity on release.
+    _scrubPreview(k) {
+        if (k < 0 || k >= this.cities.length) return;
+        this._animationGen++;               // no leg may keep running underneath
+        this._pausedAnimateState = null;
+        this.currentCityIndex = k;
+        this._legProgress = 0;
+        this.positionDotAtCity(k);
+        if (k !== this._previewYearIdx) {
+            this._previewYearIdx = k;
+            this.updateCurrentTripYear(k);
+        }
     }
 
     stopDrag() {
         if (!this.isDragging) return;
+        this._dragBarRect = null;
+        this._previewYearIdx = null;
 
-        // Flush any pending debounced jumpToCity so state is up-to-date before resume
+        // Apply the scrub for real, once: the drag only previewed it.
         if (this._dragRAF) {
             cancelAnimationFrame(this._dragRAF);
             this._dragRAF = null;
-            if (this._lastDragTarget >= 0 && this._lastDragTarget < this.cities.length) {
-                this.jumpToCity(this._lastDragTarget);
-            }
+        }
+        if (this._lastDragTarget >= 0 && this._lastDragTarget < this.cities.length) {
+            this.jumpToCity(this._lastDragTarget);
         }
 
         this.isDragging = false;
@@ -2740,9 +2772,12 @@ class AnimatedFlightMap {
         // Update current flight display
         this.updateCurrentFlightDisplay();
         
-        // Update the visual state
+        // Update the visual state. Under the ATC skin the Leaflet map is
+        // invisible, and redrawing every visited route, world copy and city
+        // marker on it was ~80% of a 300–1,500 ms jump. clearMap leaves its
+        // path state clean, so the legs that follow rebuild it incrementally.
         this.clearMap();
-        this.drawVisitedPaths(); // also calls addCityMarkers internally
+        if (!this._leafletHidden()) this.drawVisitedPaths(); // also calls addCityMarkers internally
         this.positionDotAtCurrentCity();
         this._legProgress = 0;
         this.updateCityList();

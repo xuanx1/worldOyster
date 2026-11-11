@@ -734,9 +734,31 @@
     document.head.appendChild(style);
 
     // ── Display logic: notifications ──
+    // Notifications follow the journey, not a fixed clock. Each used to hold
+    // for a flat 2.6–4 s in strict order, so at 10–100x (and in beat mode)
+    // trophies were earned far faster than shown and a backlog kept playing
+    // long after the journey had moved on — or ended. Now hold time shrinks
+    // with playback speed and backlog, and a country/silver card that has
+    // fallen too far behind is skipped (it is still in the TROPHY panel).
+    // Gold and platinum are rare enough to always show.
+    const STALE_MS = { bronze: 2500, unrecognised: 2500, silver: 5000 };
+    let showGen = 0;          // bumped by reset() to cancel the card on screen
+    let currentEl = null;
+
+    function playbackSpeed() {
+        const fm = window.flightMap;
+        return (fm && fm.speedMultiplier) || 1;
+    }
+
     function showNext() {
-        if (trophyQueue.length === 0) { isShowing = false; return; }
+        // Skip cards the journey has left behind.
+        const now = performance.now();
+        while (trophyQueue.length && STALE_MS[trophyQueue[0].tier] && now - trophyQueue[0].at > STALE_MS[trophyQueue[0].tier]) {
+            trophyQueue.shift();
+        }
+        if (trophyQueue.length === 0) { isShowing = false; currentEl = null; return; }
         isShowing = true;
+        const gen = showGen;
         const trophy = trophyQueue.shift();
         const tier = tierStyle(trophy.tier);
 
@@ -757,21 +779,29 @@
             </div>
         `;
         container.appendChild(el);
+        currentEl = el;
         // Skip sound for bronze/unrecognised country-visited trophies
         if (!((trophy.tier === 'bronze' || trophy.tier === 'unrecognised') && COUNTRY_ISO[trophy.title])) playSound();
 
         requestAnimationFrame(() => { requestAnimationFrame(() => { el.classList.add('show'); }); });
 
-        const holdTime = trophy.tier === 'platinum' ? 4000 : trophy.tier === 'gold' ? 3500 : trophy.tier === 'silver' ? 3000 : 2600;
+        // Full length at 1x; ~1/sqrt(speed) faster beyond, and capped while a
+        // backlog is waiting, never under 0.7 s so a card can still be read.
+        const baseHold = trophy.tier === 'platinum' ? 4000 : trophy.tier === 'gold' ? 3500 : trophy.tier === 'silver' ? 3000 : 2600;
+        let holdTime = baseHold / Math.sqrt(Math.max(1, playbackSpeed()));
+        if (trophyQueue.length >= 2) holdTime = Math.min(holdTime, 1100);
+        holdTime = Math.max(700, holdTime);
+        const exitMs = trophyQueue.length ? 250 : 400;
         setTimeout(() => {
+            if (gen !== showGen) return;
             el.classList.remove('show');
             el.classList.add('hide');
-            setTimeout(() => { el.remove(); showNext(); }, 400);
+            setTimeout(() => { if (gen !== showGen) return; el.remove(); showNext(); }, exitMs);
         }, holdTime);
     }
 
     function queue(tier, title, subtitle, achId) {
-        trophyQueue.push({ tier, title, subtitle, achId });
+        trophyQueue.push({ tier, title, subtitle, achId, at: performance.now() });
         if (!isShowing) showNext();
     }
 
@@ -1822,6 +1852,10 @@
         firstTripDate = null;
         trophyQueue = [];
         isShowing = false;
+        // Cancel the card on screen too, or its pending timers would start a
+        // second chain on top of the next one.
+        showGen++;
+        if (currentEl) { currentEl.remove(); currentEl = null; }
         silverAwarded = {};
         visaAwarded = {};
         specialBronzeAwarded = {};

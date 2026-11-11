@@ -32,6 +32,7 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
 - It's a separate factor on top of your own zoom: wheel-zoom still works, and dragging the globe or turning FOLLOW off eases the camera back
 - Coastline detail follows the effective zoom, so a framed Europe uses the finer 50m coastline
 - **Manual speed**: the speed button cycles ♪ BEAT → 1× → 10× → 20× → 100× → ♪ BEAT. At a manual speed the music plays alongside the journey without driving it
+- **J2L III soundtrack**: J2L III mode plays its own folder, `asset/audio/music-j2l/` (same drop-in rules), in order and looping. It is a plain soundtrack with no beat sync: in J2L III the speed button is manual only, and the main soundtrack pauses until you return to the main journey, then picks up where that journey is
 - **MUSIC toggle** in the playbar mutes it, and the choice is remembered. Hover it for the current track and its tempo
 - **Autoplay-safe**: Browsers block sound until you interact with the page, so the journey starts on its own at 1×; your first click or key press starts the music from the journey's current point
 

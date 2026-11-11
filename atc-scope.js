@@ -745,6 +745,28 @@
       return drew;
     }
 
+    // Vertex stride that keeps a line at ~1.5 points per screen pixel of its
+    // length. The J2L III rail data is surveyed far finer than the globe can
+    // show (the Trans-Siberian alone is 87k points — ~100 per pixel at its
+    // usual zoom), so drawing every vertex was pure cost. The line's arc
+    // length is computed once and cached; zooming in lowers the stride back
+    // towards 1, so detail returns where it is visible.
+    _autoStep(pts, latFirst) {
+      let ang = pts.__arc;
+      if (ang === undefined) {
+        const t = this._trig(pts, latFirst);
+        ang = 0;
+        for (let j = 4; j < t.length; j += 4) {
+          const cosD = t[j + 2] * t[j - 2] + t[j + 3] * t[j - 1];     // cos(dLng)
+          const dot = t[j + 1] * t[j - 3] + t[j] * t[j - 4] * cosD;  // cos(central angle)
+          ang += Math.acos(Math.max(-1, Math.min(1, dot)));
+        }
+        try { Object.defineProperty(pts, '__arc', { value: ang, configurable: true, writable: true }); } catch (e) { /* recompute */ }
+      }
+      const px = ang * this.radius;
+      return Math.max(1, Math.floor(pts.length / Math.max(2, px * 1.5)));
+    }
+
     // Geometry for a route: real routed points for land legs, otherwise a
     // great circle — memoised on the route, since from/to never change.
     _routePts(rt) {
@@ -1184,12 +1206,9 @@
       for (let s = 0; s < segs.length; s++) {
         const line = segs[s];
         if (!line || line.length < 2) continue;
-        let started = false;
-        for (let i = 0; i < line.length; i++) {
-          const p = this.project(line[i][0], line[i][1]);
-          if (!p.vis) { started = false; continue; }
-          if (!started) { octx.moveTo(p.x, p.y); started = true; } else octx.lineTo(p.x, p.y);
-        }
+        // Cached-trig projection (see _traceInto) — this network is ~10m-tier
+        // dense, and per-vertex project() was the biggest J2L III cost.
+        this._traceInto(octx, line, true, line.length, this._autoStep(line, true));
       }
       octx.stroke();
     }
@@ -1209,12 +1228,7 @@
         const line = entry.line;
         if (!line || line.length < 2) continue;
         ctx.beginPath();
-        let started = false;
-        for (let i = 0; i < line.length; i++) {
-          const p = this.project(line[i][0], line[i][1]);
-          if (!p.vis) { started = false; continue; }
-          if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y);
-        }
+        this._traceInto(ctx, line, true, line.length, this._autoStep(line, true));
         ctx.stroke();
       }
       ctx.globalAlpha = 1;
@@ -1232,12 +1246,7 @@
       ctx.save();
       ctx.setLineDash([]);
       ctx.beginPath();
-      let started = false;
-      for (let i = 0; i < line.length; i++) {
-        const p = this.project(line[i][0], line[i][1]);
-        if (!p.vis) { started = false; continue; }
-        if (!started) { ctx.moveTo(p.x, p.y); started = true; } else ctx.lineTo(p.x, p.y);
-      }
+      this._traceInto(ctx, line, true, line.length, this._autoStep(line, true));
       ctx.strokeStyle = this.theme.rail;
       ctx.globalAlpha = 0.55;
       ctx.lineWidth = 0.9;

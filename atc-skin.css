@@ -2422,3 +2422,59 @@ body > .city-list-container,
 #widgetsSection .widget-card {
   will-change: opacity;
 }
+
+/* Icon-only playbar buttons (RESET, theme, music) — square-ish, same height
+   as the labelled ones. */
+.atc-playbar .atc-pb-icon svg,
+.atc-playbar .atc-pb-theme svg { display: block; }
+
+/* Year + slogan fallback when a long slogan can't share the bottom row with
+   the playbar: the slogan wraps right-aligned instead of the label moving. */
+.card-container > .header.atc-header-wrap .header-top { align-items: flex-end !important; }
+.card-container > .header.atc-header-wrap .header-slogan {
+  white-space: normal !important;
+  text-align: right !important;
+  line-height: 1.3 !important;
+  min-width: 0 !important;
+}
+
+/* Speed label has a fixed width so the playbar never changes size as the
+   speed changes ("1×" … "♪ 100×" / "♪ BEAT" — 6 characters at most).
+   The ♪ can come from a fallback font, so the box is sized a touch wide
+   and the text centred rather than relying on its advance width. */
+.atc-playbar .atc-pb-speed .atc-pb-lbl {
+  display: inline-block;
+  width: 6.6ch;
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Slightly tighter playbar so it shares the bottom row with the year +
+   slogan ("2026 THE SOUTHEAST ASIAN NETWORK") with every label kept. */
+.atc-playbar { gap: 5px; padding: 6px 8px; }
+.atc-playbar .atc-pb-btn { padding: 4px 6px; }
+
+/* Year on its own line, above the slogan — right-aligned to the corner. */
+.card-container > .header .header-top {
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  justify-content: flex-end !important;
+  gap: 5px !important;
+}
+
+/* One height for every playbar button. Text buttons took their height from
+   the label's line box, icon-only ones (music, theme) from the 11px SVG, so
+   the icon buttons sat a couple of pixels off. */
+.atc-playbar .atc-pb-btn {
+  height: 24px;
+  box-sizing: border-box;
+  justify-content: center;
+  line-height: 1;
+}
+.atc-playbar .atc-pb-music,
+.atc-playbar .atc-pb-theme { min-width: 26px; }
+
+/* Top-right VIEW column: camera + layers (FOLLOW · RESET · ROUTES), then a
+   gap, then the panels (TROPHY · J2L III). */
+.leaflet-control-custom.atc-mb.atc-mb-group { margin-top: 12px !important; }

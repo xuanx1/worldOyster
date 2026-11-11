@@ -143,8 +143,10 @@
     const btn = document.getElementById('atcThemeBtn');
     if (!btn) return;
     // Show the mode you would switch TO, which is the convention users expect.
-    btn.innerHTML = (light ? MOON : SUN) + '<span class="atc-pb-lbl">' + (light ? 'DARK' : 'LIGHT') + '</span>';
+    // Icon only (keeps the playbar compact); the name lives in title/aria-label.
+    btn.innerHTML = light ? MOON : SUN;
     btn.title = light ? 'Switch to dark mode' : 'Switch to light mode';
+    btn.setAttribute('aria-label', btn.title);
     btn.setAttribute('aria-pressed', String(light));
   }
 
@@ -157,7 +159,11 @@
     btn.className = 'atc-pb-btn atc-pb-theme';
     btn.type = 'button';
     btn.addEventListener('click', () => apply(!isLight()));
-    bar.appendChild(btn);
+    // Sits with the control buttons, right after the music button, ahead of
+    // the LEG readout. atc-music.js places its button before this one, so
+    // either load order ends up … ♫ ☾ | LEG.
+    const status = bar.querySelector('#atcPlaybarStatus');
+    bar.insertBefore(btn, status || null);
     syncButton(isLight());
     return true;
   }

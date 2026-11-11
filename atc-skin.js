@@ -103,14 +103,10 @@
         '<svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>' +
         '<span class="atc-pb-lbl">REPLAY</span>' +
       '</button>' +
-      '<button class="atc-pb-btn" data-act="reset" title="Reset View">' +
-        '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/></svg>' +
-        '<span class="atc-pb-lbl">RESET</span>' +
-      '</button>' +
       '<button class="atc-pb-btn atc-pb-speed" data-act="speed" title="Cycle speed">' +
         '<span class="atc-pb-lbl">1×</span>' +
       '</button>' +
-      '<span class="atc-pb-status" id="atcPlaybarStatus">LEG ---/--- · ----</span>';
+      '<span class="atc-pb-status" id="atcPlaybarStatus">LEG ---/---</span>';
     host.appendChild(pb);
 
     // hover tooltip for city pins
@@ -558,13 +554,15 @@
         if (done && typeof fm.replayAnimation === 'function') fm.replayAnimation();
         else if (typeof fm.togglePlayPause === 'function') fm.togglePlayPause();
       });
-      pb.querySelector('[data-act="reset"]').addEventListener('click', () => {
+      // RESET lives in the top-right VIEW column (animated-flight-map.js);
+      // it calls this so it still resets both the map and the radar.
+      window._atcResetView = () => {
         if (fm.map && fm.map.setView) fm.map.setView([20, 100], 1.45);
         if (typeof fm.updatePanningState === 'function') {
           try { fm.updatePanningState(); } catch (e) {}
         }
         recenterOnPlane();
-      });
+      };
       pb.querySelector('[data-act="speed"]').addEventListener('click', () => {
         if (typeof fm.cycleFastForward === 'function') fm.cycleFastForward();
       });
@@ -591,7 +589,7 @@
 
     const status = pb.querySelector('#atcPlaybarStatus');
     if (status) {
-      status.textContent = `LEG ${String(legIdx).padStart(3, '0')}/${String(totalLegs).padStart(3, '0')} · ${year}`;
+      status.textContent = `LEG ${String(legIdx).padStart(3, '0')}/${String(totalLegs).padStart(3, '0')}`;
     }
 
     // Play/pause label + icon mirror animation state
@@ -821,8 +819,12 @@
       // keep the destination in view. Eases back to 1 when not following.
       // A separate factor from the user's own zoom, which still applies.
       if (scope.setCamZoom) {
-        const onArrow = !flying && !!(fm && fm.followDot && !userHasPanned && fm.isAnimating);
-        scope.setCamZoom(regionCameraZoom(fm, onArrow));
+        // Off in J2L III, which frames its own route — and a camera still
+        // easing there changed the zoom every frame, defeating the rail
+        // network's raster cache and pulling in the 10m coastline.
+        const onArrow = !flying && !scope.fblActive && !!(fm && fm.followDot && !userHasPanned && fm.isAnimating);
+        if (scope.fblActive) { _camZ = 1; _camLast = 0; scope.setCamZoom(1); }   // snap, don't ease
+        else scope.setCamZoom(regionCameraZoom(fm, onArrow));
       }
 
       buildRoutesFromCities();
@@ -1998,6 +2000,49 @@
     }
   }
 
+  /* Year + slogan (bottom-right of the scope card) and the playbar
+     (bottom-left) share the bottom row, as designed. The playbar is kept
+     compact so they normally fit side by side; if a slogan is still too
+     long (some translations run to ~56 characters), it wraps onto a second
+     line, right-aligned, in the space left beside the bar — the row itself
+     never moves. Both widths change while playing (the slogan types out,
+     the speed label varies), so both are watched; the check runs only when
+     either one actually resizes. */
+  function wireHeaderClearance() {
+    const card = document.querySelector('.card-container');
+    const header = card && card.querySelector(':scope > .header');
+    if (!header || typeof ResizeObserver === 'undefined') return;
+    const GAP = 16;
+    const check = () => {
+      const pb = document.getElementById('atcPlaybar');
+      if (!pb) return;
+      // Measure the label at its natural, single-line width…
+      header.classList.remove('atc-header-wrap');
+      header.style.maxWidth = '';
+      const h = header.getBoundingClientRect(), p = pb.getBoundingClientRect();
+      if (!p.width || !h.width) return;
+      // …and wrap the slogan only if that would run into the bar.
+      if (h.left < p.right + GAP) {
+        header.classList.add('atc-header-wrap');
+        header.style.maxWidth = Math.max(140, Math.floor(h.right - (p.right + GAP))) + 'px';
+      }
+    };
+    const ro = new ResizeObserver(check);
+    ro.observe(header);
+    const hook = () => {
+      const pb = document.getElementById('atcPlaybar');
+      if (!pb) return false;
+      ro.observe(pb);
+      check();
+      return true;
+    };
+    if (!hook()) {
+      let tries = 0;
+      const t = setInterval(() => { if (hook() || ++tries > 40) clearInterval(t); }, 250);
+    }
+    window.addEventListener('resize', check);
+  }
+
   let _cityMeterLastH = '', _cityMeterLastIdx = -1;
   function updateCityProgressMeter() {
     if (!_cityMeterFill) return;
@@ -2104,6 +2149,7 @@
     // wireParallaxScroll();
     wireCityListTypewriter();
     wireCityListProgressMeter();
+    wireHeaderClearance();
     startRenderLoop();
 
     // make sure the scope sizes correctly once flightMap has initialised
