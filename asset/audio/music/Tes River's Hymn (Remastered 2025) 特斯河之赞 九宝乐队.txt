@@ -1,0 +1,84 @@
+# Lyrics for "Tes River's Hymn" — paste your text below this comment block.
+# Lines starting with # are ignored.
+#
+
+Verse 1
+• Time: 1:09.50, 2:26.98
+• Traditional Script: ᠪᠤᠯᠠᠨᠠᠢ ᠶ᠋ᠢᠨ ᠨᠢᠷᠤᠭᠤᠨ ᠠ᠋ᠴᠠ ᠪᠤᠯᠭᠢᠯᠠᠨ ᠤᠷᠤᠰᠤᠭᠰᠠᠨ
+• Cyrillic: Булнайн нуруунаас булгилан урссан
+• English: Flowing down turbulently from the Bulnai Mountains
+• Time: 1:12.75, 2:28.80
+• Traditional Script: ᠪᠤᠷᠠᠮ ᠲᠠᠢ ᠰᠢᠬᠢᠷ ‍ᠦᠨ ᠠᠮᠲᠠ ᠪᠠᠷ ᠴᠠᠯᠭᠢᠭᠰᠠᠨ
+• Cyrillic: Бурамтай чихрийн амтаар цалгисан
+• English: Overflowing with a taste as sweet as sugar candy
+• Time: 1:15.99, 2:30.62
+• Traditional Script: ᠪᠤᠭᠤᠷᠤᠯ ᠲᠠᠯ᠎ᠠ ᠶᠢ ᠳᠠᠭᠠᠨ ᠤᠷᠤᠰᠤᠭᠰᠠᠨ
+• Cyrillic: Буурал талыг даган урссан
+• English: Flowing along the vast grey steppe
+• Time: 1:19.23, 2:32.43
+• Traditional Script: ᠪᠤᠶᠠᠨ ᠲᠠᠢ ᠪᠤᠭᠤᠷᠤᠯ ᠲᠠᠪᠤᠨ ᠭᠣᠣᠯ
+• Cyrillic: Буянтай буурал таван гол
+• English: The blessed, ancient five rivers
+
+
+Chorus
+• Time: 1:22.48, 1:27.26, 1:31.38, 1:35.54, 2:07.56, 2:14.91, 2:16.45, 2:20.95, 2:25.63, 3:19.00, 3:23.25, 3:27.50, 3:31.75, 3:38.00, 3:39.63, 3:41.25, 3:42.88, 3:44.50, 3:46.13, 3:47.75, 3:49.38
+• Traditional Script:ᠡᠷᠵᠢᠨ ᠲᠡᠰ᠂ ᠡᠯᠡᠰᠦᠨ ᠲᠡᠰ
+• Cyrillic: Эржин Тэс, элсэн Тэс
+• English: Pearly Tes, sandy Tes
+• Time: 1:24.87, 1:29.32, 1:33.46, 1:41.54, 2:11.24, 2:15.68, 2:18.70, 2:23.29, 2:26.31, 3:21.20, 3:25.45, 3:29.70, 3:33.95
+• Traditional Script: ᠲᠣᠷᠭᠣᠨ ᠲᠡᠰ ᠡ᠂ ᠪᠤᠭᠤᠷᠤᠯ ᠲᠡᠰ ᠡ᠂ ᠪᠤᠷᠬᠠᠨ ᠲᠡᠰ
+• Cyrillic: Торгон Тэс ээ, буурал Тэс ээ, бурхан Тэс
+• English: Silken Tes, grey-haired Tes, sacred divine Tes
+# Final chorus (3:20–3:37, sung 4×): times above are spaced evenly at the
+# chorus's ~4.25 s pace, set 1 s early so the text keeps up with the
+# singing — refine with Shift + L if a line lands early or late.
+# Outro (3:38–3:51): "Pearly Tes, sandy Tes" chanted 8×, in 4 sets of 2,
+# spaced evenly at ~1.63 s.
+# A Time with no text clears the lyrics when the singing stops:
+• Time: 3:36, 3:51
+
+
+
+Verse 2
+
+• Time: 1:55.32
+• Traditional Script: ᠤᠪᠰᠤ ᠨᠠᠭᠤᠷ ᠢ ᠵᠣᠷᠢᠨ ᠢᠷᠡᠭᠰᠡᠨ
+• Cyrillic: Увс нуурыг зорин ирсэн
+• English: Streaming forward towards Lake Uvs
+• Time: 1:56.63
+• Traditional Script: ᠤᠨᠠᠭᠠᠨ ᠵᠣᠷᠭᠣ ᠶᠠᠪᠤᠳᠠᠯ ᠢᠶᠠᠷ ᠢᠷᠡᠭᠰᠡᠨ
+• Cyrillic: Унаган жороо явдлаар ирсэн
+• English: Racing along with the smooth stride of a native pacing horse
+• Time: 1:57.94
+• Traditional Script: ᠠᠶᠢᠯ ᠮᠠᠯ ᠤᠨ ᠤᠨᠳᠠᠭ᠎ᠠ ᠪᠣᠯᠤᠭᠰᠠᠨ
+• Cyrillic: Айл малын ундаа болсон
+• English: Serving as the life-giving water for households and livestock
+• Time: 1:59.24
+• Traditional Script: ᠠᠯᠳᠠᠷ ᠲᠠᠢ ᠲᠠᠪᠤᠨ ᠲᠡᠰ ᠭᠣᠣᠯ
+• Cyrillic: Алдарт таван Тэс гол
+• English: The famous five Tes rivers
+
+Verse 3
+
+• Time: 2:00.55
+• Traditional Script: ᠪᠤᠭᠤᠷᠤᠯ ᠳᠡᠭᠡᠳᠦᠰ ᠮᠢᠨᠢ ᠠᠮᠢᠳᠤᠷᠠᠴᠤ ᠢᠷᠡᠭᠰᠡᠨ
+• Cyrillic: Буурал дээдэс минь амьдарч ирсэн
+• English: Where our grey-haired ancestors have lived for generations
+• Time: 2:02.30
+• Traditional Script: ᠪᠤᠶᠠᠨ ᠬᠡᠰᠢᠭ ᠢᠶᠡᠨ ᠬᠠᠶᠢᠷᠠᠯᠠᠵᠤ ᠢᠷᠡᠭᠰᠡᠨ
+• Cyrillic: Буян хишгээ хайрлаж ирсэн
+• English: Bestowing blessings and virtues upon us from antiquity
+• Time: 2:04.06
+• Traditional Script: ᠪᠤᠯᠠᠭ᠎ᠠ ᠰᠠᠪᠠᠷ ᠡᠷᠵᠢᠵᠦ ᠦᠰᠦᠭᠰᠡᠨ
+• Cyrillic: Булга суусар иржиж өссөн
+• English: Where sables and martens multiply and thrive
+• Time: 2:05.81
+• Traditional Script: ᠪᠠᠶᠠᠨ ᠲᠠᠩᠰᠤᠭ ᠲᠠᠪᠤᠨ ᠭᠣᠣᠯ
+• Cyrillic: Баян тансаг таван гол
+• English: The rich and bountiful five rivers
+
+# Reload the page and press Shift + L to time the lines:
+#   Space = this line starts now · Backspace = undo · Esc = finish
+# Esc downloads a timed copy of this file — save it over this one and reload.
+

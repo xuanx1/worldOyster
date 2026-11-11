@@ -94,6 +94,27 @@
     boot.innerHTML = '<span class="dot"></span>ACQUIRING RADAR PICTURE&hellip;';
     host.appendChild(boot);
 
+    // Homecoming screen: shown once the journey has ended and the globe has
+    // eased back out (see updateHomecoming).
+    const home = document.createElement('div');
+    home.className = 'atc-home';
+    home.id = 'atcHome';
+    home.setAttribute('aria-hidden', 'true');
+    home.innerHTML =
+      '<canvas class="atc-home-fx"></canvas>' +
+      '<div class="atc-home-card">' +
+        '<div class="atc-home-trophy">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+            '<path d="M5 3h14v2h-1.5c0 2.05-.77 3.93-2.04 5.36C14.18 11.64 13 13.05 13 14.5V17h2v2H9v-2h2v-2.5c0-1.45-1.18-2.86-2.46-4.14C7.27 8.93 6.5 7.05 6.5 5H5V3zm3.5 2c0 1.44.55 2.75 1.46 3.74L12 11l2.04-2.26A5.48 5.48 0 0 0 15.5 5h-7z"/>' +
+            '<path d="M3 5h2v2.5C5 8.88 5.62 10 6.5 10.5L5 12C3.5 11 2.5 9 2.5 7V5H3zm18 0h-2v2.5C19 8.88 18.38 10 17.5 10.5L19 12c1.5-1 2.5-3 2.5-5V5H21z" opacity="0.6"/>' +
+          '</svg>' +
+        '</div>' +
+        '<div class="atc-home-title" aria-label="Pa, Ma I\'m home"></div>' +
+        '<div class="atc-home-sub" aria-label="The world was almost my oyster"></div>' +
+      '</div>';
+    home.addEventListener('click', () => { _homeDismissed = true; hideHomecoming(); });
+    host.appendChild(home);
+
     // Playing bar — top HUD with playback controls + leg/year status
     const pb = document.createElement('div');
     pb.className = 'atc-playbar';
@@ -540,6 +561,227 @@
 
   // Playing-bar status: leg counter + current year. Reads flightMap
   // state every frame so the HUD reflects the in-progress animation.
+  /* ---------- homecoming: end-of-journey screen ---------- */
+  // When the last leg has landed and the globe has eased back out, the ATC
+  // box dims and types "Pa, Ma I'm home / THE WORLD WAS ALMOST MY OYSTER" under a trophy
+  // (a graphic only, not an awarded achievement) under poppers and
+  // fireworks. Click to dismiss; replay, scrub or reset clear it too.
+  let _homeSince = 0, _homeShown = false, _homeDismissed = false;
+  const HOME_DELAY_MS = 1200;          // at least this long after landing…
+  const HOME_ZOOM_EPS = 0.05;          // …and the region camera back near 1
+
+  function updateHomecoming(fm) {
+    const el = document.getElementById('atcHome');
+    if (!el) return;
+    const cities = (fm && fm.cities) || [];
+    const done = cities.length > 1 && fm.currentCityIndex >= cities.length && !fm.isAnimating &&
+                 !(scope && scope.fblActive);
+    if (!done) {
+      _homeSince = 0; _homeDismissed = false;
+      if (_homeShown) hideHomecoming();
+      return;
+    }
+    const now = performance.now();
+    if (!_homeSince) _homeSince = now;
+    if (_homeShown || _homeDismissed) return;
+    if (now - _homeSince < HOME_DELAY_MS || Math.abs(_camZ - 1) > HOME_ZOOM_EPS) return;
+    showHomecoming();
+  }
+
+  function showHomecoming() {
+    const el = document.getElementById('atcHome');
+    if (!el) return;
+    _homeShown = true;
+    el.setAttribute('aria-hidden', 'false');
+    el.classList.add('show');
+    const host = el.parentElement;
+    if (host) host.classList.add('atc-home-on');
+    homeFx.start(el.querySelector('.atc-home-fx'));
+    typeHomecoming(el);
+  }
+
+  function hideHomecoming() {
+    const el = document.getElementById('atcHome');
+    _homeShown = false;
+    if (!el) return;
+    el.setAttribute('aria-hidden', 'true');
+    el.classList.remove('show');
+    const host = el.parentElement;
+    if (host) host.classList.remove('atc-home-on');
+    homeFx.stop();
+    _typeGen++;                        // cancel any typing in progress
+  }
+
+  // Typed in, with beats: "PA," … "MA" … "I'M HOME" … then
+  // "THE WORLD WAS" … "ALMOST" (italic rose gold, its colour flows once) …
+  // "MY OYSTER". Every character is laid out from the start and only
+  // revealed, so the centred lines never shift while typing.
+  const HOME_SCRIPT = [
+    { line: 'title', text: 'Pa,' }, { pause: 650 },
+    { line: 'title', text: ' Ma' }, { pause: 650 },
+    { line: 'title', text: ' I\'m home' }, { pause: 900 },
+    { line: 'sub', text: 'THE WORLD WAS' }, { pause: 750 },
+    { line: 'sub', text: ' ' },
+    { line: 'sub', text: 'ALMOST', cls: 'atc-home-almost' }, { flow: 1800 },
+    { line: 'sub', text: ' MY OYSTER' }
+  ];
+  const TYPE_MS = { title: 110, sub: 70 };   // per character, ± 30% jitter
+  let _typeGen = 0;
+
+  function buildHomeText(el) {
+    const lines = { title: el.querySelector('.atc-home-title'), sub: el.querySelector('.atc-home-sub') };
+    lines.title.textContent = ''; lines.sub.textContent = '';
+    return HOME_SCRIPT.map(st => {
+      if (st.text == null) return st;
+      let parent = lines[st.line];
+      if (st.cls) { const w = document.createElement('span'); w.className = st.cls; parent.appendChild(w); parent = w; }
+      const chars = [...st.text].map(c => {
+        const sp = document.createElement('span');
+        sp.className = 'atc-home-ch';
+        sp.setAttribute('aria-hidden', 'true');
+        sp.textContent = c;
+        parent.appendChild(sp);
+        return sp;
+      });
+      return { chars, ms: TYPE_MS[st.line] };
+    });
+  }
+
+  function typeHomecoming(el) {
+    const gen = ++_typeGen;
+    const steps = el._typeSteps || (el._typeSteps = buildHomeText(el));
+    const almost = el.querySelector('.atc-home-almost');
+    el.querySelectorAll('.atc-home-ch').forEach(c => c.classList.remove('on', 'cur'));
+    if (almost) almost.classList.remove('flow');
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { el.querySelectorAll('.atc-home-ch').forEach(c => c.classList.add('on')); return; }
+    let i = 0, j = 0, caret = null;
+    const at = (fn, ms) => setTimeout(() => { if (gen === _typeGen) fn(); }, ms);
+    const next = () => {
+      const st = steps[i];
+      if (!st) { at(() => caret && caret.classList.remove('cur'), 2400); return; }   // caret blinks a while, then goes
+      if (st.pause) { i++; at(next, st.pause); return; }
+      if (st.flow) { i++; if (almost) almost.classList.add('flow'); at(next, st.flow); return; }
+      if (j < st.chars.length) {
+        if (caret) caret.classList.remove('cur');
+        caret = st.chars[j++];
+        caret.classList.add('on', 'cur');
+        at(next, st.ms * (0.7 + Math.random() * 0.6));
+      } else { i++; j = 0; next(); }
+    };
+    at(next, 900);                     // once the card has faded in
+  }
+
+  // Poppers (confetti cannons from the bottom corners) and fireworks on one
+  // canvas. Busy for the first few seconds, then an occasional burst until
+  // dismissed. The loop stops as soon as the screen is hidden.
+  const homeFx = (() => {
+    const COLORS = ['#B76E79', '#E8B4BC', '#FFD700', '#FFF3B0', '#4CAF50', '#9BE7A0', '#6EC6FF', '#FFFFFF'];
+    const GRAV = 420;                  // px/s²
+    let cv = null, ctx = null, raf = 0, last = 0, t0 = 0, nextBurst = 0, running = false;
+    let W = 0, H = 0, dpr = 1;
+    const parts = [];
+    const reduce = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const pick = a => a[(Math.random() * a.length) | 0];
+
+    function size() {
+      if (!cv) return;
+      const r = cv.getBoundingClientRect();
+      dpr = Math.min(1.5, window.devicePixelRatio || 1);
+      W = r.width; H = r.height;
+      cv.width = Math.max(1, Math.round(W * dpr)); cv.height = Math.max(1, Math.round(H * dpr));
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    // A confetti cannon from a bottom corner, aimed up and inwards.
+    function popper(fromLeft) {
+      const x = fromLeft ? 0 : W, y = H, dir = fromLeft ? 1 : -1;
+      for (let i = 0; i < 70; i++) {
+        const ang = rnd(50, 80) * Math.PI / 180;
+        const sp = rnd(420, 820) * Math.min(1.4, H / 520);
+        parts.push({ kind: 'conf', x, y, vx: Math.cos(ang) * sp * dir, vy: -Math.sin(ang) * sp,
+          w: rnd(4, 8), h: rnd(7, 13), rot: rnd(0, 6.28), vr: rnd(-12, 12), c: pick(COLORS), life: rnd(3.2, 4.6), age: 0 });
+      }
+    }
+
+    function rocket() {
+      parts.push({ kind: 'rocket', x: rnd(W * 0.15, W * 0.85), y: H + 4, vx: rnd(-30, 30), vy: -rnd(H * 0.95, H * 1.25),
+        ty: rnd(H * 0.12, H * 0.42), c: pick(COLORS), age: 0 });
+    }
+
+    function burst(x, y, c) {
+      const n = 46 + ((Math.random() * 20) | 0), sp = rnd(140, 230), c2 = pick(COLORS);
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2 + rnd(-0.05, 0.05), v = sp * rnd(0.75, 1.05);
+        parts.push({ kind: 'spark', x, y, px: x, py: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+          c: i % 3 ? c : c2, life: rnd(1.1, 1.6), age: 0 });
+      }
+    }
+
+    function frame(now) {
+      if (!running) { raf = 0; return; }
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      const t = (now - t0) / 1000;
+      if (t >= nextBurst) {
+        rocket();
+        nextBurst = t + (t < 8 ? rnd(0.45, 0.9) : rnd(1.8, 3.2));
+      }
+      ctx.clearRect(0, 0, W, H);
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i];
+        p.age += dt;
+        if (p.kind === 'rocket') {
+          p.vy += GRAV * 0.25 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+          if (p.y <= p.ty || p.vy >= 0) { burst(p.x, p.y, p.c); parts.splice(i, 1); continue; }
+          ctx.globalAlpha = 0.9; ctx.fillStyle = p.c;
+          ctx.fillRect(p.x - 1, p.y - 1, 2, 6);
+          continue;
+        }
+        if (p.age >= p.life) { parts.splice(i, 1); continue; }
+        const k = 1 - p.age / p.life;
+        if (p.kind === 'spark') {
+          p.px = p.x; p.py = p.y;
+          p.vx *= Math.pow(0.35, dt); p.vy = p.vy * Math.pow(0.35, dt) + GRAV * 0.35 * dt;
+          p.x += p.vx * dt; p.y += p.vy * dt;
+          ctx.globalAlpha = k; ctx.strokeStyle = p.c; ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke();
+        } else {                         // confetti: flutters down, flipping
+          p.vx *= Math.pow(0.5, dt); p.vy = Math.min(140, p.vy * Math.pow(0.6, dt) + GRAV * dt);
+          p.x += p.vx * dt + Math.sin(p.age * 6 + p.rot) * 0.6; p.y += p.vy * dt; p.rot += p.vr * dt;
+          const flip = Math.abs(Math.cos(p.age * 7));
+          ctx.globalAlpha = Math.min(1, k * 2); ctx.fillStyle = p.c;
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+          ctx.fillRect(-p.w / 2, -p.h * flip / 2, p.w, p.h * flip + 1);
+          ctx.restore();
+        }
+      }
+      ctx.globalAlpha = 1;
+      raf = requestAnimationFrame(frame);
+    }
+
+    return {
+      start(canvas) {
+        if (!canvas || reduce()) return;
+        cv = canvas; ctx = cv.getContext('2d');
+        size();
+        parts.length = 0;
+        running = true; last = t0 = performance.now(); nextBurst = 0.35;
+        popper(true); popper(false);
+        setTimeout(() => { if (running) { popper(true); popper(false); } }, 1600);
+        if (!raf) raf = requestAnimationFrame(frame);
+        window.addEventListener('resize', size);
+      },
+      stop() {
+        running = false;
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0; parts.length = 0;
+        if (ctx) ctx.clearRect(0, 0, W, H);
+        window.removeEventListener('resize', size);
+      }
+    };
+  })();
+
   let _playbarWired = false;
   function updatePlaybarStatus() {
     const pb = document.getElementById('atcPlaybar');
@@ -835,6 +1077,7 @@
       updatePlaybarStatus();
       positionYearOverlay();
       updateCityProgressMeter();
+      updateHomecoming(fm);
       if (!firstFrameDrawn) {
         firstFrameDrawn = true;
         const boot = document.getElementById('atcScopeBoot');

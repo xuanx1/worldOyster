@@ -1,0 +1,4 @@
+{
+  "_help": "Chorus of each track for chorus repeats (the loop button). File name -> [start, end] as m:ss or seconds. Tracks not listed use automatic detection.",
+  "Tes River's Hymn (Remastered 2025) 特斯河之赞 九宝乐队.mp3": ["0:28", "1:40"]
+}

@@ -10,7 +10,7 @@
          works fully offline (no CDN round-trip on export click). -->
     <script src="asset/vendor/jspdf.umd.min.js" defer></script>
     <script src="asset/vendor/html2canvas.min.js" defer></script>
-    <link rel="stylesheet" href="atc-skin.css?v=221" />
+    <link rel="stylesheet" href="atc-skin.css?v=233" />
     <style>
     /* Local Segoe UI (TTF files supplied in /asset/font/SegoeUI/) */
     @font-face {
@@ -88,6 +88,15 @@
       font-family: 'Noto Sans Sundanese';
       src: url("asset/font/Noto Sans Sundanese/NotoSansSundanese-Bold.ttf") format('truetype');
       font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    /* Local Noto Sans Mongolian — traditional Mongolian script for the
+       soundtrack lyrics (atc-music.js), set vertically. */
+    @font-face {
+      font-family: 'Noto Sans Mongolian';
+      src: url("asset/font/Noto Sans Mongolian/NotoSansMongolian-Regular.ttf") format('truetype');
+      font-weight: 400;
       font-style: normal;
       font-display: swap;
     }
@@ -1833,7 +1842,7 @@
     </style>
     <!-- Light mode. Must load AFTER the inline <style> above, since it
          overrides that block's hardcoded dark colour literals. -->
-    <link rel="stylesheet" href="atc-light.css?v=17" />
+    <link rel="stylesheet" href="atc-light.css?v=23" />
 </head>
 <body>
     <div class="title-section">
@@ -2049,10 +2058,11 @@
     <script src="data/exchange-rates.js"></script>
     <script src="data/city-native-names.js"></script>
     <script src="data/city-names-i18n.js"></script>
+    <script src="widget/chart-fx.js?v=9"></script>
     <script src="widget/country-trophy.js?v=11"></script>
-    <script src="animated-flight-map.js?v=21"></script>
+    <script src="animated-flight-map.js?v=26"></script>
     <script src="widget/danmaku.js"></script>
-    <script src="widget/fx-rate.js?v=4"></script>
+    <script src="widget/fx-rate.js?v=8"></script>
     <script src="widget/spending-heatmap.js?v=140"></script>
     <script src="widget/cost-choropleth.js?v=143"></script>
     <script src="widget/duration-trend.js?v=140"></script>
@@ -2065,9 +2075,9 @@
     <script src="widget/journey-timeline.js?v=140"></script>
     <script src="atc-bg.js?v=5"></script>
     <script src="atc-scope.js?v=63"></script>
-    <script src="atc-skin.js?v=193"></script>
+    <script src="atc-skin.js?v=197"></script>
     <script src="atc-theme.js?v=6"></script>
-    <script src="atc-music.js?v=8"></script>
+    <script src="atc-music.js?v=25"></script>
     <script src="data/asia-europe-border.js?v=1"></script>
     <script src="widget/final-boss.js?v=41"></script>
     <script>

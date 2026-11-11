@@ -688,3 +688,23 @@ body.atc-theming .leaflet-bar {
     border-color     var(--atc-theme-ms, 650ms) ease,
     color            var(--atc-theme-ms, 650ms) ease !important;
 }
+
+/* SGD/USD sparkline effects — light palette */
+body.atc-light .atc-fx-widget .atc-fx-hatch-line { stroke: rgba(17, 27, 36, 0.075); }
+
+body.atc-light .atc-fx-widget .atc-fx-cross { stroke: rgba(17, 27, 36, 0.38); }
+body.atc-light .atc-fx-widget .atc-fx-cross-dot { fill: #ffffff; stroke: var(--l-accent); }
+
+
+/* Soundtrack lyrics — light palette, same white halo as the corner labels */
+body.atc-light .atc-lyrics {
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.95), 0 0 2px rgba(255, 255, 255, 0.95);
+}
+body.atc-light .atc-lyrics .atc-lyr-mn { color: var(--l-accent); }
+body.atc-light .atc-lyrics .atc-lyr-cyr { color: var(--l-t1); }
+body.atc-light .atc-lyrics .atc-lyr-en { color: var(--l-t3); }
+body.atc-light .atc-lyr-timing { background: rgba(255, 255, 255, 0.94); border-color: var(--l-accent); }
+body.atc-light .atc-lyr-timing .t-head { color: var(--l-accent); }
+body.atc-light .atc-lyr-timing .t-next { color: var(--l-t1); }
+body.atc-light .atc-lyr-timing .t-sub,
+body.atc-light .atc-lyr-timing .t-keys { color: var(--l-t3); }

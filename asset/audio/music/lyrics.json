@@ -1,0 +1,6 @@
+{
+  "_help": "Lyrics shown top-left of the radar while a track plays. File name -> list of lines. Each line: t = when it starts (m:ss or seconds, position in the song file), mn = traditional Mongolian script (shown vertically), cyr = Mongolian Cyrillic, en = English. Leave a field empty to skip it. Lines are shown until the next line's time; add a line with all fields empty to clear the display (e.g. for an instrumental break).",
+  "Tes River's Hymn (Remastered 2025) 特斯河之赞 九宝乐队.mp3": [
+    { "t": "0:00", "mn": "", "cyr": "", "en": "" }
+  ]
+}

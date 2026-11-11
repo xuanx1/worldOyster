@@ -4139,7 +4139,9 @@ class AnimatedFlightMap {
                     tooltip: {
                         enabled: false,
                         external: (context) => this._mergedChartTooltip(context, 'leg')
-                    }
+                    },
+                    // bklit-style effects (widget/chart-fx.js), themed from the chart's own colours
+                    atcFx: { pattern: true, sweep: true, crosshair: true, reveal: true }
                 },
                 scales: {
                     x: {
@@ -4209,7 +4211,9 @@ class AnimatedFlightMap {
                         tooltip: {
                             enabled: false,
                             external: (context) => this._mergedChartTooltip(context, 'price')
-                        }
+                        },
+                        // bklit-style effects (widget/chart-fx.js), themed from the chart's own colours
+                        atcFx: { pattern: true, sweep: true, crosshair: true, reveal: true }
                     },
                     scales: {
                         x: {
@@ -4657,40 +4661,14 @@ class AnimatedFlightMap {
     _refreshChartsAfterAppend() {
         this._updateYAxisBounds();
         this._applyYBoundsToScales();
-        // Animated line extension — but only when someone can see it. Each
-        // animated update tweens every point of both charts for 600 ms
-        // (~1,250 points late in the journey), so skip the tween when the
-        // charts are scrolled off screen or legs arrive faster than the
-        // tween itself (10x and up).
-        // Also stop tweening once a chart is long: Chart.js builds animation
-        // state for EVERY point on an animated update (~100+ ms per leg at
-        // 1,000+ points, plus 600 ms of heavy frames), while the new segment
-        // it reveals is under a pixel wide by then.
-        const pointCount = this._chartDates ? this._chartDates.length : 0;
-        const animateCharts = this.speedMultiplier === 1 && pointCount <= 200 && this._chartsOnScreen();
-        if (this.legChart) this.legChart.update(animateCharts ? undefined : 'none');
-        if (this.priceChart) this.priceChart.update(animateCharts ? undefined : 'none');
+        // New points sweep in via the chart-fx reveal (widget/chart-fx.js),
+        // which only redraws. Chart.js's own animated update stays off: it
+        // builds animation state for every point (~100+ ms per leg at 1,000+
+        // points, plus 600 ms of heavy frames).
+        if (this.legChart) this.legChart.update('none');
+        if (this.priceChart) this.priceChart.update('none');
         this._updateScrollbar();
         this._updateFilterButtons();
-    }
-
-    // Tracked with an IntersectionObserver (no layout reads per call).
-    _chartsOnScreen() {
-        if (this._chartVis === undefined) {
-            this._chartVis = true;
-            if ('IntersectionObserver' in window) {
-                const seen = new Map();
-                const io = new IntersectionObserver(es => {
-                    es.forEach(e => seen.set(e.target, e.isIntersecting));
-                    this._chartVis = [...seen.values()].some(Boolean);
-                });
-                ['chartContainer', 'priceChartContainer'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) io.observe(el);
-                });
-            }
-        }
-        return this._chartVis;
     }
 
     rebuildChart() {

@@ -26,12 +26,25 @@ https://github.com/user-attachments/assets/097a7900-2ade-423a-a1e4-bb3e0098fff5
   - **Speed** follows the rhythm section by section, from 1× in sparse passages to 100× in the busiest. It follows rhythm, not loudness, so a quiet but driving section is still fast (activity correlates 0.91 with hits per second)
   - **Timeline-locked**: a timetable of when each leg starts in the song is precomputed from those speeds, and each leg is timed to land on its slot (measured drift ≈ 25 ms). Scrubbing, clicking the progress bar and REPLAY all seek the music to the matching point
 
+### 📈 Chart Effects
+Inspired by [bklit](https://bklit.com/charts/line-chart)'s line charts (which are React components), rebuilt as one Chart.js plugin, `widget/chart-fx.js`, for the Leg Efficiency and Adjusted Cost charts, plus matching SVG in the SGD/USD sparkline. Colours come from each chart's own series and the light/dark state, so every effect matches dark, light and J2L III.
+- **Sweep-in**: new points are uncovered left to right instead of snapping in. Only the newest stretch is redrawn, so it stays cheap on 1,000+ point charts
+- **Loading sweep**: a skeleton line with a diagonal shimmer while a chart has no data yet
+- **Diagonal pattern** background in place of grid lines (all three charts)
+- **Hover crosshair** with ringed points; on the SGD/USD sparkline it reads out that month's rate
+
 ### 🎥 Region Camera
 - While FOLLOW is on, the radar frames the region the arrow is in: all of Europe when touring Europe, North America in the US, East Asia around Japan and China, and so on (12 regions)
 - On a long haul it pulls out to keep the destination in view, then settles on the destination's region as the arrow lands
 - It's a separate factor on top of your own zoom: wheel-zoom still works, and dragging the globe or turning FOLLOW off eases the camera back
+- **Homecoming**: when the journey ends and the globe has eased back out, the radar dims and shows "Pa, Ma I'm home" over "THE WORLD WAS ALMOST MY OYSTER" (ALMOST in flowing rose gold) with a platinum trophy graphic (not an awarded achievement) under confetti poppers and fireworks. Click to dismiss; REPLAY stays clickable above it, and replaying or scrubbing clears it. With reduced motion on, it shows without the effects
 - Coastline detail follows the effective zoom, so a framed Europe uses the finer 50m coastline
+- **Plays through once**: the journey's pace is fitted so the last leg lands 2 s before the playlist ends, and the music never loops. Adding or removing tracks re-fits it automatically
+- **Eases in and out**: the first 20 s ramp smoothly from 1× up to the music-driven speed, and the last 5 s settle back to 1× before the arrow lands. The fit includes both ramps, so the ending still lands on time
+- **Chorus repeats (↻)**: on by default. Each track's chorus comes from `choruses.json` in the music folder (`{ "file.mp3": ["0:28", "1:40"] }`, times tuned to the nearest beat), or is detected automatically for tracks not listed (their most rhythmically active 16 bars). It is replayed as many times as needed for the journey to run about 490 s, a relaxed pace. Loops jump back an exact number of bars, so the beat carries straight through. A playlist already that long gets no repeats. Turn ↻ off to fit the journey to the music as-is (faster)
 - **Manual speed**: the speed button cycles ♪ BEAT → 1× → 10× → 20× → 100× → ♪ BEAT. At a manual speed the music plays alongside the journey without driving it
+- **Lyrics**: put a `.txt` next to a track with the same name (section headings, then `• Traditional Script:` / `• Cyrillic:` / `• English:` lines; Romanized is read but not shown). The current line shows top-left of the radar: traditional Mongolian set vertically in the bundled Noto Sans Mongolian, with Cyrillic and English beside it. Lines follow the position in the song, so chorus repeats replay them
+- **Lyric timing (Shift + L)**: plays the track from the start; press Space as each line begins, Backspace to undo, Esc to finish. It downloads (and copies) the same `.txt` with a `• Time:` before each line; replace the original with it. Untimed sections can instead use `Heading @ m:ss`, spread evenly
 - **J2L III soundtrack**: J2L III mode plays its own folder, `asset/audio/music-j2l/` (same drop-in rules), in order and looping. It is a plain soundtrack with no beat sync: in J2L III the speed button is manual only, and the main soundtrack pauses until you return to the main journey, then picks up where that journey is
 - **MUSIC toggle** in the playbar mutes it, and the choice is remembered. Hover it for the current track and its tempo
 - **Autoplay-safe**: Browsers block sound until you interact with the page, so the journey starts on its own at 1×; your first click or key press starts the music from the journey's current point

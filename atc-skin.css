@@ -9,7 +9,7 @@
         (sweep, scanlines, vignette, scope tag, mode readout,
         leader-line tag, side controls, hover tip, boot splash).
    ============================================================ */
-@import url("asset/font/google-fonts.css");
+@import url("asset/font/google-fonts.css?v=2");
 
 :root {
   /* Uniform scale for the whole viz. JS sets this to
@@ -2478,3 +2478,219 @@ body > .city-list-container,
 /* Top-right VIEW column: camera + layers (FOLLOW · RESET · ROUTES), then a
    gap, then the panels (TROPHY · J2L III). */
 .leaflet-control-custom.atc-mb.atc-mb-group { margin-top: 12px !important; }
+
+/* SGD/USD sparkline effects (widget/fx-rate.js) — hatch and hover crosshair,
+   matching the leg/price charts (widget/chart-fx.js). */
+.atc-fx-widget .atc-fx-chart { cursor: crosshair; }
+.atc-fx-widget .atc-fx-hatch-line { fill: none; stroke: rgba(255, 255, 255, 0.05); stroke-width: 1; }
+
+.atc-fx-widget .atc-fx-cross-dot {
+  fill: #070b10;
+  stroke: #4CAF50;
+  stroke-width: 1.3;
+  vector-effect: non-scaling-stroke;
+}
+.atc-fx-widget .atc-fx-cross {
+  stroke: rgba(255, 255, 255, 0.32);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+
+
+/* Chorus-repeat toggle (atc-music.js) — icon-only, same box as music/theme. */
+.atc-playbar .atc-pb-chorus { min-width: 26px; }
+
+/* Soundtrack lyrics (atc-music.js) — top-left of the radar, under the corner
+   label: traditional Mongolian set vertically, then Cyrillic and English. */
+.atc-lyrics {
+  position: absolute;
+  top: 46px;
+  left: 14px;
+  z-index: 700;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 46%;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-3px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  font-family: var(--atc-mono);
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.85);
+}
+.atc-lyrics.on { opacity: 1; transform: none; }
+.atc-lyrics .atc-lyr-mn {
+  writing-mode: vertical-lr;
+  font-family: 'Noto Sans Mongolian', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  max-height: 170px;
+  color: var(--atc-accent);
+}
+.atc-lyrics .atc-lyr-cyr {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #e8e8e8;
+}
+.atc-lyrics .atc-lyr-en {
+  margin-top: 3px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  color: rgba(232, 232, 232, 0.6);
+}
+
+/* Lyric timing tool (Shift+L, atc-music.js) — panel under the corner label */
+.atc-lyr-timing {
+  position: absolute;
+  top: 46px;
+  left: 14px;
+  z-index: 710;
+  max-width: 60%;
+  padding: 8px 10px;
+  border: 1px solid rgba(76, 175, 80, 0.45);
+  background: rgba(7, 11, 16, 0.88);
+  font-family: var(--atc-mono);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+.atc-lyr-timing.on { opacity: 1; }
+.atc-lyr-timing .t-head { font-size: 9px; letter-spacing: 0.2em; color: var(--atc-accent); margin-bottom: 5px; }
+.atc-lyr-timing .t-next { font-size: 13px; font-weight: 600; color: #e8e8e8; line-height: 1.35; }
+.atc-lyr-timing .t-sub { font-size: 10px; color: rgba(232, 232, 232, 0.6); margin-top: 2px; }
+.atc-lyr-timing .t-keys { font-size: 9px; letter-spacing: 0.08em; color: var(--atc-dim); margin-top: 6px; }
+
+/* Lyrics text morph (atc-music.js morphTo): two stacked layers per field —
+   the outgoing one blurs, spreads and fades while the incoming one sharpens
+   and draws together in the same spot. Morphing to empty is the exit. */
+.atc-lyrics .atc-lyr-mn,
+.atc-lyrics .atc-lyr-cyr,
+.atc-lyrics .atc-lyr-en { display: grid; }
+.atc-lyrics .lyr-layer {
+  grid-area: 1 / 1;
+  transition: opacity 0.55s ease, filter 0.55s ease, letter-spacing 0.55s ease;
+}
+.atc-lyrics .lyr-layer.in { opacity: 1; filter: blur(0); }
+.atc-lyrics .lyr-layer.pre,
+.atc-lyrics .lyr-layer.out { opacity: 0; filter: blur(9px); letter-spacing: 0.32em; }
+.atc-lyrics .lyr-layer.pre { transition: none; }
+.atc-lyrics .lyr-layer:not(.in):not(.pre):not(.out) { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .atc-lyrics .lyr-layer.pre,
+  .atc-lyrics .lyr-layer.out { filter: none; letter-spacing: inherit; }
+}
+
+/* ---------- homecoming: end-of-journey screen (atc-skin.js) ----------
+   Dark in both themes. Sits over the scope, HUD and lyrics (≤760), under
+   the boot splash (800) and the map controls (900). The play bar is lifted
+   above it while it shows, so REPLAY stays usable. */
+.atc-home {
+  position: absolute; inset: 0;
+  z-index: 780;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at 50% 45%, rgba(6, 9, 14, 0.78), rgba(2, 4, 8, 0.93));
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.9s ease, visibility 0s linear 0.9s;
+  cursor: pointer;
+}
+.atc-home.show {
+  opacity: 1; visibility: visible; pointer-events: auto;
+  transition: opacity 0.9s ease;
+}
+.atc-home-fx {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+.atc-home-card {
+  position: relative;
+  text-align: center;
+  padding: 0 16px;
+  opacity: 0;
+  transform: translateY(14px) scale(0.96);
+  transition: opacity 0.9s ease 0.35s, transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s;
+}
+.atc-home.show .atc-home-card { opacity: 1; transform: none; }
+.atc-home-trophy {
+  width: 112px; height: 112px;
+  margin: 0 auto 16px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(183, 110, 121, 0.38), rgba(183, 110, 121, 0) 70%);
+}
+.atc-home-trophy svg {
+  width: 80px; height: 80px;
+  fill: #E8B4BC;
+  filter: drop-shadow(0 0 10px rgba(183, 110, 121, 0.85));
+  animation: atc-home-glow 2.4s ease-in-out infinite alternate;
+}
+@keyframes atc-home-glow {
+  from { filter: drop-shadow(0 0 6px rgba(183, 110, 121, 0.6)); }
+  to   { filter: drop-shadow(0 0 18px rgba(232, 180, 188, 0.95)); }
+}
+/* Same type as the page title ("IS THE WORLD YOUR 🦪?"): thin Segoe UI,
+   uppercase, tracked out. */
+.atc-home-title {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 100;
+  font-size: clamp(26px, 3.6vw, 48px);
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+}
+.atc-home-sub {
+  margin-top: 12px;
+  font-family: var(--atc-mono);
+  font-size: 13px;
+  letter-spacing: 0.32em;
+  color: rgba(255, 255, 255, 0.86);
+}
+/* Typing: every character is laid out up front and revealed one by one,
+   so the centred lines don't shift. The caret rides on the last one. */
+.atc-home-ch { position: relative; visibility: hidden; }
+.atc-home-ch.on { visibility: visible; }
+.atc-home-ch.cur::after {
+  content: '';
+  position: absolute;
+  top: 0.08em; bottom: 0.08em; right: -0.12em;
+  width: 0.06em; min-width: 2px;
+  background: rgba(255, 255, 255, 0.9);
+  animation: atc-home-caret 1s steps(1) infinite;
+}
+@keyframes atc-home-caret { 50% { opacity: 0; } }
+/* "ALMOST": italic rose gold. Its colour flows through once after it is
+   typed (a seamless symmetric gradient, endpoints matching, slid one
+   tile), then rests. */
+.atc-home-almost {
+  font-weight: 600;
+  font-style: italic;
+  background-image: linear-gradient(
+    90deg,
+    #8c5a4f 0%, #b76e79 12.5%, #d4949a 25%, #ecbfae 37.5%, #fbe3d6 50%,
+    #ecbfae 62.5%, #d4949a 75%, #b76e79 87.5%, #8c5a4f 100%
+  );
+  background-size: 200px 100%;
+  background-repeat: repeat-x;
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 0 6px rgba(183, 110, 121, 0.55));
+}
+.atc-home-almost.flow { animation: atc-home-almost-flow 1.8s ease-in-out 1; }
+@keyframes atc-home-almost-flow {
+  from { background-position: 0 0; }
+  to   { background-position: 200px 0; }
+}
+.map-container.atc-home-on .atc-playbar { z-index: 790; }
+@media (prefers-reduced-motion: reduce) {
+  .atc-home, .atc-home.show, .atc-home-card { transition: none; }
+  .atc-home-trophy svg { animation: none; }
+  .atc-home-almost.flow { animation: none; }
+  .atc-home-ch.cur::after { animation: none; }
+}

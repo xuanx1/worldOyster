@@ -5,12 +5,17 @@
 // step with the animation's current flight date, with a dot riding the head of
 // it. Values between annual averages are interpolated, so the dot moves
 // continuously through a year rather than snapping on 1 January.
+//
+// Matching the leg/price charts (widget/chart-fx.js, after bklit.com's line
+// charts): a diagonal hatch behind the plot and a hover crosshair that reads
+// out that month's rate.
 (function () {
     'use strict';
 
     const HOST_SEL = 'body > .stats-citylist-group > .stats-citylist-row';
     const VB_W = 360, VB_H = 46;      // viewBox units; CSS scales the width
     const PAD_L = 2, PAD_R = 2, PAD_T = 6, PAD_B = 6;
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     // pts: [{t: fractional year, rate}] at whatever resolution the data module
     // has - monthly once HISTORICAL_SGD_PER_USD_MONTHLY is populated, annual
@@ -89,10 +94,18 @@
                 '<span class="atc-fx-value"></span>' +
             '</div>' +
             '<svg class="atc-fx-chart" viewBox="0 0 ' + VB_W + ' ' + VB_H + '" preserveAspectRatio="none" aria-hidden="true">' +
-                '<defs><clipPath id="atc-fx-clip"><rect x="' + (-VB_W) + '" y="-4" width="' + VB_W + '" height="' + (VB_H + 8) + '"></rect></clipPath></defs>' +
+                '<defs>' +
+                    '<clipPath id="atc-fx-clip"><rect x="' + (-VB_W) + '" y="-4" width="' + VB_W + '" height="' + (VB_H + 8) + '"></rect></clipPath>' +
+                    '<pattern id="atc-fx-hatch" width="7" height="7" patternUnits="userSpaceOnUse">' +
+                        '<path class="atc-fx-hatch-line" d="M-1 8 L8 -1 M-1 1 L1 -1 M6 8 L8 6"></path>' +
+                    '</pattern>' +
+                '</defs>' +
+                '<rect class="atc-fx-hatch" x="0" y="0" width="' + VB_W + '" height="' + VB_H + '" fill="url(#atc-fx-hatch)"></rect>' +
                 '<path class="atc-fx-track" d="' + linePath() + '"></path>' +
                 '<path class="atc-fx-live" d="' + linePath() + '" clip-path="url(#atc-fx-clip)"></path>' +
                 '<circle class="atc-fx-dot" r="2.6" cx="0" cy="0"></circle>' +
+                '<line class="atc-fx-cross" x1="0" y1="0" x2="0" y2="' + VB_H + '"></line>' +
+                '<circle class="atc-fx-cross-dot" r="2.8" cx="0" cy="0"></circle>' +
             '</svg>' +
             '<div class="atc-fx-axis"><span>' + Math.floor(pts[0].t) + '</span>' +
                 '<span class="atc-fx-res">' + resolution + '</span>' +
@@ -103,9 +116,44 @@
             clip: card.querySelector('#atc-fx-clip rect'),
             dot: card.querySelector('.atc-fx-dot'),
             label: card.querySelector('.atc-fx-label'),
-            path: card.querySelector('.atc-fx-live')
+            path: card.querySelector('.atc-fx-live'),
+            svg: card.querySelector('.atc-fx-chart'),
+            cross: card.querySelector('.atc-fx-cross'),
+            crossDot: card.querySelector('.atc-fx-cross-dot')
         };
         totalLen = els.path.getTotalLength();
+        wireCrosshair();
+    }
+
+    // ── Hover crosshair ─────────────────────────────────────────────────
+    let hovering = false, hoverRect = null;
+    function wireCrosshair() {
+        const svg = els.svg;
+        const show = on => { els.cross.style.display = els.crossDot.style.display = on ? '' : 'none'; };
+        show(false);
+        svg.addEventListener('pointerenter', () => { hoverRect = svg.getBoundingClientRect(); });
+        svg.addEventListener('pointermove', e => {
+            if (!hoverRect || !hoverRect.width) hoverRect = svg.getBoundingClientRect();
+            const vx = Math.max(PAD_L, Math.min(VB_W - PAD_R, (e.clientX - hoverRect.left) / hoverRect.width * VB_W));
+            const first = pts[0].t, last = pts[pts.length - 1].t;
+            const t = first + (vx - PAD_L) / (VB_W - PAD_L - PAD_R) * (last - first);
+            const r = rateAt(t);
+            els.cross.setAttribute('x1', vx.toFixed(2));
+            els.cross.setAttribute('x2', vx.toFixed(2));
+            els.crossDot.style.transform = 'translate(' + vx.toFixed(2) + 'px, ' + yAt(r).toFixed(2) + 'px) scale(1, ' + aspectFix.toFixed(4) + ')';
+            const yr = Math.floor(t), mo = Math.min(11, Math.floor((t - yr) * 12));
+            // Short date so the readout fits the header ("1.3591 · Dec ’19").
+            els.value.textContent = r.toFixed(4) + ' · ' + MONTHS[mo] + ' ’' + String(yr).slice(-2);
+            hovering = true;
+            show(true);
+        });
+        svg.addEventListener('pointerleave', () => {
+            hovering = false;
+            hoverRect = null;
+            show(false);
+            lastKey = '';                      // restore the live readout
+            paint();
+        });
     }
 
     // ── Dot travel ──────────────────────────────────────────────────────
@@ -173,13 +221,13 @@
         if (yf === null) {
             els.clip.style.transform = 'translate(0px, 0px)';
             els.dot.style.display = 'none';
-            els.value.textContent = '—';
+            if (!hovering) els.value.textContent = '—';
             curLen = null;
             return;
         }
         const rate = rateAt(yf);
         els.dot.style.display = '';
-        els.value.textContent = rate.toFixed(4);
+        if (!hovering) els.value.textContent = rate.toFixed(4);
         glideTo(xAt(yf));
     }
 
