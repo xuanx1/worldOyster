@@ -201,7 +201,7 @@ window.CITY_TO_COUNTRY = {
 
     // Europe - France
     'Paris': 'France', 'Versailles': 'France', 'Monaco': 'Monaco', 'Nice': 'France',
-    'Marseille': 'France', 'Narbonne': 'France',
+    'Marseille': 'France', 'Montpellier': 'France', 'Narbonne': 'France', 'Strasbourg': 'France',
 
     // Europe - Netherlands
     'Amsterdam': 'Netherlands', 'Utrecht': 'Netherlands', 'Rotterdam': 'Netherlands', 'The Hague': 'Netherlands',
@@ -222,14 +222,14 @@ window.CITY_TO_COUNTRY = {
 
     // Europe - Italy
     'Rome': 'Italy', 'Florence': 'Italy', 'Venice': 'Italy', 'Milan': 'Italy', 'Verona': 'Italy',
-    'Turin': 'Italy', 'Brescia': 'Italy', 'Naples': 'Italy', 'Pompeii': 'Italy',
+    'Turin': 'Italy', 'Brescia': 'Italy', 'Naples': 'Italy', 'Pompeii': 'Italy', 'Bari': 'Italy',
     'Salerno': 'Italy', 'Amalfi': 'Italy', 'Catania': 'Italy', 'Palermo': 'Italy', 'Modena': 'Italy',
     'Rimini': 'Italy', 'Caserta': 'Italy', 'Genoa': 'Italy', 'La Spezia': 'Italy', 'Como': 'Italy', 'Monza': 'Italy',
     'Vatican City': 'Vatican City', 'San Marino': 'San Marino', 'Bozen': 'Italy', 'Trieste': 'Italy', 'Novara': 'Italy', 'Pisa': 'Italy',
 
     // Europe - Nordic
     'Stockholm': 'Sweden', 'Gothenburg': 'Sweden', 'Malmö': 'Sweden', 'Malmo': 'Sweden',
-    'Copenhagen': 'Denmark', 'Oslo': 'Norway', 'Reykjavik': 'Iceland', 'Helsinki': 'Finland', 'Espoo': 'Finland',
+    'Copenhagen': 'Denmark', 'Oslo': 'Norway', 'Reykjavik': 'Iceland', 'Akureyri': 'Iceland', 'Helsinki': 'Finland', 'Espoo': 'Finland',
 
     // Europe - Eastern Europe
     'Warsaw': 'Poland', 'Krakow': 'Poland', 'Poznan': 'Poland',
@@ -239,6 +239,7 @@ window.CITY_TO_COUNTRY = {
     'Ljubljana': 'Slovenia', 'Zagreb': 'Croatia', 'Bratislava': 'Slovakia',
     'Sarajevo': 'Bosnia and Herzegovina', 'Mostar': 'Bosnia and Herzegovina', 'Visoko': 'Bosnia and Herzegovina',
     'Podgorica': 'Montenegro', 'Kotor': 'Montenegro', 'Bar': 'Montenegro', 'Tirana': 'Albania', 'Iasi': 'Romania',
+    'Chisinau': 'Moldova', 'Tiraspol': 'Transnistria',
 
 
     // Europe - Greece & Balkans
@@ -260,6 +261,7 @@ window.CITY_TO_COUNTRY = {
     'Kénitra': 'Morocco', 'Kenitra': 'Morocco', 'Salé': 'Morocco', 'Sale': 'Morocco',
     'Ouarzazate': 'Morocco', 'Aït Benhaddou': 'Morocco', 'Ait Benhaddou': 'Morocco',
     'Tunis': 'Tunisia', 'Bizerte': 'Tunisia', 'Carthage': 'Tunisia',
+    'Sousse': 'Tunisia', 'Monastir': 'Tunisia', 'Sfax': 'Tunisia',
     'Algiers': 'Algeria', 'Oran': 'Algeria', 'Constantine': 'Algeria',
     'Larnaca': 'Cyprus', 'Nicosia': 'Cyprus', 'Kyrenia': 'Northern Cyprus',
 

@@ -17,7 +17,9 @@
     "Monaco": "Mùnegu",
     "Nice": "Niça",
     "Marseille": "Marselha",
+    "Montpellier": "Montpellier",
     "Narbonne": "Narbona",
+    "Strasbourg": "Straßburg / Strasbourg",
     "Amsterdam": "Amsterdam",
     "Utrecht": "Utrecht",
     "Rotterdam": "Rotterdam",
@@ -51,6 +53,7 @@
     "Florence": "Firenze",
     "Venice": "Venezia",
     "Milan": "Milano",
+    "Bari": "Bari",
     "Verona": "Verona",
     "Turin": "Torino",
     "Genoa": "Genova / Zena",
@@ -146,6 +149,8 @@
     "Karyes": "Καρυές",
     "Tirana": "Tiranë",
     "Iasi": "Iași",
+    "Chisinau": "Chișinău",
+    "Tiraspol": "Тирасполь",
 
     /* --- Asia / Southeast Asia  --- */
     "Seoul": "서울",
@@ -333,6 +338,9 @@
     "Casablanca": "الدار البيضاء",
     "Chefchaoun": "شفشاون",
     "Tunis": "تونس",
+    "Sousse": "سوسة",
+    "Monastir": "المنستير",
+    "Sfax": "صفاقس",
     "Carthage": "قرطاج",
     "Algiers": "الجزائر",
     "Marrakech": "مراكش",
@@ -430,6 +438,7 @@
 
     /* --- Misc / islands / others --- */
     "Reykjavik": "Reykjavík",
+    "Akureyri": "Akureyri",
 
     /* --- J2L III (fbl-journey.csv) additions --- */
     "St Petersburg": "Санкт-Петербург",

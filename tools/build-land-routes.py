@@ -121,6 +121,35 @@ VIA = {
         'from': (45.8317, 9.0355),
         'to': (45.8095, 9.0733),
     },
+    ('Madrid', 'Barcelona', 'rail'): {
+        'from': (40.4066, -3.6891),  # Madrid Atocha
+        'to': (41.3792, 2.1401),     # Barcelona Sants
+    },
+    ('Barcelona', 'Madrid', 'rail'): {
+        'from': (41.3792, 2.1401),   # Barcelona Sants
+        'to': (40.4066, -3.6891),    # Madrid Atocha
+    },
+    ('Frankfurt', 'Strasbourg', 'rail'): {
+        'from': (50.1067, 8.6626),   # Frankfurt (Main) Hauptbahnhof
+        'to': (48.5853, 7.7339),     # Strasbourg
+    },
+    ('Strasbourg', 'Basel', 'rail'): {
+        'from': (48.5853, 7.7339),  # Strasbourg station
+        'via': [
+            (47.7421, 7.3431),       # Mulhouse-Ville
+            (47.5901, 7.5554),       # Saint-Louis
+        ],
+        'to': (47.5468, 7.5894),    # Basel SBB south rail approach
+    },
+    # The paired Iceland drives form a loop: the outbound leg follows the
+    # northern Ring Road, and the return follows the east and south coasts.
+    ('Akureyri', 'Reykjavik', 'car-fast'): {
+        'via': [
+            (65.2620, -14.4035),  # Egilsstaðir
+            (64.2533, -15.2080),  # Höfn
+            (63.4188, -19.0055),  # Vík
+        ],
+    },
     ('Kuala Lumpur', 'Singapore', 'rail'): {
         'from': (3.1344, 101.6864),
         'via': [(1.4633, 103.7649)],

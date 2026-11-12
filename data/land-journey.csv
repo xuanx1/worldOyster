@@ -1,4 +1,6 @@
 origin,destination,mode,cost_sgd,date
+Reykjavik,Akureyri,car,150,13/7/2017
+Akureyri,Reykjavik,car,150,15/7/2017
 Bangkok,Kanchanaburi,bus,20.5,16/6/2018
 Kanchanaburi,Bangkok,bus,20.5,30/6/2018
 Singapore,Pengerang,ferry,13,13/10/2018
@@ -140,6 +142,8 @@ Milan,Rimini,train,19.5,31/10/2022
 Rimini,San Marino,bus,3.5,31/10/2022
 San Marino,Rimini,bus,3.5,31/10/2022
 Rimini,Milan,train,19.5,31/10/2022
+Milan,Bari,train,30.45,1/11/2022
+Bari,Milan,train,30.45,3/11/2022
 Milan,Verona,train,30.45,10/11/2022
 Verona,Bozen,train,30.45,10/11/2022
 Bozen,Verona,train,30.45,12/11/2022
@@ -165,26 +169,40 @@ Budapest,Vienna,train,33.6,8/12/2022
 Vienna,Bratislava,train,15.9,8/12/2022
 Bratislava,Vienna,train,15.9,8/12/2022
 Vienna,Budapest,train,33.6,8/12/2022
+London,Bath,train,25.2,31/12/2022
+Bath,Bristol,train,17.1,31/12/2022
+Bristol,London,train,33,31/12/2022
+London,Edinburgh,train,47.5,2/1/2023
+Edinburgh,Glasgow,train,20.5,2/1/2023
+Glasgow,London,train,63.1,2/1/2023
+Madrid,Barcelona,train,26.45,1/2/2023
+Barcelona,Madrid,train,26.45,1/2/2023
 Madrid,Valencia,train,51.13,2/2/2023
 Valencia,Madrid,train,46.2,2/2/2023
 Milan,Innsbruck,bus,31,11/2/2023
 Innsbruck,Munich,train,47,11/2/2023
 Munich,Stuttgart,train,33,13/2/2023
 Stuttgart,Frankfurt,train,18,13/2/2023
-Frankfurt,Basel,train,56,13/2/2023
+Frankfurt,Strasbourg,train,18,13/2/2023
+Strasbourg,Basel,train,21,13/2/2023
 Basel,Zurich,train,37,14/2/2023
 Zurich,Milan,train,46,14/2/2023
 Tunis,Bizerte,bus,2.12,12/3/2023
 Bizerte,Tunis,bus,2.12,12/3/2023
 Tunis,Carthage,bus,1.5,12/3/2023
 Carthage,Tunis,bus,1.5,12/3/2023
+Tunis,Sousse,bus,3.5,12/3/2023
+Sousse,Monastir,bus,3.5,12/3/2023
+Monastir,Sfax,bus,3.5,12/3/2023
+Sfax,Tunis,bus,13.5,12/3/2023
 Warsaw,Poznan,train,16.9,8/4/2023
 Poznan,Berlin,train,24.7,8/4/2023
 Berlin,Hamburg,bus,23.99,11/4/2023
 Milan,Monaco,train,32.7,15/4/2023
 Monaco,Nice,train,7.35,15/4/2023
 Nice,Marseille,bus,15,15/4/2023
-Marseille,Narbonne,bus,17.99,16/4/2023
+Marseille,Montpellier,bus,9.72,16/4/2023
+Montpellier,Narbonne,bus,10.25,16/4/2023
 Narbonne,Marseille,bus,22.49,17/4/2023
 Thessaloniki,Ouranoupoli,bus,27.9,12/5/2023
 Ouranoupoli,Daphni,ferry,14.25,12/5/2023
@@ -253,6 +271,10 @@ Amsterdam,Cologne,bus,82.47,21/12/2023
 Cologne,Amsterdam,bus,82.47,22/12/2023
 Belgrade,Novi Sad,train,4.5,31/12/2023
 Novi Sad,Belgrade,train,4.5,31/12/2023
+Iasi,Chisinau,bus,10,8/2/2024
+Chisinau,Tiraspol,bus,6,8/2/2024
+Tiraspol,Chisinau,bus,5,8/2/2024
+Chisinau,Iasi,bus,9,8/2/2024
 Istanbul,Ankara,train,19.22,10/2/2024
 Ankara,Istanbul,train,19.35,29/2/2024
 Algiers,Oran,train,1.27,18/3/2024

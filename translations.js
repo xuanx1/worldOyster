@@ -96,6 +96,7 @@
             madeWith: 'Made with',
             forTravelling: 'for travelling',
             sourceCode: 'Source Code',
+            datesObfuscated: 'Dates obfuscated for privacy',
             language: 'Language',
 
             // Flights
@@ -388,6 +389,7 @@
             madeWith: 'صُنع بـ',
             forTravelling: 'للسفر',
             sourceCode: 'الشيفرة المصدرية',
+            datesObfuscated: 'التواريخ مُموّهة حفاظًا على الخصوصية',
             language: 'اللغة',
 
             flights: 'رحلات',
@@ -660,6 +662,7 @@
             madeWith: '为了旅行的',
             forTravelling: '而造',
             sourceCode: '源代码',
+            datesObfuscated: '日期已模糊处理以保护隐私',
             language: '语言',
 
             flights: '航班',
@@ -932,6 +935,7 @@
             madeWith: 'Fait avec',
             forTravelling: 'pour le voyage',
             sourceCode: 'Code source',
+            datesObfuscated: 'Dates masquées pour protéger la vie privée',
             language: 'Langue',
 
             flights: 'vols',
@@ -1204,6 +1208,7 @@
             madeWith: 'Сделано с',
             forTravelling: 'для путешествий',
             sourceCode: 'Исходный код',
+            datesObfuscated: 'Даты скрыты для защиты конфиденциальности',
             language: 'Язык',
 
             flights: 'рейсов',
@@ -1476,6 +1481,7 @@
             madeWith: 'Hecho con',
             forTravelling: 'para viajar',
             sourceCode: 'Código fuente',
+            datesObfuscated: 'Fechas modificadas para proteger la privacidad',
             language: 'Idioma',
 
             flights: 'vuelos',
