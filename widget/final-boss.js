@@ -1208,7 +1208,7 @@
     if (!fm || !fm.map) return;
     const FblCtl = L.Control.extend({
       onAdd: function () {
-        const btn = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb fbl-btn');
+        const btn = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb atc-mb-group fbl-btn');
         // Skull icon for Final Boss / J2L III
         const icon =
           '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +

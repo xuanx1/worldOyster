@@ -679,7 +679,6 @@ class AnimatedFlightMap {
         // currentColor lets the leaflet-control CSS drive the
         // green/highlight colour.
         const ICON = {
-          reset:  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/></svg>',
           pause:  '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
           play:   '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>',
           ff:     '<svg viewBox="0 0 24 24" width="16" height="14" fill="currentColor"><polygon points="3 4 12 12 3 20"/><polygon points="13 4 22 12 13 20"/></svg>',
@@ -689,27 +688,6 @@ class AnimatedFlightMap {
           trophy: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 6h3v2a3 3 0 0 1-3 3"/><path d="M7 6H4v2a3 3 0 0 0 3 3"/></svg>'
         };
         this._atcIcon = ICON;
-        // Create reset view control
-        const ResetViewControl = L.Control.extend({
-            onAdd: function(map) {
-                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb');
-                button.innerHTML = ICON.reset + '<span class="atc-lb">RESET</span>';
-                button.title = window.i18n ? window.i18n.t('resetView') : 'Reset View';
-                
-                L.DomEvent.disableClickPropagation(button);
-                button.onclick = (e) => {
-                    L.DomEvent.stop(e);
-                    // The ATC skin resets both the map and the radar (and
-                    // re-centres it on the arrow); plain Leaflet otherwise.
-                    if (typeof window._atcResetView === 'function') { window._atcResetView(); return; }
-                    map.setView([20, 100], 1.45);
-                    try { this.updatePanningState(); } catch (err) { /* defensive */ }
-                };
-                
-                return button;
-            }.bind(this)
-        });
-        
         // Create play/pause animation control
         const PlayPauseAnimationControl = L.Control.extend({
             onAdd: function(map) {
@@ -793,19 +771,18 @@ class AnimatedFlightMap {
         
         // Controls are grouped by purpose. Time — play/pause, speed, music,
         // theme — lives in the bottom-left .atc-playbar (atc-skin.js). The
-        // top-right column is the VIEW: camera first (FOLLOW, RESET), then
-        // layers (ROUTES); after a gap, the panels (TROPHY, and J2L III which
-        // final-boss.js adds last). Leaflet stacks top-right controls in the
-        // order they are added.
+        // top-right column is the VIEW: camera first (FOLLOW), then
+        // layers (ROUTES), TROPHY; after a gap, J2L III (which final-boss.js
+        // adds last, with atc-mb-group). Leaflet stacks top-right controls in the
+        // order they are added. There is no separate RESET: it only re-centred
+        // on the arrow and turned follow on, which FOLLOW already does.
         new FollowDotControl({ position: 'topright' }).addTo(this.map);
-        new ResetViewControl({ position: 'topright' }).addTo(this.map);
         new ToggleLinesControl({ position: 'topright' }).addTo(this.map);
 
         // Achievements panel button
         const AchievementsControl = L.Control.extend({
             onAdd: function() {
-                // atc-mb-group: starts the panels group (gap above it)
-                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb atc-mb-group');
+                const button = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom atc-mb');
                 button.innerHTML = ICON.trophy + '<span class="atc-lb">TROPHY</span>';
                 button.title = window.i18n ? window.i18n.t('achievements') : 'Achievements';
                 button.onclick = (e) => {

@@ -253,10 +253,10 @@ window.CITY_TO_COUNTRY = {
     'Beirut': 'Lebanon', 'Tripoli': 'Lebanon', 'Batroun': 'Lebanon', 'Jerusalem': 'Israel', 'Tel Aviv': 'Israel', 'Eilat': 'Israel',
     'Haifa': 'Israel', "Be'er Sheva": 'Israel', 'Herzliya': 'Israel', 'Holon': 'Israel', 'Beit Shemesh': 'Israel',
     'Jericho': 'Palestine', 'Ramallah': 'Palestine', 'Bethlehem': 'Palestine', 'Hebron': 'Palestine',
-    'Amman': 'Jordan', 'Petra': 'Jordan', 'Taba': 'Egypt',
+    'Amman': 'Jordan', 'Petra': 'Jordan', 'Aqaba': 'Jordan', 'Taba': 'Egypt',
 
     // Africa
-    'Cairo': 'Egypt', 'Alexandria': 'Egypt', 'Luxor': 'Egypt', 'New Cairo City': 'Egypt', '6 October City': 'Egypt', 'Suez': 'Egypt',
+    'Cairo': 'Egypt', 'Alexandria': 'Egypt', 'Luxor': 'Egypt', 'New Cairo City': 'Egypt', '6 October City': 'Egypt', 'Suez': 'Egypt', 'St. Catherine': 'Egypt',
     'Casablanca': 'Morocco', 'Marrakech': 'Morocco', 'Chefchaoun': 'Morocco', 'Tangier': 'Morocco', 'Rabat': 'Morocco', 'Marrakesh': 'Morocco',
     'Kénitra': 'Morocco', 'Kenitra': 'Morocco', 'Salé': 'Morocco', 'Sale': 'Morocco',
     'Ouarzazate': 'Morocco', 'Aït Benhaddou': 'Morocco', 'Ait Benhaddou': 'Morocco',
@@ -275,7 +275,7 @@ window.CITY_TO_COUNTRY = {
     'Nanyang': 'PR China', 'Xian': 'PR China', "Xi'an": 'PR China', 'Xianyang': 'PR China', 'Lanzhou': 'PR China', 'Haikou': 'PR China',
     'Guangzhou': 'PR China', 'Shenzhen': 'PR China', 'Foshan': 'PR China', 'Nanning': 'PR China', 'Kunming': 'PR China', 'Hekou': 'PR China',
     'Hong Kong': 'PR China', 'Macau': 'PR China', 'Zhuhai': 'PR China',
-    'Taipei': 'ROC Taiwan', 'Taichung': 'ROC Taiwan', 'Tainan': 'ROC Taiwan', 'Kaohsiung': 'ROC Taiwan',
+    'Taipei': 'ROC Taiwan', 'Taichung': 'ROC Taiwan', 'Tainan': 'ROC Taiwan', 'Kaohsiung': 'ROC Taiwan', 'Keelung': 'ROC Taiwan',
     'Kuala Lumpur': 'Malaysia', 'Putrajaya': 'Malaysia',
     'Singapore': 'Singapore', 'Johor Bahru': 'Malaysia', 'Malacca': 'Malaysia', 'Batam': 'Indonesia',
     'Penang': 'Malaysia', 'Pengerang': 'Malaysia', 'Kota Kinabalu': 'Malaysia', 'Kuching': 'Malaysia', 'Miri': 'Malaysia', 'Bandar Seri Begawan': 'Brunei',
@@ -293,8 +293,9 @@ window.CITY_TO_COUNTRY = {
     'Colombo': 'Sri Lanka', 'Kandy': 'Sri Lanka', 'Galle': 'Sri Lanka', 'Sigiriya': 'Sri Lanka', 'Dambulla': 'Sri Lanka', 'Anuradhapura': 'Sri Lanka',
     'Dhaka': 'Bangladesh',
     'Paro': 'Bhutan', 'Thimphu': 'Bhutan', 'Punakha': 'Bhutan',
-    'Tashkent': 'Uzbekistan', 'Samarkand': 'Uzbekistan', 'Bukhara': 'Uzbekistan', 'Khiva': 'Uzbekistan',
-    'Shymkent': 'Kazakhstan', 'Baikonur': 'Kazakhstan',
+    'Tashkent': 'Uzbekistan', 'Samarkand': 'Uzbekistan', 'Bukhara': 'Uzbekistan', 'Khiva': 'Uzbekistan', 'Jartepa': 'Uzbekistan', 'Navoiy': 'Uzbekistan',
+    'Sarazm': 'Tajikistan', 'Panjakent': 'Tajikistan', 'Dushanbe': 'Tajikistan',
+    'Shymkent': 'Kazakhstan', 'Kaplanbek': 'Kazakhstan', 'Baikonur': 'Kazakhstan',
     'Ulaanbaatar': 'Mongolia',
     'Turkmenabat': 'Turkmenistan', 'Merv': 'Turkmenistan', 'Mary': 'Turkmenistan',
     'Ashgabat': 'Turkmenistan', 'Darvaza': 'Turkmenistan', 'Dashoguz': 'Turkmenistan',
@@ -307,7 +308,7 @@ window.CITY_TO_COUNTRY = {
     'Boston': 'USA', 'Atlantic City': 'USA', 'Washington, D.C.': 'USA',
     'Toronto': 'Canada', 'Vancouver': 'Canada', 'Montreal': 'Canada', 'Ottawa': 'Canada', 'Niagara': 'Canada',
     'Tijuana': 'Mexico', 'Mexico City': 'Mexico', 'Oaxaca': 'Mexico',
-    'Miami': 'USA', 'Las Vegas': 'USA', 'Washington DC': 'USA', 'Denver': 'USA', 'New Orleans': 'USA',
+    'Miami': 'USA', 'Las Vegas': 'USA', 'Washington DC': 'USA', 'Denver': 'USA', 'New Orleans': 'USA', 'Baton Rouge': 'USA',
 
     // South America
     'La Paz': 'Bolivia', 'Uyuni': 'Bolivia', 'Puno': 'Peru', 'Cusco': 'Peru', 'Cuzco': 'Peru',
@@ -316,7 +317,7 @@ window.CITY_TO_COUNTRY = {
     'Tamanrasset': 'Algeria', 'Constantine': 'Algeria',
 
     // Middle East / North Africa extras
-    'Jeddah': 'Saudi Arabia', 'Mecca': 'Saudi Arabia', 'Medina': 'Saudi Arabia',
+    'Jeddah': 'Saudi Arabia', 'Mecca': 'Saudi Arabia', 'Madinah': 'Saudi Arabia',
     'Riyadh': 'Saudi Arabia', 'Dammam': 'Saudi Arabia', 'Al Khobar': 'Saudi Arabia',
     'Muscat': 'Oman', 'Salalah': 'Oman',
     'Abu Dhabi': 'UAE', 'Sharjah': 'UAE',

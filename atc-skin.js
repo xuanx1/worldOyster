@@ -796,15 +796,6 @@
         if (done && typeof fm.replayAnimation === 'function') fm.replayAnimation();
         else if (typeof fm.togglePlayPause === 'function') fm.togglePlayPause();
       });
-      // RESET lives in the top-right VIEW column (animated-flight-map.js);
-      // it calls this so it still resets both the map and the radar.
-      window._atcResetView = () => {
-        if (fm.map && fm.map.setView) fm.map.setView([20, 100], 1.45);
-        if (typeof fm.updatePanningState === 'function') {
-          try { fm.updatePanningState(); } catch (e) {}
-        }
-        recenterOnPlane();
-      };
       pb.querySelector('[data-act="speed"]').addEventListener('click', () => {
         if (typeof fm.cycleFastForward === 'function') fm.cycleFastForward();
       });

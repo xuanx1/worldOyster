@@ -64,7 +64,10 @@ SNAP_PATH = os.path.join(ROOT, 'data', 'land-routes.snap.json')
 # hard by IP and cannot carry a full rebuild.
 BROUTER = os.environ.get('BROUTER_URL', 'https://brouter.de/brouter')
 LOCAL = '127.0.0.1' in BROUTER or 'localhost' in BROUTER
-OVERPASS = 'https://overpass-api.de/api/interpreter'
+# Overrideable like BROUTER_URL, for pointing at a mirror. Windows curl
+# (schannel) has failed the TLS handshake with overpass-api.de; a failed batch
+# is cached as null ("no station"), so delete those snap keys before re-running.
+OVERPASS = os.environ.get('OVERPASS_URL', 'https://overpass-api.de/api/interpreter')
 UA = 'worldOyster-land-routes/1.0 (personal travel map; contact via repo)'
 
 # Mode -> BRouter profile. Modes absent here keep their great-circle arc.

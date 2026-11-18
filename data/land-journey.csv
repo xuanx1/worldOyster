@@ -83,7 +83,8 @@ Jerusalem,Bethlehem,bus,5,6/4/2022
 Bethlehem,Jerusalem,bus,5,6/4/2022
 Jerusalem,Amman,bus,3.68,6/4/2022
 Amman,Petra,bus,18,7/4/2022
-Petra,Amman,bus,18,8/4/2022
+Petra,Aqaba,bus,18,7/4/2022
+Aqaba,Amman,bus,18,8/4/2022
 Amman,Jerusalem,bus,0,9/4/2022
 Jerusalem,Tel Aviv,train,11,11/4/2022
 New York,Philadelphia,train,21,13/4/2022
@@ -98,7 +99,8 @@ Holon,Tel Aviv,train,3.4,20/4/2022
 Tel Aviv,Jerusalem,train,9.6,20/4/2022
 Jerusalem,Eilat,bus,15,3/5/2022
 Eilat,Taba,bus,15,4/5/2022
-Taba,Suez,car,129.57,4/5/2022
+Taba,St. Catherine,car,47.77,4/5/2022
+St. Catherine,Suez,car,81.8,4/5/2022
 Suez,Cairo,car,70.43,4/5/2022
 Jerusalem,Tel Aviv,train,9.6,8/5/2022
 Tel Aviv,Be'er Sheva,train,11.3,8/5/2022
@@ -253,6 +255,8 @@ Helsinki,Espoo,train,3.5,14/8/2023
 Espoo,Helsinki,train,3.5,14/8/2023
 Singapore,Batam,ferry,38,4/9/2023
 Batam,Singapore,ferry,38,5/9/2023
+Jeddah,Madinah,train,47,12/9/2023
+Madinah,Jeddah,train,47,12/9/2023
 Abu Dhabi,Sharjah,bus,13.76,14/9/2023
 Zurich,Milan,train,45,15/9/2023
 Milan,Novara,train,13,15/10/2023
@@ -359,6 +363,8 @@ Seattle,Tacoma,train,8.5,1/8/2025
 Tacoma,Seattle,train,8.5,1/8/2025
 Seattle,Vancouver,bus,56.53,2/8/2025
 Vancouver,Seattle,bus,56.53,4/8/2025
+New Orleans,Baton Rouge,bus,13.2,27/8/2025
+Baton Rouge,New Orleans,bus,13.2,27/8/2025
 La Paz,Uyuni,bus,14.3,2/9/2025
 Uyuni,La Paz,bus,14.3,4/9/2025
 La Paz,Puno,bus,14.3,5/9/2025
@@ -409,6 +415,8 @@ Singapore,Hatyai,bus,72,12/6/2026
 Hatyai,Songkhla,bus,1.57,13/6/2026
 Songkhla,Hatyai,bus,2,13/6/2026
 Hatyai,Singapore,bus,71,14/6/2026
+Taipei,Keelung,train,2.6,4/7/2026
+Keelung,Taipei,train,2.6,4/7/2026
 Taipei,Taichung,train,16.07,5/7/2026
 Taichung,Tainan,train,16.31,5/7/2026
 Tainan,Kaohsiung,train,20.82,5/7/2026
@@ -441,9 +449,20 @@ Xiamen,Zhangzhou,car,12.2,27/9/2026
 Zhangzhou,Xiamen,car,11.2,27/9/2026
 Kuala Lumpur,Putrajaya,train,2.5,2/10/2026
 Putrajaya,Kuala Lumpur,train,2.5,2/10/2026
-Tashkent,Shymkent,bus,6.2,5/10/2026
-Shymkent,Tashkent,bus,7.4,5/10/2026
+Tashkent,Navoiy,car,4.2,5/10/2026
+Navoiy,Kaplanbek,walk,0,5/10/2026
+Kaplanbek,Shymkent,car,4.8,5/10/2026
+Shymkent,Kaplanbek,car,5.6,5/10/2026
+Kaplanbek,Navoiy,walk,0,5/10/2026
+Navoiy,Tashkent,car,7.4,5/10/2026
 Tashkent,Samarkand,train,26,6/10/2026
+Samarkand,Jartepa,bus,2.15,6/10/2026
+Jartepa,Sarazm,walk,0,6/10/2026
+Sarazm,Panjakent,bus,2,6/10/2026
+Panjakent,Dushanbe,bus,10,6/10/2026
+Dushanbe,Sarazm,bus,12,6/10/2026
+Sarazm,Jartepa,walk,0,6/10/2026
+Jartepa,Samarkand,car,5.25,6/10/2026
 Samarkand,Bukhara,train,20.00,7/10/2026
 Bukhara,Turkmenabat,car,6,8/10/2026
 Turkmenabat,Merv,car,7,8/10/2026

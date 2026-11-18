@@ -2475,8 +2475,8 @@ body > .city-list-container,
 .atc-playbar .atc-pb-music,
 .atc-playbar .atc-pb-theme { min-width: 26px; }
 
-/* Top-right VIEW column: camera + layers (FOLLOW · RESET · ROUTES), then a
-   gap, then the panels (TROPHY · J2L III). */
+/* Top-right VIEW column: FOLLOW · ROUTES · TROPHY, then a
+   gap, then J2L III on its own. */
 .leaflet-control-custom.atc-mb.atc-mb-group { margin-top: 12px !important; }
 
 /* SGD/USD sparkline effects (widget/fx-rate.js) — hatch and hover crosshair,
